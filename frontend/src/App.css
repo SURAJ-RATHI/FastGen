@@ -1,0 +1,138 @@
+body {
+    background-color:#121212;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    margin: 0;
+    padding: 0;
+}
+
+/* Hide scrollbar for landing page while keeping scroll functionality */
+body::-webkit-scrollbar {
+    width: 0px;
+    background: transparent;
+}
+
+body::-webkit-scrollbar-thumb {
+    background: transparent;
+}
+
+/* For Firefox */
+body {
+    scrollbar-width: none;
+}
+
+/* For IE and Edge */
+body {
+    -ms-overflow-style: none;
+}
+
+/* Split component gutter styling */
+.gutter {
+    background-color: #3B82F6 !important; /* Blue color */
+    cursor: col-resize !important;
+    width: 8px !important;
+    min-width: 8px !important;
+    height: 100% !important; /* Full height of parent container */
+    min-height: 100% !important;
+    position: relative !important;
+    transition: all 0.2s ease;
+    flex-shrink: 0 !important; /* Prevent gutter from shrinking */
+    z-index: 1000 !important; /* High z-index to ensure it's above everything */
+    pointer-events: all !important; /* Ensure all pointer events work */
+    user-select: none !important; /* Prevent text selection during drag */
+    touch-action: none !important; /* Prevent touch scrolling during drag */
+}
+
+/* Ensure the gutter container also takes full height */
+.gutter-container {
+    height: 100% !important;
+    min-height: 100% !important;
+    display: flex !important;
+    align-items: stretch !important;
+}
+
+/* Make sure the split container has proper height */
+.split-container {
+    height: 100vh !important;
+    min-height: 100vh !important;
+    display: flex !important;
+}
+
+.gutter:hover {
+    background-color: #2563EB !important; /* Darker blue on hover */
+    width: 10px !important;
+    min-width: 10px !important;
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+    cursor: col-resize !important; /* Ensure resize cursor on hover */
+}
+
+/* Make sure the gutter is always interactive */
+.gutter:active {
+    cursor: col-resize !important; /* Ensure resize cursor while dragging */
+    background-color: #1D4ED8 !important; /* Even darker blue while active */
+}
+
+/* Ensure horizontal gutters are also wider and blue */
+.gutter-horizontal {
+    background-color: #3B82F6 !important; /* Blue color */
+    cursor: row-resize !important; /* Row resize cursor for horizontal gutters */
+    height: 100vh !important; /* Full viewport height */
+    min-height: 100vh !important; /* Full viewport height */
+    width: 8px !important; /* Fixed width */
+    min-width: 8px !important; /* Fixed width */
+    transition: all 0.2s ease;
+    z-index: 1000 !important; /* High z-index to ensure it's above everything */
+    pointer-events: all !important; /* Ensure all pointer events work */
+    user-select: none !important; /* Prevent text selection during drag */
+    touch-action: none !important; /* Prevent touch scrolling during drag */
+}
+
+.gutter-horizontal:hover {
+    background-color: #2563EB !important; /* Darker blue on hover */
+    height: 100vh !important; /* Maintain full height on hover */
+    min-height: 100vh !important; /* Maintain full height on hover */
+    width: 10px !important; /* Slightly wider on hover */
+    min-width: 10px !important; /* Slightly wider on hover */
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+    cursor: row-resize !important; /* Ensure resize cursor on hover */
+}
+
+/* Make the horizontal gutter interactive when dragging */
+.gutter-horizontal:active {
+    cursor: row-resize !important; /* Ensure resize cursor while dragging */
+    background-color: #1D4ED8 !important; /* Even darker blue while active */
+}
+
+/* Custom scrollbar styling */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #4B5563;
+    border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #6B7280;
+}
+
+/* Typing animation */
+.dot-flash {
+    animation: dot-flash 1.5s infinite;
+}
+
+@keyframes dot-flash {
+    0%, 20% { opacity: 1; }
+    40% { opacity: 0.3; }
+    60% { opacity: 1; }
+    80% { opacity: 0.3; }
+    100% { opacity: 1; }
+}
