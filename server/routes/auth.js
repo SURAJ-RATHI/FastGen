@@ -5,14 +5,19 @@ const router = express.Router();
 
 // Google OAuth routes
 router.get('/google', 
-  passport.authenticate('google', { scope: ['profile', 'email'] })
+  passport.authenticate('google', { 
+    scope: ['profile', 'email'],
+    accessType: 'offline',
+    prompt: 'consent'
+  })
 );
 
 router.get('/google/callback',
   passport.authenticate('google', { failureRedirect: '/signin' }),
   (req, res) => {
     // Successful authentication, redirect to main app
-    res.redirect(`${process.env.VITE_FE_URL}/main`);
+    const frontendUrl = process.env.VITE_FE_URL || 'http://localhost:5173';
+    res.redirect(`${frontendUrl}/main`);
   }
 );
 
