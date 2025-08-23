@@ -54,7 +54,7 @@ app.use(session({
     httpOnly: true,
     sameSite: 'none', // Important for cross-domain (Render to Vercel)
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined // Allow Vercel subdomains in production
+    domain: process.env.NODE_ENV === 'production' ? undefined : undefined // Don't restrict domain in production
   }
 }));
 
