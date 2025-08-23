@@ -9,7 +9,7 @@ const Button = () => {
   return (
     <StyledWrapper>
       <button className="Btn-Container bg-transparent" onClick={() => navigate('/main')}>
-        <span className="text bg-transparent">let's go!</span>
+              <span className="text bg-transparent">Explore Now </span>
         <span className="icon-Container bg-transparent">
           <svg width={16} className='bg-transparent' height={19} viewBox="0 0 16 19" fill="nones" xmlns="http://www.w3.org/2000/svg">
             <circle cx="1.61321" cy="1.61321" r="1.5" fill="black" />
