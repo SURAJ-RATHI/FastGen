@@ -15,6 +15,8 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(urlencoded({extended:true}));
+
+// More flexible CORS for deployment
 app.use(cors({
     origin: function(origin, callback) {
         // Allow requests with no origin (like mobile apps or curl requests)
@@ -26,7 +28,12 @@ app.use(cors({
         }
         
         // Allow your production domain
-        if (origin === process.env.VITE_FE_URL) {
+        if (origin === process.env.VITE_FE_URL || origin === process.env.CORS_ORIGIN) {
+            return callback(null, true);
+        }
+        
+        // For deployment, be more permissive
+        if (process.env.NODE_ENV === 'production') {
             return callback(null, true);
         }
         
@@ -49,6 +56,15 @@ app.use(session({
 // Initialize Passport
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Health check endpoint for Render
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
 
 // Auth routes
 import authRoutes from './routes/auth.js';
@@ -85,9 +101,14 @@ import emailRoutes from './routes/email.js';
 app.use('/', emailRoutes);
 
 app.get('/', (req, res) => {
-  res.json({ message: "API server running" });
+  res.json({ 
+    message: "FastGen API server running",
+    environment: process.env.NODE_ENV || 'development',
+    timestamp: new Date().toISOString()
+  });
 });
 
 app.listen(PORT, () => {
   console.log(`Server is running on PORT:${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });
