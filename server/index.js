@@ -16,7 +16,7 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(urlencoded({extended:true}));
 
-// More flexible CORS for deployment
+// CORS configuration for cross-domain authentication
 app.use(cors({
     origin: function(origin, callback) {
         // Allow requests with no origin (like mobile apps or curl requests)
@@ -27,19 +27,21 @@ app.use(cors({
             return callback(null, true);
         }
         
-        // Allow your production domain
+        // Allow your production frontend domain
         if (origin === process.env.VITE_FE_URL || origin === process.env.CORS_ORIGIN) {
             return callback(null, true);
         }
         
-        // For deployment, be more permissive
-        if (process.env.NODE_ENV === 'production') {
+        // Allow Vercel domains in production
+        if (process.env.NODE_ENV === 'production' && origin.includes('.vercel.app')) {
             return callback(null, true);
         }
         
         callback(new Error('Not allowed by CORS'));
     },
-    credentials: true
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
 }));
 
 // Session configuration
@@ -49,7 +51,10 @@ app.use(session({
   saveUninitialized: false,
   cookie: {
     secure: process.env.NODE_ENV === 'production',
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    httpOnly: true,
+    sameSite: 'none', // Important for cross-domain (Render to Vercel)
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined // Allow Vercel subdomains in production
   }
 }));
 
