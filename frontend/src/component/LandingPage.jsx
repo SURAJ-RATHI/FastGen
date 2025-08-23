@@ -1,10 +1,10 @@
 import HomeHeader from "./HomeHeader";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import Button from "./compo/Button";
 import { useNavigate } from "react-router-dom";
-import {useAuth} from '../contexts/AuthContext.jsx'
+
 import axios from "axios";
 import { Library } from 'lucide-react';
 
@@ -12,18 +12,12 @@ gsap.registerPlugin();
 
 const LandingPage = () => {
   const wordRef = useRef(null);
-  const {isSignedIn} = useAuth();
+
 
   const words = ["Faster", " Smarter", " Effortlessly","24*7"];
   const navigate = useNavigate();
 
-  // Handle OAuth success redirect
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('auth') === 'success' && isSignedIn) {
-      navigate('/main');
-    }
-  }, [isSignedIn, navigate]);
+
 
   // Contact form state
   const [contactFormData, setContactFormData] = useState({

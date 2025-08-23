@@ -15,9 +15,9 @@ router.get('/google',
 router.get('/google/callback',
   passport.authenticate('google', { failureRedirect: '/signin' }),
   (req, res) => {
-    // Successful authentication, redirect to home page first
+    // Successful authentication, redirect directly to main app
     const frontendUrl = process.env.VITE_FE_URL || 'http://localhost:5173';
-    res.redirect(`${frontendUrl}/?auth=success`);
+    res.redirect(`${frontendUrl}/main`);
   }
 );
 
