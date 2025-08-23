@@ -17,6 +17,14 @@ const LandingPage = () => {
   const words = ["Faster", " Smarter", " Effortlessly","24*7"];
   const navigate = useNavigate();
 
+  // Handle OAuth success redirect
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('auth') === 'success' && isSignedIn) {
+      navigate('/main');
+    }
+  }, [isSignedIn, navigate]);
+
   // Contact form state
   const [contactFormData, setContactFormData] = useState({
     name: '',
