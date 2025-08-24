@@ -7,9 +7,26 @@ import { requireAuth } from '../middleware/authMiddleware.js';
 
 const router = express.Router()
 
+// Handle preflight requests for GQuizzes
+router.options('/', (req, res) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie, X-Requested-With, Cache-Control');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.status(200).end();
+});
+
 // generate quizzes - require authentication
 router.post('/', requireAuth, async (req, res) => {
   try {
+    // Log CORS and request details
+    console.log('=== GQuizzes Route Hit ===');
+    console.log('Request method:', req.method);
+    console.log('Request URL:', req.url);
+    console.log('Request origin:', req.headers.origin);
+    console.log('User authenticated:', !!req.user);
+    console.log('User ID:', req.user?.userId);
+    
     const { parsedFileName, questionCount = 5 } = req.body;
     console.log('Received questionCount:', questionCount); // Debug log
     console.log('Received parsedFileName:', parsedFileName); // Debug log

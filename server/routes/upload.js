@@ -30,7 +30,12 @@ try {
 
 if (originalName.endsWith('.pdf')) {
       const data = new Uint8Array(fs.readFileSync(filePath));
-      const loadingTask = pdfjsLib.getDocument({ data });
+      
+      // Configure PDF.js with proper font data
+      const loadingTask = pdfjsLib.getDocument({ 
+        data,
+        standardFontDataUrl: 'https://unpkg.com/pdfjs-dist@3.11.174/standard_fonts/'
+      });
 
       const pdf = await loadingTask.promise;
 
