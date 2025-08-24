@@ -61,10 +61,12 @@ if (originalName.endsWith('.pdf')) {
 
     fs.writeFileSync(parsedFilePath, parsedText, 'utf8')
 
-    // ✅ Delete the original uploaded file
+    // ✅ Delete the original uploaded file (but keep the parsed file for later use)
     fs.unlinkSync(filePath)
 
     console.log('File successfully parsed and saved:', parsedFileName);
+    console.log('Parsed file path:', parsedFilePath);
+    console.log('Parsed file size:', parsedText.length, 'characters');
 
     res.json({
       message: 'File uploaded and parsed!',

@@ -100,7 +100,7 @@ import userPrefRoutes from './routes/userPref.js';
 app.use('/api/userPref', requireAuth, userPrefRoutes);
 
 import GQUizzesRoutes from './routes/GQuizzes.js';
-app.use('/api/GQuizzes', GQUizzesRoutes);
+app.use('/api/GQuizzes', requireAuth, GQUizzesRoutes);
 
 import ytRoutes from './routes/yt.js';
 app.use('/api/yt', ytRoutes);
