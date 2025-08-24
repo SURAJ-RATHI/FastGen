@@ -53,7 +53,7 @@ const mappedFormData = {
       setStep((prev) => prev + 1);
     } else {
       try{
-        const res = await fetch(`${import.meta.env.VITE_APP_BE_BASEURL}/userPref`, {
+        const res = await fetch(`${import.meta.env.VITE_APP_BE_BASEURL}/api/userPref`, {
           method: "POST",
           headers: { "Content-Type": "application/json"},
           body: JSON.stringify(mappedFormData),

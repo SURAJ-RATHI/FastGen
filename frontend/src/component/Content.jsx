@@ -43,7 +43,7 @@ const Content = () => {
     setError('');
 
     try {
-      const res = await axios.get(`${import.meta.env.VITE_APP_BE_BASEURL}/yt`, {
+      const res = await axios.get(`${import.meta.env.VITE_APP_BE_BASEURL}/api/yt`, {
         params: { topic },
         headers: {
           'Cache-Control': 'no-cache'

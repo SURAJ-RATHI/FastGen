@@ -145,7 +145,7 @@ export const AuthProvider = ({ children }) => {
 
   const getUserData = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_APP_BE_BASEURL}/user/me`);
+      const response = await axios.get(`${import.meta.env.VITE_APP_BE_BASEURL}/api/user/me`);
       return response.data;
     } catch (error) {
       console.error('Failed to fetch user data:', error);

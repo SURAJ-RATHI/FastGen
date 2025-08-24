@@ -13,7 +13,7 @@ export default function SharedChat() {
     const fetchSharedChat = async () => {
       try {
         setLoading(true);
-        const apiUrl = `${import.meta.env.VITE_APP_BE_BASEURL}/shared-chat/public/${chatId}`;
+        const apiUrl = `${import.meta.env.VITE_APP_BE_BASEURL}/api/shared-chat/public/${chatId}`;
         console.log('🔍 Fetching shared chat from:', apiUrl);
         console.log('🔍 Environment variable:', import.meta.env.VITE_APP_BE_BASEURL);
         

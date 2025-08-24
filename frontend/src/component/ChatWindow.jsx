@@ -69,7 +69,7 @@ export default function ChatWindow() {
   // --- Data loaders ---
   const loadMessages = async (id) => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_APP_BE_BASEURL}/messages/${id}`, {
+      const response = await axios.get(`${import.meta.env.VITE_APP_BE_BASEURL}/api/messages/${id}`, {
         withCredentials: true,
       });
       if (!Array.isArray(response.data)) throw new Error('Invalid messages response: Expected an array');
@@ -88,7 +88,7 @@ export default function ChatWindow() {
   const loadChatHistory = async () => {
     try {
       console.log('Loading chat history...'); // Debug log
-      const res = await axios.get(`${import.meta.env.VITE_APP_BE_BASEURL}/chats/getChat`, {
+      const res = await axios.get(`${import.meta.env.VITE_APP_BE_BASEURL}/api/chats/getChat`, {
         withCredentials: true,
       });
       const chats = Array.isArray(res.data) ? res.data : res.data?.chats || [];
@@ -142,7 +142,7 @@ export default function ChatWindow() {
           } else {
             // create a new chat
             const newChatRes = await axios.post(
-              `${import.meta.env.VITE_APP_BE_BASEURL}/chats`,
+              `${import.meta.env.VITE_APP_BE_BASEURL}/api/chats`,
               {},
               { headers: { 'Content-Type': 'application/json' }, withCredentials: true }
             );
@@ -186,7 +186,7 @@ export default function ChatWindow() {
     try {
       setIsTyping(true);
       const res = await axios.post(
-        `${import.meta.env.VITE_APP_BE_BASEURL}/gemini`,
+        `${import.meta.env.VITE_APP_BE_BASEURL}/api/gemini`,
         { chatId, prompt: originalPrompt, parsedFileName: uploadedParsedFileName },
         { withCredentials: true }
       );
@@ -225,7 +225,7 @@ export default function ChatWindow() {
     formData.append('file', selected);
     formData.append('fileName', selected.name);
     try {
-      const res = await axios.post(`${import.meta.env.VITE_APP_BE_BASEURL}/upload`, formData, {
+      const res = await axios.post(`${import.meta.env.VITE_APP_BE_BASEURL}/api/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         withCredentials: true,
       });
@@ -248,7 +248,7 @@ export default function ChatWindow() {
       setPrompt('');
       setUploadedParsedFileName('');
       const newChatRes = await axios.post(
-        `${import.meta.env.VITE_APP_BE_BASEURL}/chats`,
+        `${import.meta.env.VITE_APP_BE_BASEURL}/api/chats`,
         {},
         { headers: { 'Content-Type': 'application/json' }, withCredentials: true }
       );
@@ -292,7 +292,7 @@ export default function ChatWindow() {
     if (!chatToDelete) return;
     try {
       console.log('Deleting chat:', chatToDelete._id); // Debug log
-      await axios.delete(`${import.meta.env.VITE_APP_BE_BASEURL}/chats/${chatToDelete._id}`, { withCredentials: true });
+      await axios.delete(`${import.meta.env.VITE_APP_BE_BASEURL}/api/chats/${chatToDelete._id}`, { withCredentials: true });
       const updated = chatHistory.filter(c => c._id !== chatToDelete._id);
       setChatHistory(updated);
       if (chatId === chatToDelete._id) {
@@ -362,7 +362,7 @@ export default function ChatWindow() {
   const shareChat = async (chatIdToShare) => {
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_APP_BE_BASEURL}/chats/${chatIdToShare}/share`,
+        `${import.meta.env.VITE_APP_BE_BASEURL}/api/chats/${chatIdToShare}/share`,
         { shareType: 'public' },
         { withCredentials: true }
       );
@@ -386,7 +386,7 @@ export default function ChatWindow() {
     try {
       console.log('Renaming chat:', chatIdToRename, 'to:', newTitle); // Debug log
       const response = await axios.put(
-        `${import.meta.env.VITE_APP_BE_BASEURL}/gemini/chat-title/${chatIdToRename}`,
+        `${import.meta.env.VITE_APP_BE_BASEURL}/api/gemini/chat-title/${chatIdToRename}`,
         { title: newTitle },
         { withCredentials: true }
       );

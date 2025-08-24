@@ -50,7 +50,7 @@ const handleSend = async () => {
     // Ensure questionCount is a valid number
     const validQuestionCount = questionCount === '' || isNaN(Number(questionCount)) ? 5 : Number(questionCount);
     console.log('Sending questionCount:', validQuestionCount); // Debug log
-    const res = await axios.post(`${import.meta.env.VITE_APP_BE_BASEURL}/GQuizzes`, {
+    const res = await axios.post(`${import.meta.env.VITE_APP_BE_BASEURL}/api/GQuizzes`, {
       parsedFileName: uploadedParsedFileName,
       questionCount: validQuestionCount,
     }, {
@@ -82,7 +82,7 @@ const handleFileChange = async (e) => {
   setUploadProgress(0);
 
   try {
-    const res = await axios.post(`${import.meta.env.VITE_APP_BE_BASEURL}/upload`, formData, {
+    const res = await axios.post(`${import.meta.env.VITE_APP_BE_BASEURL}/api/upload`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
