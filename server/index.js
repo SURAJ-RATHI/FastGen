@@ -14,6 +14,12 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(urlencoded({extended:true}));
 
+// Add logging middleware to see incoming requests
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url} - Origin: ${req.headers.origin || 'No origin'}`);
+  next();
+});
+
 // CORS configuration for cross-domain authentication
 app.use(cors({
     origin: function(origin, callback) {
@@ -35,12 +41,21 @@ app.use(cors({
             return callback(null, true);
         }
         
+        // Allow specific Vercel domain
+        if (origin === 'https://fastgen-ai.vercel.app') {
+            return callback(null, true);
+        }
+        
         callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+    optionsSuccessStatus: 200
 }));
+
+// Handle preflight requests
+app.options('*', cors());
 
 // Health check endpoint for Render
 app.get('/health', (req, res) => {
@@ -91,6 +106,26 @@ app.get('/', (req, res) => {
     environment: process.env.NODE_ENV || 'development',
     timestamp: new Date().toISOString()
   });
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Error:', err.message);
+  
+  if (err.message === 'Not allowed by CORS') {
+    console.log('CORS blocked request from:', req.headers.origin);
+    return res.status(403).json({ 
+      error: 'CORS blocked', 
+      origin: req.headers.origin,
+      allowedOrigins: [
+        process.env.VITE_FE_URL,
+        process.env.CORS_ORIGIN,
+        'https://fastgen-ai.vercel.app'
+      ]
+    });
+  }
+  
+  res.status(500).json({ error: 'Internal server error' });
 });
 
 app.listen(PORT, () => {

@@ -53,6 +53,8 @@ export const AuthProvider = ({ children }) => {
 
   const signInWithGoogle = async (credential) => {
     try {
+      console.log('Attempting Google sign in to:', `${import.meta.env.VITE_APP_BE_BASEURL}/api/auth/google`);
+      
       const response = await axios.post(`${import.meta.env.VITE_APP_BE_BASEURL}/api/auth/google`, {
         credential
       });
@@ -66,7 +68,25 @@ export const AuthProvider = ({ children }) => {
       return { success: true };
     } catch (error) {
       console.error('Google sign in error:', error);
-      return { success: false, error: error.response?.data?.message || 'Google authentication failed' };
+      
+      if (error.code === 'ERR_NETWORK') {
+        return { 
+          success: false, 
+          error: 'Network error - please check your connection or try again later' 
+        };
+      }
+      
+      if (error.response?.status === 403) {
+        return { 
+          success: false, 
+          error: 'CORS error - please contact support' 
+        };
+      }
+      
+      return { 
+        success: false, 
+        error: error.response?.data?.message || 'Google authentication failed' 
+      };
     }
   };
 
