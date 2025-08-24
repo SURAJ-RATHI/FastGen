@@ -1,4 +1,5 @@
 import { Library, Github, Twitter, Linkedin, Mail, Phone, MapPin, Shield, FileText, HelpCircle, Users, BookOpen, Zap, Globe, Lock, Building2, MessageCircle, Video, Download, Star, Award, Clock, CheckCircle, Code } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Footer = () => {
   return (
@@ -16,13 +17,31 @@ const Footer = () => {
               Transform your workflow with cutting-edge technology and intelligent automation.
             </p>
                          <div className="flex space-x-4">
-               <a href="https://github.com/FastGen" className="text-gray-400 hover:text-blue-400 transition-colors" aria-label="GitHub">
+               <a 
+                 href="https://github.com/FastGen" 
+                 target="_blank" 
+                 rel="noopener noreferrer"
+                 className="text-gray-400 hover:text-blue-400 transition-colors" 
+                 aria-label="GitHub"
+               >
                  <Github className="h-5 w-5" />
                </a>
-               <a href="https://twitter.com/SurajRathi65983" className="text-gray-400 hover:text-blue-400 transition-colors" aria-label="Twitter">
+               <a 
+                 href="https://twitter.com/SurajRathi65983" 
+                 target="_blank" 
+                 rel="noopener noreferrer"
+                 className="text-gray-400 hover:text-blue-400 transition-colors" 
+                 aria-label="Twitter"
+               >
                  <Twitter className="h-5 w-5" />
                </a>
-               <a href="https://www.linkedin.com/in/suraj127021" className="text-gray-400 hover:text-blue-400 transition-colors" aria-label="LinkedIn">
+               <a 
+                 href="https://www.linkedin.com/in/suraj127021" 
+                 target="_blank" 
+                 rel="noopener noreferrer"
+                 className="text-gray-400 hover:text-blue-400 transition-colors" 
+                 aria-label="LinkedIn"
+               >
                  <Linkedin className="h-5 w-5" />
                </a>
              </div>
@@ -35,12 +54,12 @@ const Footer = () => {
               <span>Product</span>
             </h3>
                          <ul className="space-y-2 text-sm">
-               <li><a href="/docs" className="hover:text-blue-400 transition-colors">AI Content Generator</a></li>
-               <li><a href="/docs" className="hover:text-blue-400 transition-colors">Smart Templates</a></li>
-               <li><a href="/docs" className="hover:text-blue-400 transition-colors">Workflow Automation</a></li>
-               <li><a href="/docs" className="hover:text-blue-400 transition-colors">API Integration</a></li>
-               <li><a href="/terms" className="hover:text-blue-400 transition-colors">Enterprise Solutions</a></li>
-               <li><a href="/help" className="hover:text-blue-400 transition-colors">Mobile App</a></li>
+               <li><Link to="/docs" className="hover:text-blue-400 transition-colors">AI Content Generator</Link></li>
+               <li><Link to="/docs" className="hover:text-blue-400 transition-colors">Smart Templates</Link></li>
+               <li><Link to="/docs" className="hover:text-blue-400 transition-colors">Workflow Automation</Link></li>
+               <li><Link to="/docs" className="hover:text-blue-400 transition-colors">API Integration</Link></li>
+               <li><Link to="/terms" className="hover:text-blue-400 transition-colors">Enterprise Solutions</Link></li>
+               <li><Link to="/help" className="hover:text-blue-400 transition-colors">Mobile App</Link></li>
              </ul>
           </div>
 
@@ -51,12 +70,12 @@ const Footer = () => {
               <span>Resources</span>
             </h3>
             <ul className="space-y-2 text-sm">
-              <li><a href="/docs" className="hover:text-blue-400 transition-colors">Documentation</a></li>
-              <li><a href="/docs" className="hover:text-blue-400 transition-colors">API Reference</a></li>
-              <li><a href="/help" className="hover:text-blue-400 transition-colors">Tutorials & Guides</a></li>
-              <li><a href="/help" className="hover:text-blue-400 transition-colors">Video Library</a></li>
-              <li><a href="/help" className="hover:text-blue-400 transition-colors">Developer Blog</a></li>
-              <li><a href="/help" className="hover:text-blue-400 transition-colors">Community Forum</a></li>
+              <li><Link to="/docs" className="hover:text-blue-400 transition-colors">Documentation</Link></li>
+              <li><Link to="/docs" className="hover:text-blue-400 transition-colors">API Reference</Link></li>
+              <li><Link to="/help" className="hover:text-blue-400 transition-colors">Tutorials & Guides</Link></li>
+              <li><Link to="/help" className="hover:text-blue-400 transition-colors">Video Library</Link></li>
+              <li><Link to="/help" className="hover:text-blue-400 transition-colors">Developer Blog</Link></li>
+              <li><Link to="/help" className="hover:text-blue-400 transition-colors">Community Forum</Link></li>
             </ul>
           </div>
 
@@ -67,12 +86,12 @@ const Footer = () => {
               <span>Company</span>
             </h3>
                          <ul className="space-y-2 text-sm">
-               <li><a href="/help" className="hover:text-blue-400 transition-colors">About Us</a></li>
-               <li><a href="/help" className="hover:text-blue-400 transition-colors">Careers</a></li>
-               <li><a href="/help" className="hover:text-blue-400 transition-colors">Press & Media</a></li>
-               <li><a href="/help" className="hover:text-blue-400 transition-colors">Partners</a></li>
-               <li><a href="/help" className="hover:text-blue-400 transition-colors">Contact Sales</a></li>
-               <li><a href="/help" className="hover:text-blue-400 transition-colors">Investor Relations</a></li>
+               <li><Link to="/help" className="hover:text-blue-400 transition-colors">About Us</Link></li>
+               <li><Link to="/help" className="hover:text-blue-400 transition-colors">Careers</Link></li>
+               <li><Link to="/help" className="hover:text-blue-400 transition-colors">Press & Media</Link></li>
+               <li><Link to="/help" className="hover:text-blue-400 transition-colors">Partners</Link></li>
+               <li><Link to="/help" className="hover:text-blue-400 transition-colors">Contact Sales</Link></li>
+               <li><Link to="/help" className="hover:text-blue-400 transition-colors">Investor Relations</Link></li>
              </ul>
           </div>
         </div>
@@ -96,11 +115,11 @@ const Footer = () => {
               </div>
               <div className="flex items-center space-x-3">
                 <Globe className="h-4 w-4 text-blue-400" />
-                <a href="/help" className="hover:text-blue-400 transition-colors">help.fastgen.ai</a>
+                <Link to="/help" className="hover:text-blue-400 transition-colors">help.fastgen.ai</Link>
               </div>
               <div className="flex items-center space-x-3">
                 <Users className="h-4 w-4 text-blue-400" />
-                <a href="/help" className="hover:text-blue-400 transition-colors">Community Support</a>
+                <Link to="/help" className="hover:text-blue-400 transition-colors">Community Support</Link>
               </div>
             </div>
             <div className="pt-2">
@@ -118,12 +137,12 @@ const Footer = () => {
               <span>Legal & Privacy</span>
             </h3>
             <ul className="space-y-2 text-sm">
-              <li><a href="/privacy" className="hover:text-blue-400 transition-colors">Privacy Policy</a></li>
-              <li><a href="/terms" className="hover:text-blue-400 transition-colors">Terms of Service</a></li>
-                             <li><a href="/privacy" className="hover:text-blue-400 transition-colors">Cookie Policy</a></li>
-               <li><a href="/privacy" className="hover:text-blue-400 transition-colors">GDPR Compliance</a></li>
-               <li><a href="/privacy" className="hover:text-blue-400 transition-colors">CCPA Notice</a></li>
-               <li><a href="/privacy" className="hover:text-blue-400 transition-colors">Security & Compliance</a></li>
+              <li><Link to="/privacy" className="hover:text-blue-400 transition-colors">Privacy Policy</Link></li>
+              <li><Link to="/terms" className="hover:text-blue-400 transition-colors">Terms of Service</Link></li>
+                             <li><Link to="/privacy" className="hover:text-blue-400 transition-colors">Cookie Policy</Link></li>
+               <li><Link to="/privacy" className="hover:text-blue-400 transition-colors">GDPR Compliance</Link></li>
+               <li><Link to="/privacy" className="hover:text-blue-400 transition-colors">CCPA Notice</Link></li>
+               <li><Link to="/privacy" className="hover:text-blue-400 transition-colors">Security & Compliance</Link></li>
             </ul>
           </div>
 
@@ -134,12 +153,12 @@ const Footer = () => {
               <span>Enterprise</span>
             </h3>
                          <ul className="space-y-2 text-sm">
-               <li><a href="/terms" className="hover:text-blue-400 transition-colors">Enterprise Features</a></li>
-               <li><a href="/privacy" className="hover:text-blue-400 transition-colors">Security Overview</a></li>
-               <li><a href="/privacy" className="hover:text-blue-400 transition-colors">Compliance</a></li>
-               <li><a href="/terms" className="hover:text-blue-400 transition-colors">Service Level Agreement</a></li>
-               <li><a href="/privacy" className="hover:text-blue-400 transition-colors">Data Processing Agreement</a></li>
-               <li><a href="/privacy" className="hover:text-blue-400 transition-colors">Subprocessors</a></li>
+               <li><Link to="/terms" className="hover:text-blue-400 transition-colors">Enterprise Features</Link></li>
+               <li><Link to="/privacy" className="hover:text-blue-400 transition-colors">Security Overview</Link></li>
+               <li><Link to="/privacy" className="hover:text-blue-400 transition-colors">Compliance</Link></li>
+               <li><Link to="/terms" className="hover:text-blue-400 transition-colors">Service Level Agreement</Link></li>
+               <li><Link to="/privacy" className="hover:text-blue-400 transition-colors">Data Processing Agreement</Link></li>
+               <li><Link to="/privacy" className="hover:text-blue-400 transition-colors">Subprocessors</Link></li>
              </ul>
           </div>
         </div>
@@ -150,7 +169,7 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-white flex items-center space-x-2">
               <MessageCircle className="h-5 w-5 text-blue-400" />
-              <a href="/help" className="hover:text-blue-400 transition-colors">Help Center</a>
+              <Link to="/help" className="hover:text-blue-400 transition-colors">Help Center</Link>
             </h3>
             <div className="space-y-3 text-sm">
               <div className="bg-gray-800 p-4 rounded-lg">
@@ -197,7 +216,7 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-white flex items-center space-x-2">
               <FileText className="h-5 w-5 text-blue-400" />
-              <a href="/docs" className="hover:text-blue-400 transition-colors">Documentation</a>
+              <Link to="/docs" className="hover:text-blue-400 transition-colors">Documentation</Link>
             </h3>
             <div className="space-y-3 text-sm">
               <div className="bg-gray-800 p-4 rounded-lg">
@@ -247,7 +266,7 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-white flex items-center space-x-2">
               <Shield className="h-5 w-5 text-blue-400" />
-              <a href="/privacy" className="hover:text-blue-400 transition-colors">Privacy Policy</a>
+              <Link to="/privacy" className="hover:text-blue-400 transition-colors">Privacy Policy</Link>
             </h3>
             <div className="space-y-3 text-sm">
               <div className="bg-gray-800 p-4 rounded-lg">
@@ -289,7 +308,7 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-white flex items-center space-x-2">
               <FileText className="h-5 w-5 text-blue-400" />
-              <a href="/terms" className="hover:text-blue-400 transition-colors">Terms of Service</a>
+              <Link to="/terms" className="hover:text-blue-400 transition-colors">Terms of Service</Link>
             </h3>
             <div className="space-y-3 text-sm">
               <div className="bg-gray-800 p-4 rounded-lg">
@@ -336,9 +355,9 @@ const Footer = () => {
             <span className="ml-2">Last updated: January 2024</span>
           </div>
                      <div className="flex space-x-6 mt-4 md:mt-0 text-sm">
-             <a href="/help" className="hover:text-blue-400 transition-colors">System Status</a>
-             <a href="/help" className="hover:text-blue-400 transition-colors">Accessibility</a>
-             <a href="/help" className="hover:text-blue-400 transition-colors">Sitemap</a>
+             <Link to="/help" className="hover:text-blue-400 transition-colors">System Status</Link>
+             <Link to="/help" className="hover:text-blue-400 transition-colors">Accessibility</Link>
+             <Link to="/help" className="hover:text-blue-400 transition-colors">Sitemap</Link>
            </div>
         </div>
       </div>
