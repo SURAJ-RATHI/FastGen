@@ -47,7 +47,7 @@ const SignUpPage = () => {
 
   // Redirect if already signed in
   if (isSignedIn && !isLoading) {
-    navigate('/onBoard')
+    navigate('/main')
     return null
   }
 
@@ -55,7 +55,7 @@ const SignUpPage = () => {
     try {
       const result = await signInWithGoogle(response.credential);
       if (result.success) {
-        navigate('/onBoard');
+        navigate('/main');
       } else {
         setError(result.error || 'Google sign in failed');
       }
@@ -84,7 +84,7 @@ const SignUpPage = () => {
       // Use the signup method from AuthContext
       const result = await signUpWithEmail(formData.name, formData.email, formData.password);
       if (result.success) {
-        navigate('/onBoard');
+        navigate('/main');
       } else {
         setError(result.error || 'Signup failed');
       }
