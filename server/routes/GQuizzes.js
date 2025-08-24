@@ -25,21 +25,12 @@ router.post('/', requireAuth, async (req, res) => {
     const uploadDir = path.join(process.cwd(), 'uploads');
     
     parsedFilePath = path.join(uploadDir, parsedFileName);
-    
-    // Check if file exists and is readable
-    if (!fs.existsSync(parsedFilePath)) {
-      console.error('Parsed file not found:', parsedFilePath);
-      console.error('Upload directory contents:', fs.readdirSync(uploadDir));
-      return res.status(400).json({ error: "Parsed file not found. Please try uploading the file again." });
-    }
-    
-    try {
+    if (fs.existsSync(parsedFilePath)) {
       parseText = fs.readFileSync(parsedFilePath, 'utf-8');
       console.log('File content length:', parseText.length); // Debug log
-      console.log('File path verified:', parsedFilePath);
-    } catch (readErr) {
-      console.error('Error reading parsed file:', readErr);
-      return res.status(400).json({ error: "Failed to read parsed file. Please try uploading again." });
+    } else {
+      console.error('File not found:', parsedFilePath); // Debug log
+      return res.status(400).json({ error: "File not found or unreadable" });
     }
 
     let finalPrompt = `Prompt: "Read the text below and generate EXACTLY ${questionCount} multiple-choice questions. Do NOT generate more or fewer than ${questionCount} questions.
@@ -74,12 +65,7 @@ Text:${parseText}
     const extractedJSON = extractJSON(ans);
 
     if (parsedFilePath && fs.existsSync(parsedFilePath)) {
-      try {
-        fs.unlinkSync(parsedFilePath);
-        console.log('Cleaned up parsed file:', parsedFilePath);
-      } catch (cleanupErr) {
-        console.error('Failed to cleanup parsed file:', cleanupErr);
-      }
+      fs.unlinkSync(parsedFilePath);
     }
 
     if (!extractedJSON) {
