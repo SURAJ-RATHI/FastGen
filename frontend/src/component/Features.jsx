@@ -1,6 +1,7 @@
 // src/components/FeaturePage.jsx
 import React, { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
+import { useNavigate } from 'react-router-dom';
 
 const features = [
   {
@@ -42,6 +43,7 @@ const features = [
 
 export default function FeaturePage() {
   const cardsRef = useRef([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     gsap.from(cardsRef.current, {
@@ -68,7 +70,8 @@ export default function FeaturePage() {
           <div
             key={index}
             ref={(el) => (cardsRef.current[index] = el)}
-            className="bg-white/20 backdrop-blur-lg border border-white/30 rounded-2xl p-6 shadow-lg text-white hover:scale-105 transition-transform"
+            onClick={() => navigate('/main')}
+            className="bg-white/20 backdrop-blur-lg border border-white/30 rounded-2xl p-6 shadow-lg text-white hover:scale-105 transition-transform cursor-pointer hover:border-blue-400 hover:bg-white/30"
           >
             <div className="text-4xl mb-4">{feature.icon}</div>
             <h2 className="text-xl font-semibold mb-2">{feature.title}</h2>

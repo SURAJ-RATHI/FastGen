@@ -213,7 +213,8 @@ const LandingPage = () => {
             ].map((feature, index) => (
               <div
                 key={index}
-                className="bg-gray-800/50 backdrop-blur-lg border border-gray-600 rounded-2xl p-6 shadow-lg text-white hover:scale-105 transition-transform"
+                onClick={() => navigate('/main')}
+                className="bg-gray-800/50 backdrop-blur-lg border border-gray-600 rounded-2xl p-6 shadow-lg text-white hover:scale-105 transition-transform cursor-pointer hover:border-blue-400 hover:bg-gray-700/50"
               >
                 <div className="text-4xl mb-4">{feature.icon}</div>
                 <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
@@ -322,6 +323,7 @@ const LandingPage = () => {
                 </ul>
                 
                 <button
+                  onClick={() => navigate('/main')}
                   className={`w-full py-3 px-6 rounded-lg text-white font-semibold transition-colors ${plan.buttonStyle}`}
                 >
                   {plan.buttonText}
