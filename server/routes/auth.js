@@ -15,7 +15,7 @@ const verifyToken = (req, res, next) => {
 
   if (token == null) return res.sendStatus(401);
 
-  jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret', (err, user) => {
+  jwt.verify(token, process.env.SESSION_SECRET || 'your_jwt_secret', (err, user) => {
     if (err) return res.sendStatus(403);
     req.user = user;
     next();
@@ -52,7 +52,7 @@ router.post('/signup', async (req, res) => {
     // Generate JWT token for immediate authentication
     const token = jwt.sign(
       { userId: user._id },
-      process.env.JWT_SECRET || 'your_jwt_secret',
+      process.env.SESSION_SECRET || 'your_jwt_secret',
       { expiresIn: '24h' }
     );
 
@@ -92,7 +92,7 @@ router.post('/signin', async (req, res) => {
     // Generate JWT token
     const token = jwt.sign(
       { userId: user._id },
-      process.env.JWT_SECRET || 'your_jwt_secret',
+      process.env.SESSION_SECRET || 'your_jwt_secret',
       { expiresIn: '24h' }
     );
 
@@ -146,7 +146,7 @@ router.post('/google', async (req, res) => {
     // Generate JWT token
     const token = jwt.sign(
       { userId: user._id },
-      process.env.JWT_SECRET || 'your_jwt_secret',
+      process.env.SESSION_SECRET || 'your_jwt_secret',
       { expiresIn: '24h' }
     );
 
@@ -175,7 +175,7 @@ router.post('/login', async (req, res) => {
     // Generate JWT token
     const token = jwt.sign(
       { userId: user._id },
-      process.env.JWT_SECRET || 'your_jwt_secret',
+      process.env.SESSION_SECRET || 'your_jwt_secret',
       { expiresIn: '24h' }
     );
 

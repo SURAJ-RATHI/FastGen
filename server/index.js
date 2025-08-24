@@ -11,9 +11,20 @@ connectDB();
 
 const PORT = process.env.PORT || 3000;
 
+// Validate required environment variables
+if (!process.env.SESSION_SECRET) {
+  console.error('SESSION_SECRET environment variable is required!');
+  process.exit(1);
+}
+
 // CORS configuration MUST BE FIRST - before any other middleware or routes
 app.use(cors({
-    origin: true, // Allow ALL origins
+    origin: [
+        'https://fastgen-ai.vercel.app',
+        'https://fastgen.vercel.app',
+        process.env.CORS_ORIGIN,
+        process.env.VITE_FE_URL
+    ].filter(Boolean),
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-Requested-With', 'Cache-Control'],
@@ -23,24 +34,7 @@ app.use(cors({
 // Handle preflight requests explicitly for all routes
 app.options('*', cors());
 
-// Add CORS headers to ALL responses - this is critical
-app.use((req, res, next) => {
-    // Always set CORS headers
-    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie, X-Requested-With, Cache-Control');
-    
-    // Log CORS headers being set
-    console.log('Setting CORS headers for:', req.method, req.url);
-    console.log('Origin:', req.headers.origin);
-    console.log('CORS Headers set:', {
-        'Access-Control-Allow-Origin': req.headers.origin || '*',
-        'Access-Control-Allow-Credentials': 'true'
-    });
-    
-    next();
-});
+
 
 app.use(express.json());
 app.use(urlencoded({extended:true}));

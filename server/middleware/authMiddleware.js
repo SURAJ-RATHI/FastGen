@@ -9,7 +9,7 @@ export const requireAuth = (req, res, next) => {
     return res.status(401).json({ error: 'Authentication required' });
   }
 
-  jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret', (err, user) => {
+  jwt.verify(token, process.env.SESSION_SECRET || 'your_jwt_secret', (err, user) => {
     if (err) {
       return res.status(403).json({ error: 'Invalid or expired token' });
     }
@@ -24,7 +24,7 @@ export const getUser = (req, res, next) => {
   const token = authHeader && authHeader.split(' ')[1];
 
   if (token) {
-    jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret', (err, user) => {
+    jwt.verify(token, process.env.SESSION_SECRET || 'your_jwt_secret', (err, user) => {
       if (!err) {
         req.user = user;
       }
