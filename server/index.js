@@ -57,6 +57,9 @@ app.use(cors({
 // Handle preflight requests
 app.options('*', cors());
 
+
+
+
 // Health check endpoint for Render
 app.get('/health', (req, res) => {
   res.status(200).json({ 
@@ -71,6 +74,8 @@ console.log('Mounting auth routes...');
 import authRoutes from './routes/auth.js';
 app.use('/api/auth', authRoutes);
 
+// Temporarily comment out other routes to isolate the issue
+/*
 console.log('Mounting user routes...');
 import userRoutes from './routes/user.js';
 app.use('/user', requireAuth, userRoutes);
@@ -109,6 +114,7 @@ app.use('/yt', ytRoutes);
 console.log('Mounting email routes...');
 import emailRoutes from './routes/email.js';
 app.use('/email', emailRoutes);
+*/
 
 // Root route should be last to avoid conflicts
 app.get('/', (req, res) => {
