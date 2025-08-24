@@ -11,17 +11,7 @@ connectDB();
 
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json());
-app.use(urlencoded({extended:true}));
-
-// Add logging middleware to see incoming requests
-app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url} - Origin: ${req.headers.origin || 'No origin'}`);
-  console.log('Headers:', req.headers);
-  next();
-});
-
-// Basic CORS configuration - MUST BE BEFORE ANY ROUTES
+// CORS configuration MUST BE FIRST - before any other middleware or routes
 app.use(cors({
     origin: true, // Allow ALL origins
     credentials: true,
@@ -30,14 +20,8 @@ app.use(cors({
     optionsSuccessStatus: 200
 }));
 
-// Handle preflight requests explicitly
-app.options('*', (req, res) => {
-    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie, X-Requested-With, Cache-Control');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    res.status(200).end();
-});
+// Handle preflight requests explicitly for all routes
+app.options('*', cors());
 
 // Add CORS headers to ALL responses - this is critical
 app.use((req, res, next) => {
@@ -56,6 +40,16 @@ app.use((req, res, next) => {
     });
     
     next();
+});
+
+app.use(express.json());
+app.use(urlencoded({extended:true}));
+
+// Add logging middleware to see incoming requests
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url} - Origin: ${req.headers.origin || 'No origin'}`);
+  console.log('Headers:', req.headers);
+  next();
 });
 
 // Test CORS endpoint

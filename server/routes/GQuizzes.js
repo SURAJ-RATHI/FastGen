@@ -3,54 +3,17 @@ import {GoogleGenerativeAI} from "@google/generative-ai"
 import fs from 'fs'
 import path from "path"
 import { extractJSON } from "../utils/extractJSON.js"
+import { requireAuth } from '../middleware/authMiddleware.js';
 
 const router = express.Router()
-const rawKeys = process.env.GEMINI_KEYS.split(',').map(k => k.trim());
-const apiKeys = rawKeys.map(key => ({ key, active: true }));
 
-async function generateWithFallback(prompt) {
-  for (const apiKeyObj of apiKeys) {
-    if (!apiKeyObj.active) continue;
-
-    try {
-      const genAI = new GoogleGenerativeAI(apiKeyObj.key);
-      const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite' });
-
-      const result = await model.generateContent([{ text: prompt }]);
-      const ans = result.response.text();
-
-      return ans; // return if success
-    } catch (err) {
-      console.error(`Api_Key failed:`, err.message);
-
-      // Check if it's a quota or usage error
-
-
-      if (
-        err.message.includes('quota') ||
-        err.message.includes('quota_exceeded') ||
-        err.message.includes('RESOURCE_EXHAUSTED')
-      ) {
-        apiKeyObj.active = false; // deactivate key temporarily
-      }
-
-      else {
-        throw err; // something else went wrong — throw it
-      }
-    }
-  }
-
-  throw new Error("All API keys failed or exhausted");
-}
-
-
-
-// generate quizzes 
-router.post('/', async (req, res) => {
+// generate quizzes - require authentication
+router.post('/', requireAuth, async (req, res) => {
   try {
     const { parsedFileName, questionCount = 5 } = req.body;
     console.log('Received questionCount:', questionCount); // Debug log
     console.log('Received parsedFileName:', parsedFileName); // Debug log
+    console.log('User ID:', req.user.userId); // Debug log
 
     if (!parsedFileName) {
       return res.status(400).json({ error: "Missing parsedFileName parameter" });
@@ -64,7 +27,9 @@ router.post('/', async (req, res) => {
     parsedFilePath = path.join(uploadDir, parsedFileName);
     if (fs.existsSync(parsedFilePath)) {
       parseText = fs.readFileSync(parsedFilePath, 'utf-8');
+      console.log('File content length:', parseText.length); // Debug log
     } else {
+      console.error('File not found:', parsedFilePath); // Debug log
       return res.status(400).json({ error: "File not found or unreadable" });
     }
 
@@ -86,7 +51,7 @@ Text:${parseText}
 `;
 
     console.log('Sending prompt to AI with questionCount:', questionCount);
-    console.log('Final prompt:', finalPrompt);
+    console.log('Final prompt length:', finalPrompt.length);
 
     let ans = await generateWithFallback(finalPrompt);
 
@@ -94,8 +59,8 @@ Text:${parseText}
       ans = ans.replace(/```json|```/g, '').trim();
     }
 
-    console.log('Gemini answer:', ans);
-
+    console.log('Gemini answer length:', ans.length);
+    console.log('Gemini answer preview:', ans.substring(0, 200) + '...');
 
     const extractedJSON = extractJSON(ans);
 
@@ -104,6 +69,7 @@ Text:${parseText}
     }
 
     if (!extractedJSON) {
+      console.error('Failed to extract JSON from response:', ans);
       return res.status(500).json({ error: 'Could not extract JSON from Gemini response.' });
     }
 
@@ -122,8 +88,58 @@ Text:${parseText}
     res.json({ answer: extractedJSON });
 
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to process Gemini request' });
+    console.error('GQuizzes error:', err);
+    console.error('Error stack:', err.stack);
+    res.status(500).json({ error: 'Failed to process Gemini request: ' + err.message });
   }
 });
+
+async function generateWithFallback(prompt) {
+  const rawKeys = process.env.GEMINI_KEYS?.split(',').map(k => k.trim()) || [];
+  const apiKeys = rawKeys.map(key => ({ key, active: true }));
+
+  if (apiKeys.length === 0) {
+    throw new Error('No Gemini API keys configured');
+  }
+
+  for (const apiKeyObj of apiKeys) {
+    if (!apiKeyObj.active) continue;
+
+    try {
+      const genAI = new GoogleGenerativeAI(apiKeyObj.key);
+      const model = genAI.getGenerativeModel({ 
+        model: 'gemini-1.5-flash',
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 2048,
+        }
+      });
+
+      const result = await model.generateContent([{ text: prompt }]);
+      const ans = result.response.text();
+
+      return ans; // return if success
+    } catch (err) {
+      console.error(`Api_Key failed:`, err.message);
+
+      // Check if it's a quota or usage error
+      if (
+        err.message.includes('quota') ||
+        err.message.includes('quota_exceeded') ||
+        err.message.includes('RESOURCE_EXHAUSTED')
+      ) {
+        apiKeyObj.active = false; // deactivate key temporarily
+        console.log(`API key deactivated due to quota issues: ${apiKeyObj.key.substring(0, 10)}...`);
+      } else {
+        console.error(`API key error (non-quota):`, err.message);
+        throw err; // something else went wrong — throw it
+      }
+    }
+  }
+
+  throw new Error("All API keys failed or exhausted");
+}
+
 export default router;
