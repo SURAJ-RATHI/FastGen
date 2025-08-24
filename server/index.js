@@ -66,18 +66,14 @@ app.get('/health', (req, res) => {
 });
 
 // Mount authentication routes
-// Temporarily disabled to isolate the issue
-/*
 import authRoutes from './routes/auth.js';
 app.use('/api/auth', authRoutes);
 
-// Temporarily disable other routes to isolate the issue
-/*
 // Mount user routes
 import userRoutes from './routes/user.js';
 app.use('/user', requireAuth, userRoutes);
 
-// Mount chat routes (public access for now)
+// Mount chat routes
 import chatRoutes from './routes/chats.js';
 app.use('/chats', requireAuth, chatRoutes);
 
@@ -105,7 +101,6 @@ app.use('/yt', ytRoutes);
 
 import emailRoutes from './routes/email.js';
 app.use('/email', emailRoutes);
-*/
 
 // Root route
 app.get('/', (req, res) => {
