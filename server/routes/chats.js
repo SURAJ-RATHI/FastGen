@@ -209,7 +209,7 @@ router.post('/:chatId/share', async (req, res) => {
         shareResult = {
           type: 'public',
           shareId: chatId,
-          shareUrl: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/shared-chat/${chatId}`,
+          shareUrl: `${process.env.FRONTEND_URL || 'https://fastgen-ai.vercel.app'}/shared-chat/${chatId}`,
           expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
         };
         break;
@@ -232,7 +232,7 @@ router.post('/:chatId/share', async (req, res) => {
         shareResult = {
           type: 'private',
           shareId: chatId,
-          shareUrl: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/shared-chat/${chatId}`,
+          shareUrl: `${process.env.FRONTEND_URL || 'https://fastgen-ai.vercel.app'}/shared-chat/${chatId}`,
           requiresPassword: true,
           expiresAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000) // 3 days
         };
