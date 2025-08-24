@@ -31,8 +31,17 @@ router.post('/manual-signup', async (req, res) => {
       password
     });
 
+    // Generate JWT token for immediate authentication
+    const jwt = require('jsonwebtoken');
+    const token = jwt.sign(
+      { userId: user._id },
+      process.env.JWT_SECRET || 'your_jwt_secret',
+      { expiresIn: '24h' }
+    );
+
     res.status(201).json({ 
       success: true, 
+      token,
       user: { id: user._id, name: user.name, email: user.email } 
     });
   } catch (error) {

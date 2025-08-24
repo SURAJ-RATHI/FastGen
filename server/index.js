@@ -1,9 +1,7 @@
 import 'dotenv/config';
 import express, { urlencoded } from 'express';
 import cors from 'cors';
-import session from 'express-session';
 import connectDB from './config/database.js';
-import passport from './auth/googleAuth.js';
 import { requireAuth } from './middleware/authMiddleware.js';
 
 const app = express();
@@ -43,24 +41,6 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
 }));
-
-// Session configuration
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'your-secret-key',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,
-    sameSite: 'none', // Important for cross-domain (Render to Vercel)
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    domain: process.env.NODE_ENV === 'production' ? undefined : undefined // Don't restrict domain in production
-  }
-}));
-
-// Initialize Passport
-app.use(passport.initialize());
-app.use(passport.session());
 
 // Health check endpoint for Render
 app.get('/health', (req, res) => {

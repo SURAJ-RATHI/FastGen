@@ -1,52 +1,123 @@
 import express from 'express';
-import passport from '../auth/googleAuth.js';
+import jwt from 'jsonwebtoken';
+import { OAuth2Client } from 'google-auth-library';
+import User from '../models/User.js';
 
 const router = express.Router();
 
-// Google OAuth routes
-router.get('/google', 
-  passport.authenticate('google', { 
-    scope: ['profile', 'email'],
-    accessType: 'offline',
-    prompt: 'consent'
-  })
-);
+// Initialize Google OAuth client
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-router.get('/google/callback',
-  passport.authenticate('google', { failureRedirect: '/signin' }),
-  (req, res) => {
-    // Successful authentication, redirect directly to main app
-    const frontendUrl = process.env.VITE_FE_URL || 'http://localhost:5173';
-    res.redirect(`${frontendUrl}/main`);
-  }
-);
+// Middleware to verify JWT token
+const verifyToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
 
-// Logout route
-router.post('/logout', (req, res) => {
-  req.logout((err) => {
-    if (err) {
-      return res.status(500).json({ error: 'Logout failed' });
-    }
-    req.session.destroy(() => {
-      res.clearCookie('connect.sid');
-      res.json({ message: 'Logged out successfully' });
-    });
+  if (token == null) return res.sendStatus(401);
+
+  jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret', (err, user) => {
+    if (err) return res.sendStatus(403);
+    req.user = user;
+    next();
   });
+};
+
+// Google OAuth authentication
+router.post('/google', async (req, res) => {
+  try {
+    const { credential } = req.body;
+    
+    // Verify the Google token
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID
+    });
+    
+    const payload = ticket.getPayload();
+    console.log('Google payload:', payload);
+    
+    // Extract user data with fallbacks
+    const { sub: googleId, name, given_name, family_name, email, picture } = payload;
+    const finalName = name || ((given_name && family_name) ? `${given_name} ${family_name}` : given_name || email || "Unknown");
+    
+    console.log('Creating user with:', {
+      googleId,
+      name: finalName,
+      email,
+      picture
+    });
+    
+    // Find or create user
+    let user = await User.findOne({ googleId });
+    if (!user) {
+      user = await User.create({
+        googleId,
+        name: finalName,
+        email,
+        avatar: picture
+      });
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { userId: user._id },
+      process.env.JWT_SECRET || 'your_jwt_secret',
+      { expiresIn: '24h' }
+    );
+
+    res.json({ token, user });
+  } catch (error) {
+    console.error('Google auth error:', error);
+    res.status(401).json({ message: 'Google authentication failed' });
+  }
 });
 
-// Get current user
-router.get('/me', (req, res) => {
-  console.log('Auth check - Session:', req.session);
-  console.log('Auth check - User:', req.user);
-  console.log('Auth check - isAuthenticated:', req.isAuthenticated());
-  
-  if (req.isAuthenticated()) {
-    console.log('User authenticated, returning user data');
-    res.json(req.user);
-  } else {
-    console.log('User not authenticated, returning 401');
-    res.status(401).json({ error: 'Not authenticated' });
+// Manual login
+router.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    const isValid = await user.comparePassword(password);
+    if (!isValid) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { userId: user._id },
+      process.env.JWT_SECRET || 'your_jwt_secret',
+      { expiresIn: '24h' }
+    );
+
+    res.json({ token, user });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ message: 'Login failed' });
   }
+});
+
+// Get current user (protected route)
+router.get('/me', verifyToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json(user);
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    res.status(500).json({ error: 'Failed to fetch user' });
+  }
+});
+
+// Logout (client-side token removal)
+router.post('/logout', (req, res) => {
+  res.json({ message: 'Logged out successfully' });
 });
 
 export default router;

@@ -15,20 +15,35 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSignedIn, setIsSignedIn] = useState(false);
+  const [token, setToken] = useState(localStorage.getItem('authToken'));
+
+  // Configure axios defaults
+  useEffect(() => {
+    if (token) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    } else {
+      delete axios.defaults.headers.common['Authorization'];
+    }
+  }, [token]);
 
   // Check if user is authenticated on app load
   useEffect(() => {
-    checkAuthStatus();
-  }, []);
+    if (token) {
+      checkAuthStatus();
+    } else {
+      setIsLoading(false);
+    }
+  }, [token]);
 
   const checkAuthStatus = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_APP_BE_BASEURL}/api/auth/me`, {
-        withCredentials: true
-      });
+      const response = await axios.get(`${import.meta.env.VITE_APP_BE_BASEURL}/api/auth/me`);
       setUser(response.data);
       setIsSignedIn(true);
     } catch (error) {
+      // Token is invalid, clear it
+      localStorage.removeItem('authToken');
+      setToken(null);
       setUser(null);
       setIsSignedIn(false);
     } finally {
@@ -36,27 +51,61 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const signInWithGoogle = () => {
-    window.location.href = `${import.meta.env.VITE_APP_BE_BASEURL}/api/auth/google`;
+  const signInWithGoogle = async (credential) => {
+    try {
+      const response = await axios.post(`${import.meta.env.VITE_APP_BE_BASEURL}/api/auth/google`, {
+        credential
+      });
+      
+      const { token: newToken, user: userData } = response.data;
+      localStorage.setItem('authToken', newToken);
+      setToken(newToken);
+      setUser(userData);
+      setIsSignedIn(true);
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Google sign in error:', error);
+      return { success: false, error: error.response?.data?.message || 'Google authentication failed' };
+    }
+  };
+
+  const signInWithEmail = async (email, password) => {
+    try {
+      const response = await axios.post(`${import.meta.env.VITE_APP_BE_BASEURL}/api/auth/login`, {
+        email,
+        password
+      });
+      
+      const { token: newToken, user: userData } = response.data;
+      localStorage.setItem('authToken', newToken);
+      setToken(newToken);
+      setUser(userData);
+      setIsSignedIn(true);
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Email sign in error:', error);
+      return { success: false, error: error.response?.data?.message || 'Login failed' };
+    }
   };
 
   const signOut = async () => {
     try {
-      await axios.post(`${import.meta.env.VITE_APP_BE_BASEURL}/api/auth/logout`, {}, {
-        withCredentials: true
-      });
-      setUser(null);
-      setIsSignedIn(false);
+      await axios.post(`${import.meta.env.VITE_APP_BE_BASEURL}/api/auth/logout`);
     } catch (error) {
       console.error('Logout error:', error);
+    } finally {
+      localStorage.removeItem('authToken');
+      setToken(null);
+      setUser(null);
+      setIsSignedIn(false);
     }
   };
 
   const getUserData = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_APP_BE_BASEURL}/user/me`, {
-        withCredentials: true
-      });
+      const response = await axios.get(`${import.meta.env.VITE_APP_BE_BASEURL}/user/me`);
       return response.data;
     } catch (error) {
       console.error('Failed to fetch user data:', error);
@@ -69,7 +118,9 @@ export const AuthProvider = ({ children }) => {
     isLoading,
     isSignedIn,
     userId: user?.id,
+    token,
     signInWithGoogle,
+    signInWithEmail,
     signOut,
     getUserData,
     checkAuthStatus
