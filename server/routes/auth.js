@@ -36,9 +36,15 @@ router.post('/logout', (req, res) => {
 
 // Get current user
 router.get('/me', (req, res) => {
+  console.log('Auth check - Session:', req.session);
+  console.log('Auth check - User:', req.user);
+  console.log('Auth check - isAuthenticated:', req.isAuthenticated());
+  
   if (req.isAuthenticated()) {
+    console.log('User authenticated, returning user data');
     res.json(req.user);
   } else {
+    console.log('User not authenticated, returning 401');
     res.status(401).json({ error: 'Not authenticated' });
   }
 });
