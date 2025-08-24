@@ -17,6 +17,7 @@ app.use(urlencoded({extended:true}));
 // Add logging middleware to see incoming requests
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url} - Origin: ${req.headers.origin || 'No origin'}`);
+  console.log('Headers:', req.headers);
   next();
 });
 
@@ -46,15 +47,32 @@ app.use(cors({
             return callback(null, true);
         }
         
-        callback(null, true); // Allow all origins for now
+        // For now, allow all origins to fix the immediate issue
+        callback(null, true);
     },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-Requested-With'],
+    optionsSuccessStatus: 200
 }));
 
-// Handle preflight requests
-app.options('*', cors());
+// Handle preflight requests explicitly
+app.options('*', (req, res) => {
+    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie, X-Requested-With');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.status(200).end();
+});
+
+// Add CORS headers to all responses
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie, X-Requested-With');
+    next();
+});
 
 // Health check endpoint for Render
 app.get('/health', (req, res) => {
