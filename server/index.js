@@ -67,36 +67,46 @@ app.get('/health', (req, res) => {
 });
 
 // Mount routes in order of specificity (most specific first)
+console.log('Mounting auth routes...');
 import authRoutes from './routes/auth.js';
 app.use('/api/auth', authRoutes);
 
+console.log('Mounting user routes...');
 import userRoutes from './routes/user.js';
 app.use('/user', requireAuth, userRoutes);
 
+console.log('Mounting upload routes...');
 import uploadRoutes from './routes/upload.js';
 app.use('/upload', uploadRoutes); 
 
+console.log('Mounting gemini routes...');
 import geminiRoutes from './routes/gemini.js';
 app.use('/gemini', requireAuth, geminiRoutes); 
 
+console.log('Mounting chat routes...');
 import chatRoutes from './routes/chats.js';
 app.use('/chats', requireAuth, chatRoutes);
 
 // Public route for shared chats (no authentication required)
 app.use('/shared-chat', chatRoutes); 
 
+console.log('Mounting message routes...');
 import messageRoutes from './routes/messages.js';
 app.use('/messages', requireAuth, messageRoutes); 
 
+console.log('Mounting userPref routes...');
 import userPrefRoutes from './routes/userPref.js';
 app.use('/userPref', requireAuth, userPrefRoutes); 
 
+console.log('Mounting GQuizzes routes...');
 import GQUizzesRoutes from './routes/GQuizzes.js';
 app.use('/GQuizzes', GQUizzesRoutes); 
 
+console.log('Mounting yt routes...');
 import ytRoutes from './routes/yt.js';
 app.use('/yt', ytRoutes); 
 
+console.log('Mounting email routes...');
 import emailRoutes from './routes/email.js';
 app.use('/email', emailRoutes);
 
@@ -110,7 +120,7 @@ app.get('/', (req, res) => {
 });
 
 // Catch-all route for undefined routes
-app.use('*', (req, res) => {
+app.use('/*', (req, res) => {
   res.status(404).json({ 
     error: 'Route not found',
     path: req.originalUrl,
