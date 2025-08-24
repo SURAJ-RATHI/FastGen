@@ -21,7 +21,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Basic CORS configuration
+// Basic CORS configuration - MUST BE BEFORE ANY ROUTES
 app.use(cors({
     origin: function(origin, callback) {
         // Allow requests with no origin (like mobile apps or curl requests)
@@ -72,6 +72,16 @@ app.use((req, res, next) => {
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie, X-Requested-With');
     next();
+});
+
+// Test CORS endpoint
+app.get('/test-cors', (req, res) => {
+    console.log('CORS test endpoint hit - Origin:', req.headers.origin);
+    res.json({ 
+        message: 'CORS test successful',
+        origin: req.headers.origin,
+        timestamp: new Date().toISOString()
+    });
 });
 
 // Health check endpoint for Render
