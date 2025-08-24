@@ -3,7 +3,7 @@ import multer from 'multer'
 import fs from 'fs'
 import path from "path"
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
-
+import { requireAuth } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -18,12 +18,22 @@ const upload = multer({
   dest: uploadsDir,
   limits: { fileSize: 10000000 } // Limit file size to 10MB
 });
-// upload files
-router.post('/', upload.single('file'), async (req, res) => {
+
+// upload files - require authentication
+router.post('/', requireAuth, upload.single('file'), async (req, res) => {
 try {
     if(!req.file){
         return res.status(400).json({error: 'No file uploaded'})
     }
+    
+    console.log('Upload request from user:', req.user.userId);
+    console.log('File details:', {
+      originalname: req.file.originalname,
+      filename: req.file.filename,
+      size: req.file.size,
+      mimetype: req.file.mimetype
+    });
+    
     const filePath = req.file.path
     const originalName = req.file.originalname
     let parsedText = ''
@@ -55,6 +65,8 @@ if (originalName.endsWith('.pdf')) {
 
     // ✅ Delete the original uploaded file
     fs.unlinkSync(filePath)
+
+    console.log('File successfully parsed and saved:', parsedFileName);
 
     res.json({
       message: 'File uploaded and parsed!',

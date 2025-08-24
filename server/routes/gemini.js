@@ -296,11 +296,11 @@ router.post('/', async (req, res) => {
       $push: { messages: userMessage._id }
     });
 
-    const userPref = await UserPreference.findOne({ user: req.user._id });
-    const user = await User.findById(req.user._id);
+    const userPref = await UserPreference.findOne({ user: req.user.userId });
+    const user = await User.findById(req.user.userId);
 
     // Build comprehensive conversation context using RAG
-    const conversationContext = await buildConversationContext(req.user._id, chatId, prompt);
+    const conversationContext = await buildConversationContext(req.user.userId, chatId, prompt);
 
     let parseText = "";
     let parsedFilePath = "";
@@ -434,7 +434,7 @@ IMPORTANT:
     }
 
     console.log('=== DEBUG INFO ===');
-    console.log('User ID:', req.user._id);
+    console.log('User ID:', req.user.userId);
     console.log('User Name:', userName);
     console.log('User Email:', userEmail);
     console.log('User Education:', userEducation);
@@ -459,8 +459,8 @@ IMPORTANT:
     res.json({ answer: ans });
 
     // Store both user message and AI response in long-term memory
-    addToMemory(req.user._id, chatId, prompt, 'user');
-    addToMemory(req.user._id, chatId, ans, 'ai');
+    addToMemory(req.user.userId, chatId, prompt, 'user');
+    addToMemory(req.user.userId, chatId, ans, 'ai');
 
     const aiMessage = await Message.create({
       chat: chatId,
@@ -512,7 +512,7 @@ router.put('/chat-title/:chatId', async (req, res) => {
     }
 
     // Verify user owns this chat
-    const chat = await Chat.findOne({ _id: chatId, user: req.user._id });
+    const chat = await Chat.findOne({ _id: chatId, user: req.user.userId });
     if (!chat) {
       return res.status(404).json({ error: "Chat not found" });
     }

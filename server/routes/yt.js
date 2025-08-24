@@ -1,4 +1,5 @@
 import express from 'express';
+import { requireAuth } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -6,11 +7,12 @@ const router = express.Router();
  * GET /youtube — Get video recommendations for a topic
  * Example: /youtube?topic=Quadratic Equations
  */
-router.get('/', async (req, res) => {
+router.get('/', requireAuth, async (req, res) => {
   console.log('=== YouTube Route Hit ===');
   console.log('Request received at:', new Date().toISOString());
   console.log('Request headers:', req.headers);
   console.log('Request query:', req.query);
+  console.log('User ID:', req.user.userId);
 
   const { topic } = req.query;
 
@@ -68,6 +70,7 @@ router.get('/', async (req, res) => {
       }
     }));
 
+    console.log(`Successfully fetched ${videos.length} videos for topic: ${topic}`);
     res.status(200).json({ videos });
   } catch (error) {
     console.error('=== YouTube API Error ===');

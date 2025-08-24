@@ -113,7 +113,7 @@ router.get('/:chatId', async (req, res) => {
   }
 
   try {
-    const chat = await Chat.findOne({ _id: chatId, user: req.user._id })
+    const chat = await Chat.findOne({ _id: chatId, user: req.user.userId })
       .populate({
         path: 'messages',
         options: { sort: { sentAt: 1 } }
@@ -138,7 +138,7 @@ router.get('/archived/list', async (req, res) => {
 
   try {
     const archivedChats = await Chat.find({ 
-      user: req.user._id, 
+      user: req.user.userId, 
       archived: true 
     })
       .populate({
@@ -164,7 +164,7 @@ router.delete('/:chatId', async (req, res) => {
 
   try {
     // Find the chat and verify ownership
-    const chat = await Chat.findOne({ _id: chatId, user: req.user._id });
+    const chat = await Chat.findOne({ _id: chatId, user: req.user.userId });
     
     if (!chat) {
       return res.status(404).json({ error: 'Chat not found' });
@@ -194,7 +194,7 @@ router.post('/:chatId/share', async (req, res) => {
 
   try {
     // Find the chat and verify ownership
-    const chat = await Chat.findOne({ _id: chatId, user: req.user._id })
+    const chat = await Chat.findOne({ _id: chatId, user: req.user.userId })
       .populate('messages');
     
     if (!chat) {
@@ -273,7 +273,7 @@ router.delete('/bulk/delete', async (req, res) => {
     // Verify ownership of all chats
     const chats = await Chat.find({ 
       _id: { $in: chatIds }, 
-      user: req.user._id 
+      user: req.user.userId 
     });
 
     if (chats.length !== chatIds.length) {
@@ -307,7 +307,7 @@ router.put('/:chatId/archive', async (req, res) => {
 
   try {
     // Find the chat and verify ownership
-    const chat = await Chat.findOne({ _id: chatId, user: req.user._id });
+    const chat = await Chat.findOne({ _id: chatId, user: req.user.userId });
     
     if (!chat) {
       return res.status(404).json({ error: 'Chat not found' });
@@ -337,7 +337,7 @@ router.put('/:chatId/restore', async (req, res) => {
 
   try {
     // Find the chat and verify ownership
-    const chat = await Chat.findOne({ _id: chatId, user: req.user._id });
+    const chat = await Chat.findOne({ _id: chatId, user: req.user.userId });
     
     if (!chat) {
       return res.status(404).json({ error: 'Chat not found' });
@@ -364,19 +364,19 @@ router.get('/stats/summary', async (req, res) => {
   }
 
   try {
-    const totalChats = await Chat.countDocuments({ user: req.user._id });
-    const activeChats = await Chat.countDocuments({ user: req.user._id, archived: { $ne: true } });
-    const archivedChats = await Chat.countDocuments({ user: req.user._id, archived: true });
+    const totalChats = await Chat.countDocuments({ user: req.user.userId });
+    const activeChats = await Chat.countDocuments({ user: req.user.userId, archived: { $ne: true } });
+    const archivedChats = await Chat.countDocuments({ user: req.user.userId, archived: true });
     
     // Get total messages across all chats
     const totalMessages = await Message.countDocuments({
-      chat: { $in: await Chat.find({ user: req.user._id }).distinct('_id') }
+      chat: { $in: await Chat.find({ user: req.user.userId }).distinct('_id') }
     });
 
     // Get recent activity (chats created in last 7 days)
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const recentChats = await Chat.countDocuments({
-      user: req.user._id,
+      user: req.user.userId,
       createdAt: { $gte: weekAgo }
     });
 
