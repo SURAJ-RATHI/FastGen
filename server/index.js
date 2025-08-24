@@ -83,36 +83,36 @@ app.use('/api/auth', authRoutes);
 
 // Mount user routes
 import userRoutes from './routes/user.js';
-app.use('/user', requireAuth, userRoutes);
+app.use('/api/user', requireAuth, userRoutes);
 
 // Mount chat routes
 import chatRoutes from './routes/chats.js';
-app.use('/chats', requireAuth, chatRoutes);
+app.use('/api/chats', requireAuth, chatRoutes);
 
 // Public route for shared chats (no authentication required)
-app.use('/shared-chat', chatRoutes);
+app.use('/api/shared-chat', chatRoutes);
 
 // Mount other essential routes
 import uploadRoutes from './routes/upload.js';
-app.use('/upload', uploadRoutes);
+app.use('/api/upload', uploadRoutes);
 
 import geminiRoutes from './routes/gemini.js';
-app.use('/gemini', requireAuth, geminiRoutes);
+app.use('/api/gemini', requireAuth, geminiRoutes);
 
 import messageRoutes from './routes/messages.js';
-app.use('/messages', requireAuth, messageRoutes);
+app.use('/api/messages', requireAuth, messageRoutes);
 
 import userPrefRoutes from './routes/userPref.js';
-app.use('/userPref', requireAuth, userPrefRoutes);
+app.use('/api/userPref', requireAuth, userPrefRoutes);
 
 import GQUizzesRoutes from './routes/GQuizzes.js';
-app.use('/GQuizzes', GQUizzesRoutes);
+app.use('/api/GQuizzes', GQUizzesRoutes);
 
 import ytRoutes from './routes/yt.js';
-app.use('/yt', ytRoutes);
+app.use('/api/yt', ytRoutes);
 
 import emailRoutes from './routes/email.js';
-app.use('/email', emailRoutes);
+app.use('/api/email', emailRoutes);
 
 // Root route
 app.get('/', (req, res) => {

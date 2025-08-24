@@ -22,6 +22,91 @@ const verifyToken = (req, res, next) => {
   });
 };
 
+// Manual signup route
+router.post('/signup', async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ error: 'Name, email, and password are required' });
+    }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser) {
+      return res.status(400).json({ error: 'User with this email already exists' });
+    }
+
+    // Create user with a unique Google ID (using email hash as fallback)
+    const emailHash = Buffer.from(email).toString('base64').replace(/[^a-zA-Z0-9]/g, '');
+    const uniqueId = `manual_${emailHash}_${Date.now()}`;
+
+    const user = await User.create({
+      googleId: uniqueId,
+      name,
+      email,
+      password
+    });
+
+    // Generate JWT token for immediate authentication
+    const token = jwt.sign(
+      { userId: user._id },
+      process.env.JWT_SECRET || 'your_jwt_secret',
+      { expiresIn: '24h' }
+    );
+
+    res.status(201).json({ 
+      success: true, 
+      token,
+      user: { id: user._id, name: user.name, email: user.email } 
+    });
+  } catch (error) {
+    console.error('Error creating user:', error);
+    res.status(500).json({ error: 'Failed to create user' });
+  }
+});
+
+// Manual signin route
+router.post('/signin', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+
+    // Find user by email
+    const user = await User.findOne({ email });
+
+    if (!user || !user.hasPassword()) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    // Check password
+    const isValidPassword = await user.comparePassword(password);
+    if (!isValidPassword) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { userId: user._id },
+      process.env.JWT_SECRET || 'your_jwt_secret',
+      { expiresIn: '24h' }
+    );
+
+    res.json({ 
+      success: true, 
+      token,
+      user: { id: user._id, name: user.name, email: user.email } 
+    });
+  } catch (error) {
+    console.error('Error signing in:', error);
+    res.status(500).json({ error: 'Failed to sign in' });
+  }
+});
+
 // Google OAuth authentication
 router.post('/google', async (req, res) => {
   try {
@@ -72,7 +157,7 @@ router.post('/google', async (req, res) => {
   }
 });
 
-// Manual login
+// Manual login (legacy route)
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;

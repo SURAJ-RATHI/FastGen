@@ -92,7 +92,7 @@ export const AuthProvider = ({ children }) => {
 
   const signInWithEmail = async (email, password) => {
     try {
-      const response = await axios.post(`${import.meta.env.VITE_APP_BE_BASEURL}/api/auth/login`, {
+      const response = await axios.post(`${import.meta.env.VITE_APP_BE_BASEURL}/api/auth/signin`, {
         email,
         password
       });
@@ -106,7 +106,27 @@ export const AuthProvider = ({ children }) => {
       return { success: true };
     } catch (error) {
       console.error('Email sign in error:', error);
-      return { success: false, error: error.response?.data?.message || 'Login failed' };
+      return { success: false, error: error.response?.data?.error || 'Login failed' };
+    }
+  };
+
+  const signUpWithEmail = async (name, email, password) => {
+    try {
+      const response = await axios.post(`${import.meta.env.VITE_APP_BE_BASEURL}/api/auth/signup`, {
+        name,
+        email,
+        password
+      });
+      
+      if (response.data.success) {
+        // Automatically sign in after successful signup
+        return await signInWithEmail(email, password);
+      }
+      
+      return { success: false, error: 'Signup failed' };
+    } catch (error) {
+      console.error('Email signup error:', error);
+      return { success: false, error: error.response?.data?.error || 'Signup failed' };
     }
   };
 
@@ -141,6 +161,7 @@ export const AuthProvider = ({ children }) => {
     token,
     signInWithGoogle,
     signInWithEmail,
+    signUpWithEmail,
     signOut,
     getUserData,
     checkAuthStatus

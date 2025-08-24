@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext.jsx"
-import axios from "axios"
 
 const SignUpPage = () => {
-  const { signInWithGoogle, signInWithEmail, isSignedIn, isLoading } = useAuth()
+  const { signInWithGoogle, signUpWithEmail, isSignedIn, isLoading } = useAuth()
   const [showManualForm, setShowManualForm] = useState(false)
   const [formData, setFormData] = useState({
     name: "",
@@ -82,24 +81,15 @@ const SignUpPage = () => {
     setError("")
 
     try {
-      // Create user in database
-      const response = await axios.post(`${import.meta.env.VITE_APP_BE_BASEURL}/user/manual-signup`, {
-        name: formData.name,
-        email: formData.email,
-        password: formData.password
-      })
-
-      if (response.data.success) {
-        // Sign in the user with the returned token
-        const result = await signInWithEmail(formData.email, formData.password);
-        if (result.success) {
-          navigate('/onBoard');
-        } else {
-          setError(result.error || 'Sign in failed after signup');
-        }
+      // Use the signup method from AuthContext
+      const result = await signUpWithEmail(formData.name, formData.email, formData.password);
+      if (result.success) {
+        navigate('/onBoard');
+      } else {
+        setError(result.error || 'Signup failed');
       }
-    } catch (err) {
-      setError(err.response?.data?.error || "Signup failed. Please try again.")
+    } catch {
+      setError("Signup failed. Please try again.")
     } finally {
       setIsSubmitting(false)
     }
