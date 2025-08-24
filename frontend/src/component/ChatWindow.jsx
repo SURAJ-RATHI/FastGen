@@ -660,15 +660,18 @@ export default function ChatWindow() {
                 style={{ minHeight: '44px', maxHeight: '120px' }}
         />
               <div className="absolute right-3 bottom-3 flex gap-2">
-                <button onClick={handleAttachClick} className="p-1 text-gray-400 hover:text-white transition-colors rounded" title="Attach file">
+                <button onClick={handleAttachClick} className="p-1 text-gray-400 hover:text-white transition-colors rounded group relative" title="Attach PDF file">
                   <IoMdAttach className="w-4 h-4" />
-        </button>
+                  <span className="absolute bottom-full right-0 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                    PDF only
+                  </span>
+                </button>
                 <button onClick={handleSend} disabled={!chatId || !prompt.trim()} className="p-1 text-gray-400 hover:text-white transition-colors rounded disabled:opacity-50 disabled:cursor-not-allowed" title="Send message">
                   <LuSendHorizontal className="w-4 h-4" />
         </button>
               </div>
             </div>
-            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
+            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept=".pdf" />
           </div>
         </div>
       </div>

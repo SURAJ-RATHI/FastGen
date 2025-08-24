@@ -194,15 +194,19 @@ return (
           ref={fileInputRef}
           onChange={handleFileChange}
           className="hidden"
+          accept=".pdf"
         />
 
         {!isUploading && !uploadedParsedFileName ? (
           // SHOW upload field BEFORE file upload
-          <div
-            onClick={handleAttachClick}
-            className="w-100% h-20 border-2 border-dashed border-gray-600 rounded-md flex items-center justify-center cursor-pointer hover:border-gray-500 transition-colors bg-gray-800"
-          >
-            <span className="text-sm text-gray-300">Upload File</span>
+          <div className="space-y-3">
+            <div
+              onClick={handleAttachClick}
+              className="w-100% h-20 border-2 border-dashed border-gray-600 rounded-md flex items-center justify-center cursor-pointer hover:border-gray-500 transition-colors bg-gray-800"
+            >
+              <span className="text-sm text-gray-300">📄 Upload PDF File</span>
+            </div>
+            <p className="text-xs text-gray-500 text-center">Only PDF files are supported for text extraction</p>
           </div>
         ) : isUploading ? (
           // SHOW progress bar DURING upload

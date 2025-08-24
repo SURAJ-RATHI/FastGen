@@ -51,10 +51,8 @@ if (originalName.endsWith('.pdf')) {
         const pageText = strings.join(' ');
         parsedText += pageText + '\n\n';
       }    
-    } else if (originalName.endsWith('.txt')) {
-      parsedText = fs.readFileSync(filePath, 'utf8')
     } else {
-      return res.status(400).json({ error: 'Unsupported file type' })
+      return res.status(400).json({ error: 'Only PDF files are supported. Please upload a PDF file.' })
     }
 
     // ✅ Save parsed text to a new file
