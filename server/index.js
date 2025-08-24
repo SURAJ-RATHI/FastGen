@@ -23,33 +23,7 @@ app.use((req, res, next) => {
 
 // Basic CORS configuration - MUST BE BEFORE ANY ROUTES
 app.use(cors({
-    origin: function(origin, callback) {
-        // Allow requests with no origin (like mobile apps or curl requests)
-        if (!origin) return callback(null, true);
-        
-        // Allow localhost on any port for development
-        if (origin.includes('localhost')) {
-            return callback(null, true);
-        }
-        
-        // Allow your production frontend domain
-        if (origin === process.env.VITE_FE_URL || origin === process.env.CORS_ORIGIN) {
-            return callback(null, true);
-        }
-        
-        // Allow Vercel domains in production
-        if (process.env.NODE_ENV === 'production' && origin.includes('.vercel.app')) {
-            return callback(null, true);
-        }
-        
-        // Allow specific Vercel domain
-        if (origin === 'https://fastgen-ai.vercel.app') {
-            return callback(null, true);
-        }
-        
-        // For now, allow all origins to fix the immediate issue
-        callback(null, true);
-    },
+    origin: true, // Allow ALL origins
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-Requested-With'],
@@ -65,12 +39,22 @@ app.options('*', (req, res) => {
     res.status(200).end();
 });
 
-// Add CORS headers to all responses
+// Add CORS headers to ALL responses - this is critical
 app.use((req, res, next) => {
+    // Always set CORS headers
     res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
     res.header('Access-Control-Allow-Credentials', 'true');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie, X-Requested-With');
+    
+    // Log CORS headers being set
+    console.log('Setting CORS headers for:', req.method, req.url);
+    console.log('Origin:', req.headers.origin);
+    console.log('CORS Headers set:', {
+        'Access-Control-Allow-Origin': req.headers.origin || '*',
+        'Access-Control-Allow-Credentials': 'true'
+    });
+    
     next();
 });
 

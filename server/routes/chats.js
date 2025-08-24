@@ -15,7 +15,7 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    const newChat = await Chat.create({ user: req.user._id });
+    const newChat = await Chat.create({ user: req.user.userId });
     console.log('New chat created:', newChat);
     
     if (!newChat._id) {
@@ -36,7 +36,6 @@ router.post('/', async (req, res) => {
 router.get('/getChat', async (req, res) => {
   console.log('=== getChat route hit ===');
   console.log('req.user:', req.user);
-  console.log('req.isAuthenticated():', req.isAuthenticated());
   
   if (!req.user) {
     console.log('No user found, returning 401');
@@ -46,10 +45,10 @@ router.get('/getChat', async (req, res) => {
   try {
     const { includeArchived = false } = req.query;
     
-    console.log('User authenticated, fetching chats for user:', req.user._id);
+    console.log('User authenticated, fetching chats for user:', req.user.userId);
     
     // Build query - exclude archived by default unless specifically requested
-    const query = { user: req.user._id };
+    const query = { user: req.user.userId };
     if (!includeArchived) {
       query.archived = { $ne: true };
     }
