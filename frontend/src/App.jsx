@@ -14,6 +14,10 @@ import HelpCenter from './component/HelpCenter';
 import Documentation from './component/Documentation';
 import PrivacyPolicy from './component/PrivacyPolicy';
 import TermsOfService from './component/TermsOfService';
+import SharePost from './component/SharePost';
+import YouTubeSearch from './component/YouTubeSearch';
+import CreateBlog from './component/CreateBlog';
+import ContentDetail from './component/ContentDetail';
 import { TabProvider } from './contexts/TabContext.jsx';
 
 function AppContent() {
@@ -40,6 +44,11 @@ function AppContent() {
           <Route path="/docs" element={<Documentation/>} />
           <Route path="/privacy" element={<PrivacyPolicy/>} />
           <Route path="/terms" element={<TermsOfService/>} />
+          <Route path="/share-post" element={<SharePost/>} />
+          <Route path="/share-post/:platform" element={<SharePost/>} />
+          <Route path="/youtube-search" element={<YouTubeSearch/>} />
+          <Route path="/create-blog" element={<CreateBlog/>} />
+          <Route path="/content/:id" element={<ContentDetail/>} />
         </Routes>
       </TabProvider>
     </div>
