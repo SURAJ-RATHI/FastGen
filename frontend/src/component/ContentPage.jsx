@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiShare2, FiYoutube, FiEdit3, FiClock, FiFileText, FiHome, FiMessageCircle } from 'react-icons/fi';
+import { FiShare2, FiYoutube, FiEdit3, FiClock, FiFileText, FiHome, FiMessageCircle, FiLinkedin, FiTwitter, FiMessageCircle as FiDiscord } from 'react-icons/fi';
 import { useAuth } from '../contexts/AuthContext.jsx';
 
 const ContentPage = () => {
@@ -33,6 +33,19 @@ const ContentPage = () => {
     }
   ]);
 
+  const platformCards = [
+    { id: 1, name: 'LinkedIn', icon: FiLinkedin, color: 'blue', type: 'social-media' },
+    { id: 2, name: 'Twitter', icon: FiTwitter, color: 'blue', type: 'social-media' },
+    { id: 3, name: 'Discord', icon: FiDiscord, color: 'purple', type: 'social-media' },
+    { id: 4, name: 'Slack', icon: FiMessageCircle, color: 'green', type: 'social-media' },
+    { id: 5, name: 'Reddit', icon: FiEdit3, color: 'orange', type: 'blog' },
+    { id: 6, name: 'Stack Overflow', icon: FiEdit3, color: 'orange', type: 'blog' },
+    { id: 7, name: 'Medium', icon: FiEdit3, color: 'green', type: 'blog' },
+    { id: 8, name: 'Dev.to', icon: FiEdit3, color: 'purple', type: 'blog' },
+    { id: 9, name: 'Facebook', icon: FiShare2, color: 'blue', type: 'social-media' },
+    { id: 10, name: 'Instagram', icon: FiShare2, color: 'pink', type: 'social-media' },
+  ];
+
   const handleSharePost = () => {
     navigate('/share-post');
   };
@@ -51,6 +64,14 @@ const ContentPage = () => {
 
   const handleGoToMain = () => {
     navigate('/main');
+  };
+
+  const handlePlatformCardClick = (platform) => {
+    if (platform.type === 'social-media') {
+      navigate('/share-post', { state: { selectedPlatform: platform.name } });
+    } else {
+      navigate('/create-blog', { state: { selectedPlatform: platform.name } });
+    }
   };
 
   return (
@@ -136,6 +157,44 @@ const ContentPage = () => {
           </div>
         </div>
 
+        {/* Infinite Horizontal Platform Cards */}
+        <div className="mb-16">
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6 text-center">
+            Choose Your Platform
+          </h3>
+          <div className="relative overflow-hidden">
+            <div className="flex animate-scroll">
+              {/* Duplicate cards for seamless infinite scroll */}
+              {[...platformCards, ...platformCards].map((platform, index) => (
+                <div
+                  key={`${platform.id}-${index}`}
+                  onClick={() => handlePlatformCardClick(platform)}
+                  className="flex-shrink-0 w-48 mx-3 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105 border border-gray-200 dark:border-gray-700"
+                >
+                  <div className={`w-10 h-10 bg-${platform.color}-500 rounded-lg flex items-center justify-center mb-3`}>
+                    <platform.icon className="w-5 h-5 text-white" />
+                  </div>
+                  <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                    {platform.name}
+                  </h4>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
+                    {platform.type.replace('-', ' ')}
+                  </p>
+                  <div className="mt-2">
+                    <span className={`inline-block px-2 py-1 text-xs rounded-full ${
+                      platform.type === 'social-media' 
+                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' 
+                        : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                    }`}>
+                      {platform.type === 'social-media' ? 'Social Media' : 'Blog Platform'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* Content History */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
           <div className="flex items-center justify-between mb-6">
@@ -179,6 +238,23 @@ const ContentPage = () => {
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes scroll {
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(-50%);
+          }
+        }
+        .animate-scroll {
+          animation: scroll 30s linear infinite;
+        }
+        .animate-scroll:hover {
+          animation-play-state: paused;
+        }
+      `}</style>
     </div>
   );
 };
