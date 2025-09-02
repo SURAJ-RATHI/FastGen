@@ -443,13 +443,13 @@ export default function ChatWindow() {
   }
 
   return (
-    <div className="relative flex h-[calc(100vh-64px)] bg-black mt-4">
+    <div className="relative flex h-[calc(100vh-64px)] bg-gray-900 mt-4">
       {/* SIDEBAR */}
       {!sidebarHidden && (
-        <div className={`${sidebarOpen ? 'w-full md:w-64' : 'w-0'} bg-white dark:bg-gray-800 flex flex-col transition-all duration-300 overflow-hidden h-full md:relative absolute z-40 border-r border-gray-200 dark:border-gray-700`}>
+        <div className={`${sidebarOpen ? 'w-full md:w-56' : 'w-0'} bg-white dark:bg-gray-800 flex flex-col transition-all duration-300 overflow-hidden h-full md:relative absolute z-40 border-r border-gray-200 dark:border-gray-700`}>
           {/* Top controls */}
           <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-            <button onClick={handleNewChat} className="flex-1 py-3 px-4 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg flex items-center justify-center gap-3 transition-colors text-sm font-medium">
+            <button onClick={handleNewChat} className="flex-1 py-2 px-3 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg flex items-center justify-center gap-2 transition-colors text-sm font-medium">
               <LuPencil className="w-4 h-4" />
               New chat
             </button>
@@ -457,10 +457,10 @@ export default function ChatWindow() {
             {sidebarOpen && (
               <button 
                 onClick={toggleSidebar} 
-                className="ml-2 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg transition-colors"
+                className="ml-2 p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg transition-colors"
                 title="Close sidebar"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
@@ -476,7 +476,7 @@ export default function ChatWindow() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search chats..."
-                className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg border border-gray-200 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none text-sm placeholder-gray-500 dark:placeholder-gray-400"
+                className="w-full pl-9 pr-3 py-2 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg border border-gray-200 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none text-sm placeholder-gray-500 dark:placeholder-gray-400"
               />
             </div>
           </div>
@@ -484,38 +484,38 @@ export default function ChatWindow() {
           {/* Chat history list */}
           <div className="flex-1 overflow-y-auto p-2 space-y-1 scrollbar-hide">
             {searchQuery && filteredChats.length === 0 ? (
-              <div className="text-center text-gray-500 dark:text-gray-400 py-8">
-                <FiSearch className="w-8 h-8 mx-auto mb-2 opacity-50" />
+              <div className="text-center text-gray-500 dark:text-gray-400 py-6">
+                <FiSearch className="w-6 h-6 mx-auto mb-2 opacity-50" />
                 <p className="text-sm">No chats found</p>
                 <p className="text-xs mt-1">Try a different search term</p>
               </div>
             ) : (
               (searchQuery ? filteredChats : chatHistory).map((chat) => (
                 <div key={chat._id} className={`group relative rounded-lg transition-colors ${chatId === chat._id ? 'bg-gray-100 dark:bg-gray-700' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}>
-                  <button onClick={() => switchToChat(chat._id)} className={`w-full p-3 text-left transition-colors ${chatId === chat._id ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}>
+                  <button onClick={() => switchToChat(chat._id)} className={`w-full p-2 text-left transition-colors ${chatId === chat._id ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}>
                     <div className="truncate text-sm font-medium">
                       {searchQuery ? 
                         highlightSearchTerms(
-                          chat.title || (chat.messages?.[0]?.content?.slice(0,30) + '...') || `Chat ${new Date(chat.startedAt).toLocaleDateString()}`,
+                          chat.title || (chat.messages?.[0]?.content?.slice(0,25) + '...') || `Chat ${new Date(chat.startedAt).toLocaleDateString()}`,
                           searchQuery
                         ) : 
-                        (chat.title || (chat.messages?.[0]?.content?.slice(0,30) + '...') || `Chat ${new Date(chat.startedAt).toLocaleDateString()}`)
+                        (chat.title || (chat.messages?.[0]?.content?.slice(0,25) + '...') || `Chat ${new Date(chat.startedAt).toLocaleDateString()}`)
                       }
                     </div>
                   </button>
                   {/* 3-dot menu */}
-                  <button onClick={(e) => toggleMenu(chat._id, e)} className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded" title="More options">
-                    <FiMoreVertical className="w-4 h-4" />
+                  <button onClick={(e) => toggleMenu(chat._id, e)} className="absolute right-1 top-1 opacity-0 group-hover:opacity-100 transition-opacity p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded" title="More options">
+                    <FiMoreVertical className="w-3 h-3" />
                   </button>
                   {openMenuId === chat._id && (
-                    <div className="absolute right-0 top-8 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg min-w-[160px]">
-                      <button onClick={(e) => { e.stopPropagation(); startEditingTitle(chat._id, chat.title); }} className="w-full px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"><FiEdit3 className="w-4 h-4" />Rename</button>
-                      <button onClick={(e) => { e.stopPropagation(); shareChat(chat._id); }} className="w-full px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"><FiShare2 className="w-4 h-4" />Share</button>
-                      <button onClick={(e) => { e.stopPropagation(); deleteChat(chat._id); }} className="w-full px-3 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 border-t border-gray-200 dark:border-gray-600"><FiTrash2 className="w-4 h-4" />Delete</button>
+                    <div className="absolute right-0 top-6 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg min-w-[140px]">
+                      <button onClick={(e) => { e.stopPropagation(); startEditingTitle(chat._id, chat.title); }} className="w-full px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"><FiEdit3 className="w-3 h-3" />Rename</button>
+                      <button onClick={(e) => { e.stopPropagation(); shareChat(chat._id); }} className="w-full px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"><FiShare2 className="w-3 h-3" />Share</button>
+                      <button onClick={(e) => { e.stopPropagation(); deleteChat(chat._id); }} className="w-full px-3 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 border-t border-gray-200 dark:border-gray-600"><FiTrash2 className="w-3 h-3" />Delete</button>
                     </div>
                   )}
                   {editingChatId === chat._id && (
-                    <div className="absolute right-0 top-8 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg p-2 min-w-[220px]">
+                    <div className="absolute right-0 top-6 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg p-2 min-w-[200px]">
                       <input type="text" value={editingTitle} onChange={(e) => setEditingTitle(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') renameChat(chat._id, editingTitle); if (e.key === 'Escape') closeMenu(); }} className="w-full px-2 py-1 text-sm text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded focus:outline-none focus:border-blue-500 dark:focus:border-blue-400" placeholder="Enter new title..." autoFocus />
                       <div className="flex gap-2 mt-2">
                         <button onClick={() => renameChat(chat._id, editingTitle)} className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
@@ -530,12 +530,12 @@ export default function ChatWindow() {
 
           {/* User info */}
           <div className="p-3 border-t border-gray-200 dark:border-gray-700">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-sm font-medium text-white">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-xs font-medium text-white">
                 {user?.displayName?.charAt(0) || user?.name?.charAt(0) || user?.email?.charAt(0) || 'U'}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                <p className="text-xs font-medium text-gray-900 dark:text-white truncate">
                   {user?.displayName || user?.name || user?.email || 'User'}
                 </p>
               </div>
@@ -544,7 +544,7 @@ export default function ChatWindow() {
                 className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                 title="Hide sidebar"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
                 </svg>
               </button>
@@ -557,7 +557,7 @@ export default function ChatWindow() {
       <div className="flex-1 flex flex-col h-[92vh] bg-gray-50 dark:bg-gray-900">
         {/* Toggle Button - Only show when sidebar is closed or hidden */}
         {(!sidebarOpen || sidebarHidden) && (
-          <div className="absolute top-4 left-4 z-10">
+          <div className="absolute top-6 left-6 z-10">
             <button 
               onClick={() => {
                 if (sidebarHidden) {
@@ -578,40 +578,40 @@ export default function ChatWindow() {
         )}
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto scrollbar-hide bg-gray-50 dark:bg-gray-900 pb-4" ref={containerRef}>
+        <div className="flex-1 overflow-y-auto scrollbar-hide bg-gray-50 dark:bg-gray-900 pb-2" ref={containerRef}>
           {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full px-4">
+            <div className="flex flex-col items-center justify-center h-full px-4 pt-16">
               <div className="text-center max-w-md">
-                <div className="mb-8">
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mx-auto mb-4 shadow-lg">
-                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="mb-6">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mx-auto mb-3 shadow-lg">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                     </svg>
                   </div>
                 </div>
-                <h2 className="text-2xl font-semibold mb-3 text-gray-900 dark:text-gray-100">How can I help you today?</h2>
-                <p className="text-base text-gray-500 dark:text-gray-400 mb-8">
+                <h2 className="text-xl font-semibold mb-2 text-gray-900 dark:text-gray-100">How can I help you today?</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
                   I'm here to help with any questions, tasks, or creative projects you have in mind.
                 </p>
                 
                 {/* Centered Input Bar */}
-                <div className="max-w-2xl mx-auto">
+                <div className="max-w-lg mx-auto">
                   <div className="relative">
                     <textarea
                       value={prompt}
                       onChange={(e) => setPrompt(e.target.value)}
                       onKeyDown={handleKeyDown}
-                      className="w-full p-4 pr-12 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl border border-gray-200 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none resize-none placeholder-gray-500 dark:placeholder-gray-400 text-base leading-relaxed shadow-sm"
+                      className="w-full p-3 pr-10 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg border border-gray-200 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none resize-none placeholder-gray-500 dark:placeholder-gray-400 text-sm leading-relaxed shadow-sm"
                       placeholder="Message FastGen AI..."
                       rows={1}
-                      style={{ minHeight: '52px', maxHeight: '200px' }}
+                      style={{ minHeight: '44px', maxHeight: '120px' }}
                     />
-                    <div className="absolute right-3 bottom-3 flex gap-2">
-                      <button onClick={handleAttachClick} className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded-lg group relative" title="Attach PDF file">
-                        <IoMdAttach className="w-5 h-5" />
+                    <div className="absolute right-2 bottom-2 flex gap-1">
+                      <button onClick={handleAttachClick} className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded group relative" title="Attach PDF file">
+                        <IoMdAttach className="w-4 h-4" />
                       </button>
-                      <button onClick={handleSend} disabled={!prompt.trim()} className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors rounded-lg disabled:opacity-50 disabled:cursor-not-allowed" title="Send message">
-                        <LuSendHorizontal className="w-5 h-5" />
+                      <button onClick={handleSend} disabled={!prompt.trim()} className="p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors rounded disabled:opacity-50 disabled:cursor-not-allowed" title="Send message">
+                        <LuSendHorizontal className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
@@ -622,16 +622,16 @@ export default function ChatWindow() {
           ) : (
             <>
               {messages.map((msg, idx) => (
-                <div key={idx} className={`py-6 px-4 ${msg.sender === 'user' ? 'bg-gray-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'}`}>
-                  <div className="max-w-4xl mx-auto flex gap-4">
+                <div key={idx} className={`py-4 px-4 ${msg.sender === 'user' ? 'bg-gray-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'}`}>
+                  <div className="max-w-3xl mx-auto flex gap-3">
                     {msg.sender === 'ai' && (
-                      <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-sm font-medium text-white flex-shrink-0 shadow-sm">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-xs font-medium text-white flex-shrink-0 shadow-sm">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                         </svg>
                       </div>
                     )}
-                    <div className={`${msg.sender === 'user' ? 'max-w-[80%]' : 'flex-1'} text-gray-900 dark:text-gray-100`}>
+                    <div className={`${msg.sender === 'user' ? 'max-w-[75%]' : 'flex-1'} text-gray-900 dark:text-gray-100`}>
                       {msg.sender === 'ai' ? (
                         <div className="prose prose-gray dark:prose-invert max-w-none prose-sm leading-relaxed">
                           {searchQuery ? 
@@ -640,7 +640,7 @@ export default function ChatWindow() {
                           }
                         </div>
                       ) : (
-                        <div className="whitespace-pre-wrap text-base leading-relaxed">
+                        <div className="whitespace-pre-wrap text-sm leading-relaxed">
                           {searchQuery ? 
                             highlightSearchTerms(msg.content, searchQuery) : 
                             msg.content
@@ -649,7 +649,7 @@ export default function ChatWindow() {
                       )}
                     </div>
                     {msg.sender === 'user' && (
-                      <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center text-sm font-medium text-white flex-shrink-0 shadow-sm">
+                      <div className="w-7 h-7 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center text-xs font-medium text-white flex-shrink-0 shadow-sm">
                         {user?.displayName?.charAt(0) || user?.name?.charAt(0) || user?.email?.charAt(0) || 'U'}
                       </div>
                     )}
@@ -658,18 +658,18 @@ export default function ChatWindow() {
               ))}
 
               {isTyping && (
-                <div className="py-6 px-4 bg-white dark:bg-gray-900">
-                  <div className="max-w-4xl mx-auto flex gap-4">
-                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-sm font-medium text-white flex-shrink-0 shadow-sm">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="py-4 px-4 bg-white dark:bg-gray-900">
+                  <div className="max-w-3xl mx-auto flex gap-3">
+                    <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-xs font-medium text-white flex-shrink-0 shadow-sm">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                       </svg>
                     </div>
                     <div className="flex-1 text-gray-900 dark:text-gray-100">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                      <div className="flex items-center gap-1">
+                        <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" />
+                        <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+                        <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
                       </div>
                     </div>
                   </div>
@@ -681,31 +681,31 @@ export default function ChatWindow() {
 
         {/* File Upload Status */}
         {uploadedParsedFileName && (
-          <div className="px-4 py-3 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 text-center border-t border-gray-200 dark:border-gray-700 text-sm">
+          <div className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 text-center border-t border-gray-200 dark:border-gray-700 text-xs">
             📎 File uploaded successfully
           </div>
         )}
 
         {/* Input - Only show when there are messages */}
         {messages.length > 0 && (
-          <div className="border-t border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-800 flex-shrink-0">
-            <div className="max-w-4xl mx-auto">
+          <div className="border-t border-gray-200 dark:border-gray-700 p-3 bg-white dark:bg-gray-800 flex-shrink-0">
+            <div className="max-w-3xl mx-auto">
               <div className="relative">
                 <textarea
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  className="w-full p-4 pr-20 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl border border-gray-200 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none resize-none placeholder-gray-500 dark:placeholder-gray-400 text-base leading-relaxed"
+                  className="w-full p-3 pr-16 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg border border-gray-200 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none resize-none placeholder-gray-500 dark:placeholder-gray-400 text-sm leading-relaxed"
                   placeholder="Message FastGen AI..."
                   rows={1}
-                  style={{ minHeight: '52px', maxHeight: '200px' }}
+                  style={{ minHeight: '44px', maxHeight: '120px' }}
                 />
-                <div className="absolute right-3 bottom-3 flex gap-2">
-                  <button onClick={handleAttachClick} className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded-lg group relative" title="Attach PDF file">
-                    <IoMdAttach className="w-5 h-5" />
+                <div className="absolute right-2 bottom-2 flex gap-1">
+                  <button onClick={handleAttachClick} className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded group relative" title="Attach PDF file">
+                    <IoMdAttach className="w-4 h-4" />
                   </button>
-                  <button onClick={handleSend} disabled={!prompt.trim()} className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors rounded-lg disabled:opacity-50 disabled:cursor-not-allowed" title="Send message">
-                    <LuSendHorizontal className="w-5 h-5" />
+                  <button onClick={handleSend} disabled={!prompt.trim()} className="p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors rounded disabled:opacity-50 disabled:cursor-not-allowed" title="Send message">
+                    <LuSendHorizontal className="w-4 h-4" />
                   </button>
                 </div>
               </div>
