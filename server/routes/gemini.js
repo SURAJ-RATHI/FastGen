@@ -275,12 +275,40 @@ Please provide a helpful and informative response.`;
 // gemini res request
 router.post('/', async (req, res) => {
   try {
-    const { chatId, prompt, parsedFileName } = req.body;
+    const { chatId, prompt, parsedFileName, contentType, platform } = req.body;
 
     if (!req.user) {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
+    // Handle content generation (viral posts, blogs, etc.)
+    if (contentType === 'viral-post') {
+      try {
+        const answer = await generateWithFallback(prompt);
+        
+        // Create a simple message record for content generation
+        const userMessage = await Message.create({
+          chat: chatId || 'content-generation',
+          sender: 'user',
+          content: prompt,
+        });
+
+        return res.json({ 
+          answer,
+          messageId: userMessage._id,
+          contentType: 'viral-post',
+          platform: platform
+        });
+      } catch (error) {
+        console.error('Content generation error:', error);
+        return res.status(500).json({ 
+          error: "Failed to generate content",
+          details: error.message 
+        });
+      }
+    }
+
+    // Handle regular chat requests
     const userMessage = await Message.create({
       chat: chatId,
       sender: 'user',
