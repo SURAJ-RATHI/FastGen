@@ -541,21 +541,20 @@ export default function ChatWindow() {
 
       {/* MAIN */}
       <div className="flex-1 flex flex-col h-[92vh]">
-        {/* Header */}
-        <div className="bg-gray-900 border-b border-gray-700 p-3 relative">
-          {!sidebarOpen && (
+        {/* Toggle Button - Only show when sidebar is closed */}
+        {!sidebarOpen && (
+          <div className="absolute top-4 left-4 z-10">
             <button 
               onClick={toggleSidebar} 
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 p-1.5 hover:bg-gray-700 text-white rounded-md transition-colors" 
+              className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg transition-all duration-200 hover:scale-105"
               title="Show sidebar"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
-          )}
-          <h1 className="text-base font-medium text-gray-300 text-center">{chatId ? (chatHistory.find(c => c._id === chatId)?.title || 'New Chat') : 'New Chat'}</h1>
-        </div>
+          </div>
+        )}
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto scrollbar-hide" ref={containerRef}>
