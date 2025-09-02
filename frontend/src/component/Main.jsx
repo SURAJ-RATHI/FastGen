@@ -41,11 +41,11 @@ const Main = () => {
   // Mobile layout: Show only one component at a time
   if (isMobile) {
     return (
-      <div className="bg-gray-900 overflow-hidden min-h-screen">
+      <div className="bg-gray-900 min-h-screen">
         <div className="fixed top-0 left-0 right-0 z-50">
           <Header />
         </div>
-        <div className="pt-14 pb-8">
+        <div className="pt-14 pb-8 overflow-y-auto">
           {activeTab === 'content' ? (
             <Content />
           ) : activeTab === 'quizzes' ? (
@@ -63,11 +63,11 @@ const Main = () => {
 
   // Desktop/Tablet layout: Show only one component at a time (like mobile)
   return (
-    <div className="bg-gray-900 overflow-hidden min-h-screen">
+    <div className="bg-gray-900 min-h-screen">
       <div className="fixed top-0 left-0 right-0 z-50">
         <Header />
       </div>
-      <div className="pt-16 pb-8">
+      <div className="pt-16 pb-8 overflow-y-auto">
         {activeTab === 'content' ? (
           <Content />
         ) : activeTab === 'quizzes' ? (
