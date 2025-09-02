@@ -197,6 +197,13 @@ export default function ChatWindow() {
         if (prevLen === 0) {
           const newTitle = originalPrompt.length > 30 ? originalPrompt.slice(0, 30) + '...' : originalPrompt;
           setCurrentChatTitle(newTitle);
+          // Update chat history to reflect the new title
+          setChatHistory(prevHistory => {
+            const updatedHistory = prevHistory.map(chat => 
+              chat._id === chatId ? { ...chat, title: newTitle } : chat
+            );
+            return updatedHistory;
+          });
         }
         return updated;
       });
@@ -643,7 +650,7 @@ export default function ChatWindow() {
       )}
 
                 {/* Input */}
-        <div className="border-t border-gray-700 p-3 bg-black flex-shrink-0">
+        <div className="border-t border-gray-700 p-3 bg-gray-900 flex-shrink-0">
           <div className="max-w-3xl mx-auto">
             <div className="relative">
               <textarea
