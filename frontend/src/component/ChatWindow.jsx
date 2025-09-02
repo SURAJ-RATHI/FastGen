@@ -554,7 +554,7 @@ export default function ChatWindow() {
       )}
 
       {/* MAIN */}
-      <div className="flex-1 flex flex-col h-[92vh]">
+      <div className="flex-1 flex flex-col h-[92vh] bg-gray-50 dark:bg-gray-900">
         {/* Toggle Button - Only show when sidebar is closed or hidden */}
         {(!sidebarOpen || sidebarHidden) && (
           <div className="absolute top-4 left-4 z-10">
@@ -578,103 +578,141 @@ export default function ChatWindow() {
         )}
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto scrollbar-hide" ref={containerRef}>
+        <div className="flex-1 overflow-y-auto scrollbar-hide bg-gray-50 dark:bg-gray-900 pb-4" ref={containerRef}>
           {messages.length === 0 ? (
-            <div className="text-center text-gray-300 mt-20">
-              <div className="mb-3">
-                <svg className="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
+            <div className="flex flex-col items-center justify-center h-full px-4">
+              <div className="text-center max-w-md">
+                <div className="mb-8">
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mx-auto mb-4 shadow-lg">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                  </div>
+                </div>
+                <h2 className="text-2xl font-semibold mb-3 text-gray-900 dark:text-gray-100">How can I help you today?</h2>
+                <p className="text-base text-gray-500 dark:text-gray-400 mb-8">
+                  I'm here to help with any questions, tasks, or creative projects you have in mind.
+                </p>
+                
+                {/* Centered Input Bar */}
+                <div className="max-w-2xl mx-auto">
+                  <div className="relative">
+                    <textarea
+                      value={prompt}
+                      onChange={(e) => setPrompt(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      className="w-full p-4 pr-12 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl border border-gray-200 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none resize-none placeholder-gray-500 dark:placeholder-gray-400 text-base leading-relaxed shadow-sm"
+                      placeholder="Message FastGen AI..."
+                      rows={1}
+                      style={{ minHeight: '52px', maxHeight: '200px' }}
+                    />
+                    <div className="absolute right-3 bottom-3 flex gap-2">
+                      <button onClick={handleAttachClick} className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded-lg group relative" title="Attach PDF file">
+                        <IoMdAttach className="w-5 h-5" />
+                      </button>
+                      <button onClick={handleSend} disabled={!prompt.trim()} className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors rounded-lg disabled:opacity-50 disabled:cursor-not-allowed" title="Send message">
+                        <LuSendHorizontal className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+                  <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept=".pdf" />
+                </div>
               </div>
-              <h2 className="text-xl font-semibold mb-2">How can I help you today?</h2>
-              <p className="text-sm text-gray-400">Ask me anything or start a new conversation.</p>
             </div>
           ) : (
-                        messages.map((msg, idx) => (
-              <div key={idx} className="py-4 px-4">
-                <div className={`max-w-3xl mx-auto flex gap-4 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  {msg.sender === 'ai' && (
-                    <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-sm font-medium text-white flex-shrink-0">
-                      AI
-                    </div>
-                  )}
-                  <div className={`${msg.sender === 'user' ? 'max-w-[70%] text-right' : 'flex-1'} text-gray-100`}>
-                    {msg.sender === 'ai' ? (
-                      <div className="prose prose-invert max-w-none prose-sm">
-                        {searchQuery ? 
-                          highlightSearchTerms(msg.content, searchQuery) : 
-                          <ReactMarkdown>{msg.content}</ReactMarkdown>
-                        }
+            <>
+              {messages.map((msg, idx) => (
+                <div key={idx} className={`py-6 px-4 ${msg.sender === 'user' ? 'bg-gray-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'}`}>
+                  <div className="max-w-4xl mx-auto flex gap-4">
+                    {msg.sender === 'ai' && (
+                      <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-sm font-medium text-white flex-shrink-0 shadow-sm">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                        </svg>
                       </div>
-                    ) : (
-                      <div className="whitespace-pre-wrap">
-                        {searchQuery ? 
-                          highlightSearchTerms(msg.content, searchQuery) : 
-                          msg.content
-                        }
+                    )}
+                    <div className={`${msg.sender === 'user' ? 'max-w-[80%]' : 'flex-1'} text-gray-900 dark:text-gray-100`}>
+                      {msg.sender === 'ai' ? (
+                        <div className="prose prose-gray dark:prose-invert max-w-none prose-sm leading-relaxed">
+                          {searchQuery ? 
+                            highlightSearchTerms(msg.content, searchQuery) : 
+                            <ReactMarkdown>{msg.content}</ReactMarkdown>
+                          }
+                        </div>
+                      ) : (
+                        <div className="whitespace-pre-wrap text-base leading-relaxed">
+                          {searchQuery ? 
+                            highlightSearchTerms(msg.content, searchQuery) : 
+                            msg.content
+                          }
+                        </div>
+                      )}
+                    </div>
+                    {msg.sender === 'user' && (
+                      <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center text-sm font-medium text-white flex-shrink-0 shadow-sm">
+                        {user?.displayName?.charAt(0) || user?.name?.charAt(0) || user?.email?.charAt(0) || 'U'}
                       </div>
                     )}
                   </div>
-                  {msg.sender === 'user' && (
-                    <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-medium text-white flex-shrink-0">
-                      {user?.displayName?.charAt(0) || user?.name?.charAt(0) || user?.email?.charAt(0) || 'U'}
-                    </div>
-                  )}
                 </div>
-              </div>
-            ))
-          )}
+              ))}
 
-                    {isTyping && (
-            <div className="py-4 px-4">
-              <div className="max-w-3xl mx-auto flex gap-4">
-                <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-sm font-medium text-white flex-shrink-0">AI</div>
-                <div className="flex-1 text-gray-100">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+              {isTyping && (
+                <div className="py-6 px-4 bg-white dark:bg-gray-900">
+                  <div className="max-w-4xl mx-auto flex gap-4">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-sm font-medium text-white flex-shrink-0 shadow-sm">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                      </svg>
+                    </div>
+                    <div className="flex-1 text-gray-900 dark:text-gray-100">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
+              )}
+            </>
           )}
         </div>
 
         {/* File Upload Status */}
         {uploadedParsedFileName && (
-          <div className="px-4 py-2 bg-blue-900/20 text-blue-300 text-center border-t border-gray-700">📎 File Uploaded: {uploadedParsedFileName}</div>
-      )}
-
-                {/* Input */}
-        <div className="border-t border-gray-700 p-3 bg-gray-900 flex-shrink-0">
-          <div className="max-w-3xl mx-auto">
-            <div className="relative">
-              <textarea
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-                onKeyDown={handleKeyDown}
-                className="w-full p-3 pr-12 bg-gray-800 text-white rounded-lg border border-gray-600 focus:border-gray-500 focus:outline-none resize-none placeholder-gray-400"
-                placeholder="Message FastGen AI..."
-          disabled={!chatId}
-                rows={1}
-                style={{ minHeight: '44px', maxHeight: '120px' }}
-        />
-              <div className="absolute right-3 bottom-3 flex gap-2">
-                <button onClick={handleAttachClick} className="p-1 text-gray-400 hover:text-white transition-colors rounded group relative" title="Attach PDF file">
-                  <IoMdAttach className="w-4 h-4" />
-                  <span className="absolute bottom-full right-0 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                    PDF only
-                  </span>
-                </button>
-                <button onClick={handleSend} disabled={!chatId || !prompt.trim()} className="p-1 text-gray-400 hover:text-white transition-colors rounded disabled:opacity-50 disabled:cursor-not-allowed" title="Send message">
-                  <LuSendHorizontal className="w-4 h-4" />
-        </button>
-              </div>
-            </div>
-            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept=".pdf" />
+          <div className="px-4 py-3 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 text-center border-t border-gray-200 dark:border-gray-700 text-sm">
+            📎 File uploaded successfully
           </div>
-        </div>
+        )}
+
+        {/* Input - Only show when there are messages */}
+        {messages.length > 0 && (
+          <div className="border-t border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-800 flex-shrink-0">
+            <div className="max-w-4xl mx-auto">
+              <div className="relative">
+                <textarea
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  className="w-full p-4 pr-20 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl border border-gray-200 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none resize-none placeholder-gray-500 dark:placeholder-gray-400 text-base leading-relaxed"
+                  placeholder="Message FastGen AI..."
+                  rows={1}
+                  style={{ minHeight: '52px', maxHeight: '200px' }}
+                />
+                <div className="absolute right-3 bottom-3 flex gap-2">
+                  <button onClick={handleAttachClick} className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded-lg group relative" title="Attach PDF file">
+                    <IoMdAttach className="w-5 h-5" />
+                  </button>
+                  <button onClick={handleSend} disabled={!prompt.trim()} className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors rounded-lg disabled:opacity-50 disabled:cursor-not-allowed" title="Send message">
+                    <LuSendHorizontal className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+              <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept=".pdf" />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Delete Confirmation Modal */}
