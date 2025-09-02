@@ -60,7 +60,11 @@ const Header = () => {
     };
 
     const handleTabClick = (tab) => {
-        setActiveTab(tab);
+        if (tab === 'content') {
+            navigate('/content');
+        } else {
+            setActiveTab(tab);
+        }
         // For mobile, you can add navigation logic here if needed
     };
 
@@ -156,7 +160,7 @@ const Header = () => {
                                     </button>
                                     <button
                                         onClick={() => {
-                                            setActiveTab('content');
+                                            navigate('/content');
                                             setShowMobileTools(false);
                                         }}
                                         className={`w-full text-left px-4 py-2 text-sm transition-colors ${
