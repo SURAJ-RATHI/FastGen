@@ -76,94 +76,104 @@ const Content = () => {
   };
 
   return (
-    <div className="h-[91vh] bg-black overflow-hidden">
-      <div className="h-full overflow-y-auto scrollbar-hide p-4">
-      <label htmlFor="topic" className="block text-white mb-2 font-medium">Enter a topic:</label>
-      <div className="flex items-center gap-3 mb-4">
-        <input
-          id="topic"
-          type="text"
-          value={topic}
-          onChange={(e) => setTopic(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && getVideoRecommendations()}
-          placeholder="e.g., Quadratic Equations"
-          className="flex-1 px-4 py-2 rounded bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        />
-        <button
-          onClick={getVideoRecommendations}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition whitespace-nowrap"
-        >
-          {loading ? 'Searching...' : 'Search'}
-        </button>
-      </div>
-
-      {error && <p className="text-red-500 mt-4">{error}</p>}
-
-      <div className="mt-6">
-        <div className="flex items-center justify-between mb-4">
-          <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm">
-            {videoData.length} videos found
-          </span>
-          {videoData.length > 0 && (
-            <button
-              onClick={handleReset}
-              className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors flex items-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-              Reset
-            </button>
-          )}
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+            Content Generation
+          </h1>
+          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+            Create engaging content for your projects with AI assistance
+          </p>
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {videoData.map((video, index) => (
-            <div
-              key={video.videoId}
-              className="bg-gray-800 rounded-lg p-4 hover:bg-gray-700 transition-colors border border-gray-600 hover:border-blue-400 shadow-sm"
-            >
-              <div className="relative">
-                <img
-                  src={video.thumbnail}
-                  alt={video.title}
-                  className="w-full h-32 object-cover rounded-lg mb-3"
-                />
-                <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
-                  #{index + 1}
-                </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {/* Content Types */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
+            <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center mb-4">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Blog Posts</h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              Generate engaging blog content with proper structure and SEO optimization
+            </p>
+            <button className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+              Create Blog Post
+            </button>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
+            <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center mb-4">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Social Media</h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              Create compelling social media posts for various platforms
+            </p>
+            <button className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
+              Create Post
+            </button>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
+            <div className="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center mb-4">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Email Content</h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              Generate professional email content for marketing campaigns
+            </p>
+            <button className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors">
+              Create Email
+            </button>
+          </div>
+        </div>
+
+        {/* Recent Content */}
+        <div className="mt-16">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-8">Recent Content</h2>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-sm text-gray-500 dark:text-gray-400">Blog Post</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400">2 hours ago</span>
               </div>
-              <div>
-                <h3 className="text-white font-semibold text-sm mb-2 overflow-hidden" style={{
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical'
-                }}>
-                  {video.title}
-                </h3>
-                <p className="text-gray-300 text-xs mb-3">{video.channelTitle}</p>
-                <a
-                  href={`https://www.youtube.com/watch?v=${video.videoId}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors"
-                >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                  </svg>
-                  Watch Video
-                </a>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                The Future of AI in Content Creation
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
+                Exploring how artificial intelligence is revolutionizing the way we create and consume content...
+              </p>
+              <div className="flex gap-2">
+                <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">Edit</button>
+                <button className="text-gray-600 hover:text-gray-700 text-sm">Share</button>
               </div>
             </div>
-          ))}
-        </div>
-      </div>
 
-      {videoData.length === 0 && !loading && !error && (
-        <p className="text-gray-300 mt-6 text-center">
-          No videos yet. Enter a topic above to get suggestions.
-        </p>
-      )}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-sm text-gray-500 dark:text-gray-400">Social Media</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400">1 day ago</span>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                Weekly Tech Roundup
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
+                This week's biggest tech news and innovations that are shaping our digital future...
+              </p>
+              <div className="flex gap-2">
+                <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">Edit</button>
+                <button className="text-gray-600 hover:text-gray-700 text-sm">Share</button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
