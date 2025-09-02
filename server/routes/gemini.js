@@ -7,9 +7,18 @@ import Chat from "../models/Chat.js"
 import dotenv from "dotenv" 
 import fs from 'fs'
 import path from "path"
+import multer from 'multer';
 
 const router = express.Router()
 dotenv.config();
+
+// Configure multer for file uploads
+const upload = multer({ 
+  dest: 'uploads/',
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB limit
+  }
+});
 
 // Simple in-memory storage for long-term memory (can be upgraded to database later)
 const userMemory = new Map();
@@ -273,12 +282,30 @@ Please provide a helpful and informative response.`;
 }
 
 // gemini res request
-router.post('/', async (req, res) => {
+router.post('/', upload.single('file'), async (req, res) => {
   try {
-    const { chatId, prompt, parsedFileName, contentType, platform } = req.body;
+    // Extract data from form fields
+    const chatId = req.body.chatId;
+    const prompt = req.body.prompt;
+    const contentType = req.body.contentType;
+    const platform = req.body.platform;
+    const parsedFileName = req.body.parsedFileName;
+
+    console.log('=== REQUEST DEBUG ===');
+    console.log('chatId:', chatId);
+    console.log('prompt:', prompt);
+    console.log('contentType:', contentType);
+    console.log('platform:', platform);
+    console.log('parsedFileName:', parsedFileName);
+    console.log('file:', req.file);
+    console.log('=== END DEBUG ===');
 
     if (!req.user) {
       return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    if (!prompt) {
+      return res.status(400).json({ error: "Prompt is required" });
     }
 
     // Handle content generation (viral posts, blogs, etc.)
@@ -309,6 +336,10 @@ router.post('/', async (req, res) => {
     }
 
     // Handle regular chat requests
+    if (!chatId) {
+      return res.status(400).json({ error: "Chat ID is required for regular chat requests" });
+    }
+
     const userMessage = await Message.create({
       chat: chatId,
       sender: 'user',
