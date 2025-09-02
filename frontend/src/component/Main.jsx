@@ -41,7 +41,7 @@ const Main = () => {
   // Mobile layout: Show only one component at a time
   if (isMobile) {
     return (
-      <div className="bg-black overflow-hidden min-h-screen">
+      <div className="bg-gray-900 overflow-hidden min-h-screen">
         <div className="fixed top-0 left-0 right-0 z-50">
           <Header />
         </div>
@@ -63,7 +63,7 @@ const Main = () => {
 
   // Desktop/Tablet layout: Show only one component at a time (like mobile)
   return (
-    <div className="bg-black overflow-hidden min-h-screen">
+    <div className="bg-gray-900 overflow-hidden min-h-screen">
       <div className="fixed top-0 left-0 right-0 z-50">
         <Header />
       </div>

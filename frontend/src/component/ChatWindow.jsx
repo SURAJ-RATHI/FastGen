@@ -1,16 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext.jsx';
-import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { LuSendHorizontal } from 'react-icons/lu';
 import { IoMdAttach } from 'react-icons/io';
 import { FiShare2, FiTrash2, FiMoreVertical, FiEdit3, FiSearch } from 'react-icons/fi';
 import ReactMarkdown from 'react-markdown';
 import ShareModal from './ShareModal.jsx';
+import { LuPencil } from 'react-icons/lu';
 
 export default function ChatWindow() {
   const { user, isSignedIn } = useAuth();
-  const navigate = useNavigate();
   
   // Debug: Log user data to see what's available
   useEffect(() => {
@@ -463,20 +462,17 @@ export default function ChatWindow() {
 
 
       {/* SIDEBAR */}
-      <div className={`${sidebarOpen ? 'w-full md:w-64' : 'w-0'} bg-gray-900 flex flex-col transition-all duration-300 overflow-hidden h-full md:relative absolute z-40 border-r border-gray-700`}>
+      <div className={`${sidebarOpen ? 'w-full md:w-64' : 'w-0'} bg-white dark:bg-gray-800 flex flex-col transition-all duration-300 overflow-hidden h-full md:relative absolute z-40 border-r border-gray-200 dark:border-gray-700`}>
         {/* Top controls */}
-        <div className="p-2 flex gap-2">
-          <button onClick={handleNewChat} className="flex-1 py-2 px-3 border border-gray-600 hover:bg-gray-700 text-white rounded-lg flex items-center justify-center gap-2 transition-colors text-sm">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+        <div className="p-3 border-b border-gray-200 dark:border-gray-700">
+          <button onClick={handleNewChat} className="w-full py-3 px-4 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg flex items-center justify-center gap-3 transition-colors text-sm font-medium">
+            <LuPencil className="w-4 h-4" />
             New chat
-          </button>
-          <button onClick={toggleSidebar} className="py-2 px-3 border border-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors" title={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
           </button>
         </div>
 
         {/* Search Bar */}
-        <div className="mx-2 mb-2">
+        <div className="p-3 border-b border-gray-200 dark:border-gray-700">
           <div className="relative">
             <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
@@ -484,7 +480,7 @@ export default function ChatWindow() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search chats..."
-              className="w-full pl-10 pr-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-gray-500 focus:outline-none text-sm placeholder-gray-400"
+              className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg border border-gray-200 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none text-sm placeholder-gray-500 dark:placeholder-gray-400"
             />
           </div>
         </div>
@@ -492,52 +488,53 @@ export default function ChatWindow() {
         {/* Chat history list */}
         <div className="flex-1 overflow-y-auto p-2 space-y-1 scrollbar-hide">
           {searchQuery && filteredChats.length === 0 ? (
-            <div className="text-center text-gray-400 py-8">
+            <div className="text-center text-gray-500 dark:text-gray-400 py-8">
               <FiSearch className="w-8 h-8 mx-auto mb-2 opacity-50" />
               <p className="text-sm">No chats found</p>
               <p className="text-xs mt-1">Try a different search term</p>
             </div>
           ) : (
             (searchQuery ? filteredChats : chatHistory).map((chat) => (
-              <div key={chat._id} className={`group relative rounded-md transition-colors ${chatId === chat._id ? 'bg-gray-700' : 'hover:bg-gray-700'}`}>
-              <button onClick={() => switchToChat(chat._id)} className={`w-full p-3 text-left transition-colors ${chatId === chat._id ? 'text-white' : 'text-gray-300 hover:text-white'}`}>
-                <div className="truncate text-sm">
-                  {searchQuery ? 
-                    highlightSearchTerms(
-                      chat.title || (chat.messages?.[0]?.content?.slice(0,30) + '...') || `Chat ${new Date(chat.startedAt).toLocaleDateString()}`,
-                      searchQuery
-                    ) : 
-                    (chat.title || (chat.messages?.[0]?.content?.slice(0,30) + '...') || `Chat ${new Date(chat.startedAt).toLocaleDateString()}`)
-                  }
-                </div>
-              </button>
-              {/* 3-dot menu */}
-              <button onClick={(e) => toggleMenu(chat._id, e)} className="absolute right-2 top-2 opacity-100 group-hover:opacity-100 transition-opacity p-1 text-gray-400 hover:text-white rounded" title="More options">
-                <FiMoreVertical className="w-4 h-4" />
-              </button>
-              {openMenuId === chat._id && (
-                <div className="absolute right-0 top-8 z-50 bg-gray-800 border border-gray-600 rounded-md shadow-lg min-w-[160px]">
-                  <button onClick={(e) => { e.stopPropagation(); startEditingTitle(chat._id, chat.title); }} className="w-full px-3 py-2 text-left text-sm text-white hover:bg-gray-700 flex items-center gap-2"><FiEdit3 className="w-4 h-4" />Rename</button>
-                  <button onClick={(e) => { e.stopPropagation(); shareChat(chat._id); }} className="w-full px-3 py-2 text-left text-sm text-white hover:bg-gray-700 flex items-center gap-2"><FiShare2 className="w-4 h-4" />Share</button>
-                  <button onClick={(e) => { e.stopPropagation(); deleteChat(chat._id); }} className="w-full px-3 py-2 text-left text-sm text-white hover:bg-gray-700 flex items-center gap-2 border-t border-gray-600"><FiTrash2 className="w-4 h-4" />Delete</button>
-                </div>
-              )}
-              {editingChatId === chat._id && (
-                <div className="absolute right-0 top-8 z-50 bg-gray-800 border border-gray-600 rounded-md shadow-lg p-2 min-w-[220px]">
-                  <input type="text" value={editingTitle} onChange={(e) => setEditingTitle(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') renameChat(chat._id, editingTitle); if (e.key === 'Escape') closeMenu(); }} className="w-full px-2 py-1 text-sm text-white bg-gray-700 border border-gray-500 rounded focus:outline-none focus:border-blue-500" placeholder="Enter new title..." autoFocus />
-                  <div className="flex gap-2 mt-2">
-                    <button onClick={() => renameChat(chat._id, editingTitle)} className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
-                    <button onClick={closeMenu} className="px-2 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-700">Cancel</button>
+              <div key={chat._id} className={`group relative rounded-lg transition-colors ${chatId === chat._id ? 'bg-gray-100 dark:bg-gray-700' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}>
+                <button onClick={() => switchToChat(chat._id)} className={`w-full p-3 text-left transition-colors ${chatId === chat._id ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}>
+                  <div className="truncate text-sm font-medium">
+                    {searchQuery ? 
+                      highlightSearchTerms(
+                        chat.title || (chat.messages?.[0]?.content?.slice(0,30) + '...') || `Chat ${new Date(chat.startedAt).toLocaleDateString()}`,
+                        searchQuery
+                      ) : 
+                      (chat.title || (chat.messages?.[0]?.content?.slice(0,30) + '...') || `Chat ${new Date(chat.startedAt).toLocaleDateString()}`)
+                    }
                   </div>
-                </div>
-              )}
-            </div>
-          )))}
+                </button>
+                {/* 3-dot menu */}
+                <button onClick={(e) => toggleMenu(chat._id, e)} className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded" title="More options">
+                  <FiMoreVertical className="w-4 h-4" />
+                </button>
+                {openMenuId === chat._id && (
+                  <div className="absolute right-0 top-8 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg min-w-[160px]">
+                    <button onClick={(e) => { e.stopPropagation(); startEditingTitle(chat._id, chat.title); }} className="w-full px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"><FiEdit3 className="w-4 h-4" />Rename</button>
+                    <button onClick={(e) => { e.stopPropagation(); shareChat(chat._id); }} className="w-full px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"><FiShare2 className="w-4 h-4" />Share</button>
+                    <button onClick={(e) => { e.stopPropagation(); deleteChat(chat._id); }} className="w-full px-3 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 border-t border-gray-200 dark:border-gray-600"><FiTrash2 className="w-4 h-4" />Delete</button>
+                  </div>
+                )}
+                {editingChatId === chat._id && (
+                  <div className="absolute right-0 top-8 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg p-2 min-w-[220px]">
+                    <input type="text" value={editingTitle} onChange={(e) => setEditingTitle(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') renameChat(chat._id, editingTitle); if (e.key === 'Escape') closeMenu(); }} className="w-full px-2 py-1 text-sm text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded focus:outline-none focus:border-blue-500 dark:focus:border-blue-400" placeholder="Enter new title..." autoFocus />
+                    <div className="flex gap-2 mt-2">
+                      <button onClick={() => renameChat(chat._id, editingTitle)} className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
+                      <button onClick={closeMenu} className="px-2 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-700">Cancel</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))
+          )}
         </div>
 
         {/* User info */}
-        <div className="p-3 border-t border-gray-600">
-          <div className="flex items-center gap-3 text-gray-300 p-2 rounded-md hover:bg-gray-700 cursor-pointer">
+        <div className="p-3 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
             {user?.avatar ? (
               <img 
                 src={user.avatar} 
@@ -545,9 +542,9 @@ export default function ChatWindow() {
                 className="w-8 h-8 rounded-full"
               />
             ) : (
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-medium shadow-lg">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-medium shadow-sm">
                 {(user?.displayName || user?.name || user?.email?.charAt(0) || 'U')}
-            </div>
+              </div>
             )}
             <div className="text-sm">
               <div className="font-medium">
