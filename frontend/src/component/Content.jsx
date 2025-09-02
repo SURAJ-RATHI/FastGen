@@ -1,179 +1,410 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
+import React, { useState, useRef } from 'react';
+import { FiShare2, FiYoutube, FiEdit3, FiFileText, FiLinkedin, FiTwitter } from 'react-icons/fi';
+import { FaDiscord, FaSlack } from 'react-icons/fa';
 
 const Content = () => {
-  const [topic, setTopic] = useState('');
-  const [videoData, setVideoData] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [activeCard, setActiveCard] = useState(null);
+  const [prompt, setPrompt] = useState('');
+  const [generatedContent, setGeneratedContent] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [contentHistory, setContentHistory] = useState([]);
+  const fileInputRef = useRef(null);
 
-  const [error, setError] = useState('');
-
-  // Load topic and videoData from localStorage on mount
-  useEffect(() => {
-    const savedTopic = localStorage.getItem('searchTopic');
-    const savedVideos = localStorage.getItem('videoData');
-    if (savedTopic) {
-      setTopic(savedTopic);
-    }
-    if (savedVideos) {
-      setVideoData(JSON.parse(savedVideos));
-    }
-  }, []);
-
-  const handleReset = () => {
-    setTopic('');
-    setVideoData([])
-      localStorage.removeItem('searchTopic');
-      localStorage.removeItem('videoData');
-
-  }
-
-  // Save topic and videoData to localStorage only when a new search is performed
-  const getVideoRecommendations = async () => {
-    if (!topic) {
-      setError('Please enter a topic.');
-      return;
-    }
-
-    // Clear any existing cached data
-    localStorage.removeItem('videoData');
-    setVideoData([]);
-
-    setLoading(true);
-    setError('');
-
+  const handleGenerate = async (type) => {
+    if (!prompt.trim()) return;
+    
+    setIsGenerating(true);
     try {
-      const res = await axios.get(`${import.meta.env.VITE_APP_BE_BASEURL}/api/yt`, {
-        params: { topic },
-        headers: {
-          'Cache-Control': 'no-cache'
-        },
-        withCredentials: true
-      });
-
-      if (!res.data) {
-        throw new Error(`Request failed: ${res.status}`);
-      }
-
-      console.log('Response:', res.data);
-      console.log('Videos count:', res.data.videos?.length || 0);
-      const newVideos = res.data.videos || [];
-      setVideoData(newVideos);
-
-      // Save to localStorage only after a successful search
-      localStorage.setItem('searchTopic', topic);
-      localStorage.setItem('videoData', JSON.stringify(newVideos));
-    } catch (err) {
-      console.error(err);
-      if (err.response?.status === 500 && err.response?.data?.error?.includes('YouTube API key not set')) {
-        setError('YouTube API not configured. Please contact support.');
-      } else {
-        setError('Failed to fetch videos.');
-      }
+      // Simulate API call - replace with actual API
+      const response = await new Promise(resolve => 
+        setTimeout(() => resolve({ 
+          content: `Generated ${type} content for: "${prompt}"\n\nThis is a sample generated content that would be created based on your prompt. It includes proper structure and formatting for ${type}.` 
+        }), 2000)
+      );
+      
+      const newContent = {
+        id: Date.now(),
+        type,
+        prompt,
+        content: response.content,
+        timestamp: new Date().toISOString(),
+        isEditing: false
+      };
+      
+      setGeneratedContent(response.content);
+      setContentHistory(prev => [newContent, ...prev]);
+      setActiveCard(type);
+    } catch (error) {
+      console.error('Generation failed:', error);
     } finally {
-      setLoading(false);
+      setIsGenerating(false);
     }
   };
+
+  const handleShare = (platform, content) => {
+    const shareText = content || generatedContent;
+    const encodedText = encodeURIComponent(shareText);
+    
+    const shareUrls = {
+      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}&title=${encodeURIComponent('Check out this content')}&summary=${encodedText}`,
+      twitter: `https://twitter.com/intent/tweet?text=${encodedText}`,
+      discord: `https://discord.com/api/webhooks/...`, // Would need webhook setup
+      slack: `https://slack.com/api/chat.postMessage` // Would need Slack app setup
+    };
+    
+    if (shareUrls[platform]) {
+      window.open(shareUrls[platform], '_blank');
+    }
+  };
+
+  const handleEdit = (contentId) => {
+    setContentHistory(prev => 
+      prev.map(item => 
+        item.id === contentId 
+          ? { ...item, isEditing: !item.isEditing }
+          : item
+      )
+    );
+  };
+
+  const handleSaveEdit = (contentId, newContent) => {
+    setContentHistory(prev => 
+      prev.map(item => 
+        item.id === contentId 
+          ? { ...item, content: newContent, isEditing: false }
+          : item
+      )
+    );
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Handle file upload logic here
+      console.log('File uploaded:', file.name);
+    }
+  };
+
+  const renderSharePostCard = () => (
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
+      <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center mb-4">
+        <FiShare2 className="w-6 h-6 text-white" />
+      </div>
+      <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Share Post</h3>
+      <p className="text-gray-600 dark:text-gray-400 mb-4">
+        Create and share content across social media platforms
+      </p>
+      
+      {activeCard === 'share' ? (
+        <div className="space-y-4">
+          <textarea
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder="Write your post content here..."
+            className="w-full p-3 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg border border-gray-200 dark:border-gray-600 focus:border-blue-500 focus:outline-none resize-none"
+            rows={4}
+          />
+          
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleGenerate('share')}
+              disabled={isGenerating || !prompt.trim()}
+              className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+            >
+              {isGenerating ? 'Generating...' : 'Generate Post'}
+            </button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+              className="hidden"
+              accept="image/*,.pdf,.txt"
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            >
+              📎
+            </button>
+          </div>
+
+          {generatedContent && (
+            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+              <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Generated Content:</h4>
+              <p className="text-gray-700 dark:text-gray-300 text-sm mb-3">{generatedContent}</p>
+              
+              <div className="flex gap-2 flex-wrap">
+                <button
+                  onClick={() => handleShare('linkedin', generatedContent)}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                >
+                  <FiLinkedin className="w-4 h-4" />
+                  LinkedIn
+                </button>
+                <button
+                  onClick={() => handleShare('twitter', generatedContent)}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-blue-400 text-white rounded-lg hover:bg-blue-500 transition-colors text-sm"
+                >
+                  <FiTwitter className="w-4 h-4" />
+                  Twitter
+                </button>
+                <button
+                  onClick={() => handleShare('discord', generatedContent)}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm"
+                >
+                  <FaDiscord className="w-4 h-4" />
+                  Discord
+                </button>
+                <button
+                  onClick={() => handleShare('slack', generatedContent)}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+                >
+                  <FaSlack className="w-4 h-4" />
+                  Slack
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+        <button
+          onClick={() => setActiveCard('share')}
+          className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          Create Share Post
+        </button>
+      )}
+    </div>
+  );
+
+  const renderYouTubeCard = () => (
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
+      <div className="w-12 h-12 bg-red-500 rounded-lg flex items-center justify-center mb-4">
+        <FiYoutube className="w-6 h-6 text-white" />
+      </div>
+      <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">YouTube Content Searcher</h3>
+      <p className="text-gray-600 dark:text-gray-400 mb-4">
+        Search and find 20 relevant YouTube videos for any topic
+      </p>
+      
+      {activeCard === 'youtube' ? (
+        <div className="space-y-4">
+          <input
+            type="text"
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder="Enter topic to search for videos..."
+            className="w-full p-3 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg border border-gray-200 dark:border-gray-600 focus:border-red-500 focus:outline-none"
+          />
+          
+          <button
+            onClick={() => handleGenerate('youtube')}
+            disabled={isGenerating || !prompt.trim()}
+            className="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+          >
+            {isGenerating ? 'Searching...' : 'Search 20 Videos'}
+          </button>
+
+          {generatedContent && (
+            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+              <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Found Videos:</h4>
+              <p className="text-gray-700 dark:text-gray-300 text-sm mb-3">{generatedContent}</p>
+              
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleShare('linkedin', generatedContent)}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                >
+                  <FiLinkedin className="w-4 h-4" />
+                  Share
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+        <button
+          onClick={() => setActiveCard('youtube')}
+          className="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors"
+        >
+          Search Videos
+        </button>
+      )}
+    </div>
+  );
+
+  const renderBlogCard = () => (
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
+      <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center mb-4">
+        <FiFileText className="w-6 h-6 text-white" />
+      </div>
+      <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Create Blog/Reddit</h3>
+      <p className="text-gray-600 dark:text-gray-400 mb-4">
+        Generate engaging blog content with proper structure and SEO optimization
+      </p>
+      
+      {activeCard === 'blog' ? (
+        <div className="space-y-4">
+          <textarea
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder="Describe your blog topic or requirements..."
+            className="w-full p-3 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg border border-gray-200 dark:border-gray-600 focus:border-green-500 focus:outline-none resize-none"
+            rows={4}
+          />
+          
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleGenerate('blog')}
+              disabled={isGenerating || !prompt.trim()}
+              className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+            >
+              {isGenerating ? 'Generating...' : 'Generate Blog'}
+            </button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+              className="hidden"
+              accept="image/*,.pdf,.txt"
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            >
+              📎
+            </button>
+          </div>
+
+          {generatedContent && (
+            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+              <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Generated Blog:</h4>
+              <p className="text-gray-700 dark:text-gray-300 text-sm mb-3">{generatedContent}</p>
+              
+              <div className="flex gap-2 flex-wrap">
+                <button
+                  onClick={() => handleShare('linkedin', generatedContent)}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                >
+                  <FiLinkedin className="w-4 h-4" />
+                  LinkedIn
+                </button>
+                <button
+                  onClick={() => handleShare('twitter', generatedContent)}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-blue-400 text-white rounded-lg hover:bg-blue-500 transition-colors text-sm"
+                >
+                  <FiTwitter className="w-4 h-4" />
+                  Twitter
+                </button>
+                <button
+                  onClick={() => handleShare('discord', generatedContent)}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm"
+                >
+                  <FaDiscord className="w-4 h-4" />
+                  Discord
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+        <button
+          onClick={() => setActiveCard('blog')}
+          className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors"
+        >
+          Create Blog
+        </button>
+      )}
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-            Content Generation
+            Content Creation Hub
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            Create engaging content for your projects with AI assistance
+            Create, generate, and share content across multiple platforms with AI assistance
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {/* Content Types */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
-            <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center mb-4">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Blog Posts</h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              Generate engaging blog content with proper structure and SEO optimization
-            </p>
-            <button className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
-              Create Blog Post
-            </button>
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
-            <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center mb-4">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Social Media</h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              Create compelling social media posts for various platforms
-            </p>
-            <button className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
-              Create Post
-            </button>
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
-            <div className="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center mb-4">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Email Content</h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              Generate professional email content for marketing campaigns
-            </p>
-            <button className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors">
-              Create Email
-            </button>
-          </div>
+        <div className="grid md:grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+          {renderSharePostCard()}
+          {renderYouTubeCard()}
+          {renderBlogCard()}
         </div>
 
-        {/* Recent Content */}
-        <div className="mt-16">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-8">Recent Content</h2>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-sm text-gray-500 dark:text-gray-400">Blog Post</span>
-                <span className="text-sm text-gray-500 dark:text-gray-400">2 hours ago</span>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                The Future of AI in Content Creation
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
-                Exploring how artificial intelligence is revolutionizing the way we create and consume content...
-              </p>
-              <div className="flex gap-2">
-                <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">Edit</button>
-                <button className="text-gray-600 hover:text-gray-700 text-sm">Share</button>
-              </div>
-            </div>
-
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-sm text-gray-500 dark:text-gray-400">Social Media</span>
-                <span className="text-sm text-gray-500 dark:text-gray-400">1 day ago</span>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                Weekly Tech Roundup
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
-                This week's biggest tech news and innovations that are shaping our digital future...
-              </p>
-              <div className="flex gap-2">
-                <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">Edit</button>
-                <button className="text-gray-600 hover:text-gray-700 text-sm">Share</button>
-              </div>
+        {/* Content History */}
+        {contentHistory.length > 0 && (
+          <div className="mt-16">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-8">Content History</h2>
+            <div className="space-y-4">
+              {contentHistory.map((item) => (
+                <div key={item.id} className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        item.type === 'share' ? 'bg-blue-100 text-blue-800' :
+                        item.type === 'youtube' ? 'bg-red-100 text-red-800' :
+                        'bg-green-100 text-green-800'
+                      }`}>
+                        {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
+                      </span>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                        {new Date(item.timestamp).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleEdit(item.id)}
+                        className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                        title="Edit"
+                      >
+                        <FiEdit3 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleShare('linkedin', item.content)}
+                        className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                        title="Share"
+                      >
+                        <FiShare2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="mb-4">
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Prompt:</h3>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">{item.prompt}</p>
+                  </div>
+                  
+                  <div>
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Content:</h3>
+                    {item.isEditing ? (
+                      <div className="space-y-2">
+                        <textarea
+                          defaultValue={item.content}
+                          className="w-full p-3 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg border border-gray-200 dark:border-gray-600 focus:border-blue-500 focus:outline-none resize-none"
+                          rows={6}
+                          onBlur={(e) => handleSaveEdit(item.id, e.target.value)}
+                        />
+                        <button
+                          onClick={() => handleSaveEdit(item.id, document.querySelector(`textarea[defaultvalue="${item.content}"]`).value)}
+                          className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    ) : (
+                      <p className="text-gray-700 dark:text-gray-300 text-sm whitespace-pre-wrap">{item.content}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
