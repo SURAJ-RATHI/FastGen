@@ -36,12 +36,11 @@ export default function ChatWindow() {
   const [messages, setMessages] = useState([]);
   const [prompt, setPrompt] = useState('');
   const [chatId, setChatId] = useState(null);
-  const [loading, setLoading] = useState(false);
+
   const [error, setError] = useState(null);
   const [isTyping, setIsTyping] = useState(false);
   const [uploadedParsedFileName, setUploadedParsedFileName] = useState('');
   const [chatHistory, setChatHistory] = useState([]);
-  const [currentChatTitle, setCurrentChatTitle] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [editingChatId, setEditingChatId] = useState(null);
@@ -110,57 +109,20 @@ export default function ChatWindow() {
     }
   }, [isSignedIn]);
 
-  // Initialize chat once on sign-in
+  // Initialize chat once on sign-in - Render immediately without loading state
   useEffect(() => {
     const initializeChat = async () => {
       if (!isSignedIn) {
         setError('Please sign in to use the chat');
         return;
       }
-      setLoading(true);
-      setError(null);
-      try {
-        const storedChatId = localStorage.getItem('chatId');
-        if (storedChatId && storedChatId !== 'undefined' && storedChatId !== 'NaN') {
-          setChatId(storedChatId);
-          await Promise.all([loadChatHistory(), loadMessages(storedChatId)]);
-          // Try to set a nicer title from history
-          const fromHist = (chats) => chats.find?.(c => c._id === storedChatId);
-          const hist = await loadChatHistory();
-          const thisChat = fromHist(hist);
-          setCurrentChatTitle(thisChat?.title || 'New Chat');
-        } else {
-          localStorage.removeItem('chatId');
-          const chats = await loadChatHistory();
-          if (chats.length > 0) {
-            const mostRecent = chats[0];
-            setChatId(mostRecent._id);
-            setCurrentChatTitle(mostRecent.title || `Chat ${new Date(mostRecent.startedAt).toLocaleDateString()}`);
-            localStorage.setItem('chatId', mostRecent._id);
-            await loadMessages(mostRecent._id);
-          } else {
-            // create a new chat
-            const newChatRes = await axios.post(
-              `${import.meta.env.VITE_APP_BE_BASEURL}/api/chats`,
-              {},
-              { headers: { 'Content-Type': 'application/json' }, withCredentials: true }
-            );
-            if (!newChatRes.data?._id) throw new Error('Failed to create new chat: No ID returned');
-            setChatId(newChatRes.data._id);
-            setCurrentChatTitle('New Chat');
-            localStorage.setItem('chatId', newChatRes.data._id);
-            setMessages([]);
-            await loadChatHistory();
-          }
-        }
-      } catch (err) {
-        console.error('Error initializing chat:', err);
-        if (err.response?.status === 401) setError('Session expired. Please sign in again.');
-        else if (err.response?.status >= 500) setError('Server error. Please try again later.');
-        else setError(`Failed to initialize chat: ${err.message}`);
-      } finally {
-        setLoading(false);
-      }
+      
+      // Render immediately with new chat
+      setChatId(null);
+      setMessages([]);
+      
+      // Load chat history in background
+      await loadChatHistory();
     };
     initializeChat();
   }, [isSignedIn]);
@@ -173,7 +135,7 @@ export default function ChatWindow() {
 
   // --- Handlers ---
   const handleSend = async () => {
-    if (!prompt.trim() || !chatId) return;
+    if (!prompt.trim()) return;
 
     const originalPrompt = prompt; // capture before clearing
     const prevLen = messages.length;
@@ -184,9 +146,27 @@ export default function ChatWindow() {
 
     try {
       setIsTyping(true);
+      
+      // If this is a new chat, create it first
+      let currentChatId = chatId;
+      if (!chatId) {
+        const newChatRes = await axios.post(
+          `${import.meta.env.VITE_APP_BE_BASEURL}/api/chats`,
+          {},
+          { headers: { 'Content-Type': 'application/json' }, withCredentials: true }
+        );
+        if (!newChatRes.data?._id) throw new Error('Failed to create new chat: No ID returned');
+        currentChatId = newChatRes.data._id;
+        setChatId(currentChatId);
+        localStorage.setItem('chatId', currentChatId);
+        
+        // Update chat history
+        await loadChatHistory();
+      }
+
       const res = await axios.post(
         `${import.meta.env.VITE_APP_BE_BASEURL}/api/gemini`,
-        { chatId, prompt: originalPrompt, parsedFileName: uploadedParsedFileName },
+        { chatId: currentChatId, prompt: originalPrompt, parsedFileName: uploadedParsedFileName },
         { withCredentials: true }
       );
       if (!res.data?.answer) throw new Error('No answer received from server');
@@ -196,7 +176,6 @@ export default function ChatWindow() {
         const updated = [...prev, aiMessage];
         if (prevLen === 0) {
           const newTitle = originalPrompt.length > 30 ? originalPrompt.slice(0, 30) + '...' : originalPrompt;
-          setCurrentChatTitle(newTitle);
           // Update chat history to reflect the new title
           setChatHistory(prevHistory => {
             const updatedHistory = prevHistory.map(chat => 
@@ -224,66 +203,68 @@ export default function ChatWindow() {
     }
   };
 
-  const handleFileChange = async (e) => {
-    const selected = e.target.files?.[0];
-    if (!selected) return;
-    const formData = new FormData();
-    formData.append('file', selected);
-    formData.append('fileName', selected.name);
-    try {
-      const res = await axios.post(`${import.meta.env.VITE_APP_BE_BASEURL}/api/upload`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        withCredentials: true,
-      });
-      if (!res.data?.parsedFileName) throw new Error('No parsed file name returned from server');
-      setUploadedParsedFileName(res.data.parsedFileName);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    } catch (err) {
-      console.error('Error uploading file:', err);
-      setError(`Failed to upload file: ${err.message}`);
-    }
+  const handleAttachClick = () => {
+    fileInputRef.current?.click();
   };
 
-  const handleAttachClick = () => fileInputRef.current?.click();
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      setError('Please select a PDF file');
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      setError('File size must be less than 10MB');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      setUploadedParsedFileName(file.name);
+      const response = await axios.post(
+        `${import.meta.env.VITE_APP_BE_BASEURL}/api/upload`,
+        formData,
+        {
+          headers: { 'Content-Type': 'multipart/form-data' },
+          withCredentials: true,
+        }
+      );
+      console.log('File uploaded successfully:', response.data);
+    } catch (err) {
+      console.error('Failed to upload file:', err);
+      setError(`Failed to upload file: ${err.message}`);
+      setUploadedParsedFileName('');
+    }
+  };
 
   const handleNewChat = async () => {
     try {
-      setLoading(true);
-      setError(null);
       setMessages([]);
       setPrompt('');
       setUploadedParsedFileName('');
-      const newChatRes = await axios.post(
-        `${import.meta.env.VITE_APP_BE_BASEURL}/api/chats`,
-        {},
-        { headers: { 'Content-Type': 'application/json' }, withCredentials: true }
-      );
-      if (!newChatRes.data?._id) throw new Error('Failed to create new chat: No ID returned');
-      const newChatId = newChatRes.data._id;
-      setChatId(newChatId);
-      setCurrentChatTitle('New Chat');
-      localStorage.setItem('chatId', newChatId);
-      await loadChatHistory();
+      setChatId(null);
+      localStorage.removeItem('chatId');
     } catch (err) {
       console.error('Error creating new chat:', err);
       setError('Failed to create new chat');
-    } finally {
-      setLoading(false);
     }
   };
 
-  const switchToChat = async (id) => {
+  const switchToChat = async (chatId) => {
     try {
-      setChatId(id);
-      localStorage.setItem('chatId', id);
-      const found = chatHistory.find(c => c._id === id);
-      setCurrentChatTitle(found?.title || `Chat ${new Date(found?.startedAt || Date.now()).toLocaleDateString()}`);
-      setPrompt('');
-      setUploadedParsedFileName('');
-      await loadMessages(id);
+      setChatId(chatId);
+      localStorage.setItem('chatId', chatId);
+      await loadMessages(chatId);
+      // Auto-hide sidebar when chat is selected
+      setSidebarOpen(false);
     } catch (err) {
       console.error('Error switching to chat:', err);
-      setError('Failed to load chat');
+      setError('Failed to switch to chat');
     }
   };
 
@@ -399,11 +380,13 @@ export default function ChatWindow() {
       console.log('Rename response:', response.data); // Debug log
       if (response.data?.success) {
         setChatHistory(prev => prev.map(c => (c._id === chatIdToRename ? { ...c, title: newTitle } : c)));
-        if (chatId === chatIdToRename) setCurrentChatTitle(newTitle);
-        setEditingChatId(null);
-        setEditingTitle('');
-        setOpenMenuId(null);
-        console.log('Chat renamed successfully'); // Debug log
+        if (chatId === chatIdToRename) {
+          // No need to setCurrentChatTitle here, as the chat is already selected
+          setEditingChatId(null);
+          setEditingTitle('');
+          setOpenMenuId(null);
+          console.log('Chat renamed successfully'); // Debug log
+        }
       } else {
         console.log('Rename failed - no success flag:', response.data); // Debug log
         alert('Failed to rename chat. Server response indicates failure.');
@@ -445,13 +428,7 @@ export default function ChatWindow() {
     );
   }
 
-  if (loading) {
-    return (
-      <div className="max-w-2xl mx-auto mt-10 p-4 bg-transparent rounded-2xl shadow-lg h-[80vh] flex items-center justify-center">
-        <div className="text-white">Loading chat...</div>
-      </div>
-    );
-  }
+
 
   if (error) {
     return (
@@ -577,7 +554,7 @@ export default function ChatWindow() {
               </svg>
             </button>
           )}
-          <h1 className="text-base font-medium text-gray-300 text-center">{currentChatTitle || 'New Chat'}</h1>
+          <h1 className="text-base font-medium text-gray-300 text-center">{chatId ? (chatHistory.find(c => c._id === chatId)?.title || 'New Chat') : 'New Chat'}</h1>
         </div>
 
         {/* Messages */}
