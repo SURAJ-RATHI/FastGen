@@ -237,38 +237,34 @@ async function generateWithFallback(prompt) {
         ]
       });
 
-      // Enhanced prompt engineering for better responses
-      const enhancedPrompt = `You are an intelligent, helpful, and friendly AI assistant. You provide accurate, detailed, and well-structured responses. 
-
-IMPORTANT INSTRUCTIONS:
-- Always be helpful, accurate, and informative
-- Provide comprehensive answers with examples when relevant
-- Use clear, professional language while maintaining a friendly tone
-- Structure your responses logically with proper formatting
-- If you're unsure about something, say so rather than guessing
-- Use markdown formatting for better readability when appropriate
+      // Simplified prompt engineering for better responses
+      const enhancedPrompt = `You are FastGen AI, a helpful and intelligent assistant. Provide clear, accurate, and well-structured responses.
 
 User Query: ${prompt}
 
-Please provide a helpful, accurate, and well-structured response.`;
+Please provide a helpful and informative response.`;
       
       const result = await model.generateContent([{ text: enhancedPrompt }]);
       const ans = result.response.text();
 
       return ans; // return if success
     } catch (err) {
-      console.error(`Api_Key failed:`, err.message);
+      console.error(`API Key failed:`, err.message);
 
       // Check if it's a quota or usage error
       if (
         err.message.includes('quota') ||
         err.message.includes('quota_exceeded') ||
-        err.message.includes('RESOURCE_EXHAUSTED')
+        err.message.includes('RESOURCE_EXHAUSTED') ||
+        err.message.includes('PERMISSION_DENIED')
       ) {
         apiKeyObj.active = false; // deactivate key temporarily
+        console.log(`API key deactivated due to quota/permission issues: ${apiKeyObj.key.substring(0, 10)}...`);
       }
       else {
-        throw err; // something else went wrong — throw it
+        console.error(`API key error (non-quota):`, err.message);
+        // Don't throw immediately, try other keys first
+        continue;
       }
     }
   }
