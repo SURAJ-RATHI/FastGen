@@ -40,7 +40,7 @@ export const AuthProvider = ({ children }) => {
       const response = await axios.get(`${import.meta.env.VITE_APP_BE_BASEURL}/api/auth/me`);
       setUser(response.data);
       setIsSignedIn(true);
-    } catch {
+    } catch (error) {
       // Token is invalid, clear it
       localStorage.removeItem('authToken');
       setToken(null);
@@ -64,18 +64,6 @@ export const AuthProvider = ({ children }) => {
       setToken(newToken);
       setUser(userData);
       setIsSignedIn(true);
-      
-      // Preload chat data immediately after successful sign-in
-      try {
-        console.log('Preloading chat data after sign-in...');
-        const chatResponse = await axios.get(`${import.meta.env.VITE_APP_BE_BASEURL}/api/chats/getChat`, {
-          withCredentials: true,
-        });
-        const chats = Array.isArray(chatResponse.data) ? chatResponse.data : chatResponse.data?.chats || [];
-        console.log('Preloaded chat data:', chats.length, 'chats');
-      } catch (chatError) {
-        console.log('Chat preload failed (non-critical):', chatError.message);
-      }
       
       return { success: true };
     } catch (error) {
@@ -115,33 +103,10 @@ export const AuthProvider = ({ children }) => {
       setUser(userData);
       setIsSignedIn(true);
       
-      // Preload chat data immediately after successful sign-in
-      try {
-        console.log('Preloading chat data after email sign-in...');
-        const chatResponse = await axios.get(`${import.meta.env.VITE_APP_BE_BASEURL}/api/chats/getChat`, {
-          withCredentials: true,
-        });
-        const chats = Array.isArray(chatResponse.data) ? chatResponse.data : chatResponse.data?.chats || [];
-        console.log('Preloaded chat data:', chats.length, 'chats');
-      } catch (chatError) {
-        console.log('Chat preload failed (non-critical):', chatError.message);
-      }
-      
       return { success: true };
     } catch (error) {
       console.error('Email sign in error:', error);
-      
-      if (error.code === 'ERR_NETWORK') {
-        return { 
-          success: false, 
-          error: 'Network error - please check your connection or try again later' 
-        };
-      }
-      
-      return { 
-        success: false, 
-        error: error.response?.data?.message || 'Email authentication failed' 
-      };
+      return { success: false, error: error.response?.data?.error || 'Login failed' };
     }
   };
 

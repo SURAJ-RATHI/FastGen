@@ -4,7 +4,6 @@ import './App.css'
 import SignUpPage from './component/SignUpPage'
 import SignInPage from './component/SignInPage';
 import Main from './component/Main';
-import ContentPage from './component/ContentPage';
 import LandingPage from './component/LandingPage';
 import Features from './component/Features';
 import Contact from './component/Contact';
@@ -15,10 +14,6 @@ import HelpCenter from './component/HelpCenter';
 import Documentation from './component/Documentation';
 import PrivacyPolicy from './component/PrivacyPolicy';
 import TermsOfService from './component/TermsOfService';
-import SharePost from './component/SharePost';
-import YouTubeSearch from './component/YouTubeSearch';
-import CreateBlog from './component/CreateBlog';
-import ContentDetail from './component/ContentDetail';
 import { TabProvider } from './contexts/TabContext.jsx';
 
 function AppContent() {
@@ -36,7 +31,6 @@ function AppContent() {
           <Route path="/" element={<LandingPage/>} />
           <Route path="/signIn" element={<SignInPage/>} />
           <Route path="/main" element={<Main/>} />
-          <Route path="/content" element={<ContentPage/>} />
           <Route path="/features" element={<Features/>} />
           <Route path="/contact" element={<Contact/>} />
           <Route path="/pricing" element={<Pricing/>} />
@@ -46,11 +40,6 @@ function AppContent() {
           <Route path="/docs" element={<Documentation/>} />
           <Route path="/privacy" element={<PrivacyPolicy/>} />
           <Route path="/terms" element={<TermsOfService/>} />
-          <Route path="/share-post" element={<SharePost/>} />
-          <Route path="/share-post/:platform" element={<SharePost/>} />
-          <Route path="/youtube-search" element={<YouTubeSearch/>} />
-          <Route path="/create-blog" element={<CreateBlog/>} />
-          <Route path="/content/:id" element={<ContentDetail/>} />
         </Routes>
       </TabProvider>
     </div>

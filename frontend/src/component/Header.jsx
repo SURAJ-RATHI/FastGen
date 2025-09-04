@@ -60,65 +60,62 @@ const Header = () => {
     };
 
     const handleTabClick = (tab) => {
-        if (tab === 'content') {
-            navigate('/content');
-        } else {
-            setActiveTab(tab);
-        }
+        setActiveTab(tab);
         // For mobile, you can add navigation logic here if needed
     };
 
     return ( 
-        <header className="w-full bg-gray-900 shadow-sm border-b border-gray-700 py-3 flex items-center justify-between">
+        <header className="w-full bg-transparent shadow-md py-2 md:py-3 flex items-center justify-between">
             {/* Logo */}
             <div 
                 onClick={() => navigate('/')}
-                className="flex items-center space-x-2 text-lg px-4 font-semibold text-white cursor-pointer hover:text-gray-300 transition-colors"
+                className="flex items-center space-x-1.5 text-base md:text-xl px-3 md:px-6 font-bold text-blue-400 cursor-pointer hover:text-blue-300 transition-colors"
             >
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                    <Library className='h-5 w-5 text-white' />
-                </div>
+                <div><Library
+                className='h-5 w-5 md:h-8 md:w-8 text-white'
+                
+                /></div>
                 <span>FastGen</span>
             </div>
 
             {/* Navigation - Hidden on mobile, visible on tablet and above */}
-            <nav className="hidden md:flex space-x-1 text-gray-300 font-medium">
+            <nav className="hidden md:flex space-x-6 text-gray-300 font-medium">
                 <button 
                     onClick={() => handleTabClick('chatbot')}
-                    className={`px-4 py-2 rounded-lg transition-colors ${
+                    className={`px-6 py-3 transition-colors cursor-pointer border-b-2 ${
                         activeTab === 'chatbot' 
-                            ? 'bg-gray-700 text-white' 
-                            : 'hover:text-white hover:bg-gray-800'
+                            ? 'bg-blue-600 text-white border-blue-400' 
+                            : 'hover:text-blue-400 hover:bg-gray-800 border-transparent'
                     }`}
                 >
                     Chatbot
                 </button>
                 <button 
                     onClick={() => handleTabClick('content')}
-                    className={`px-4 py-2 rounded-lg transition-colors ${
+                    className={`px-6 py-3 transition-colors cursor-pointer border-b-2 ${
                         activeTab === 'content' 
-                            ? 'bg-gray-700 text-white' 
-                            : 'hover:text-white hover:bg-gray-800'
+                            ? 'bg-blue-600 text-white border-blue-400' 
+                            : 'hover:text-blue-400 hover:bg-gray-800 border-transparent'
                     }`}
                 >
                     Content
                 </button>
                 <button 
                     onClick={() => handleTabClick('quizzes')}
-                    className={`px-4 py-2 rounded-lg transition-colors ${
+                    className={`px-6 py-3 transition-colors cursor-pointer border-b-2 ${
                         activeTab === 'quizzes' 
-                            ? 'bg-gray-700 text-white' 
-                            : 'hover:text-white hover:bg-gray-800'
+                            ? 'bg-blue-600 text-white border-blue-400' 
+                            : 'hover:text-blue-400 hover:bg-gray-800 border-transparent'
                     }`}
                 >
                     Quizzes
                 </button>
                 <button 
                     onClick={() => handleTabClick('notes')}
-                    className={`px-4 py-2 rounded-lg transition-colors ${
+                    className={`px-6 py-3 transition-colors cursor-pointer border-b-2 ${
                         activeTab === 'notes' 
-                            ? 'bg-gray-700 text-white' 
-                            : 'hover:text-white hover:bg-gray-800'
+                            ? 'bg-blue-600 text-white border-blue-400' 
+                            : 'hover:text-blue-400 hover:bg-gray-800 border-transparent'
                     }`}
                 >
                     Notes
@@ -160,7 +157,7 @@ const Header = () => {
                                     </button>
                                     <button
                                         onClick={() => {
-                                            navigate('/content');
+                                            setActiveTab('content');
                                             setShowMobileTools(false);
                                         }}
                                         className={`w-full text-left px-4 py-2 text-sm transition-colors ${

@@ -7,18 +7,9 @@ import Chat from "../models/Chat.js"
 import dotenv from "dotenv" 
 import fs from 'fs'
 import path from "path"
-import multer from 'multer';
 
 const router = express.Router()
 dotenv.config();
-
-// Configure multer for file uploads
-const upload = multer({ 
-  dest: 'uploads/',
-  limits: {
-    fileSize: 10 * 1024 * 1024 // 10MB limit
-  }
-});
 
 // Simple in-memory storage for long-term memory (can be upgraded to database later)
 const userMemory = new Map();
@@ -246,34 +237,38 @@ async function generateWithFallback(prompt) {
         ]
       });
 
-      // Simplified prompt engineering for better responses
-      const enhancedPrompt = `You are FastGen AI, a helpful and intelligent assistant. Provide clear, accurate, and well-structured responses.
+      // Enhanced prompt engineering for better responses
+      const enhancedPrompt = `You are an intelligent, helpful, and friendly AI assistant. You provide accurate, detailed, and well-structured responses. 
+
+IMPORTANT INSTRUCTIONS:
+- Always be helpful, accurate, and informative
+- Provide comprehensive answers with examples when relevant
+- Use clear, professional language while maintaining a friendly tone
+- Structure your responses logically with proper formatting
+- If you're unsure about something, say so rather than guessing
+- Use markdown formatting for better readability when appropriate
 
 User Query: ${prompt}
 
-Please provide a helpful and informative response.`;
+Please provide a helpful, accurate, and well-structured response.`;
       
       const result = await model.generateContent([{ text: enhancedPrompt }]);
       const ans = result.response.text();
 
       return ans; // return if success
     } catch (err) {
-      console.error(`API Key failed:`, err.message);
+      console.error(`Api_Key failed:`, err.message);
 
       // Check if it's a quota or usage error
       if (
         err.message.includes('quota') ||
         err.message.includes('quota_exceeded') ||
-        err.message.includes('RESOURCE_EXHAUSTED') ||
-        err.message.includes('PERMISSION_DENIED')
+        err.message.includes('RESOURCE_EXHAUSTED')
       ) {
         apiKeyObj.active = false; // deactivate key temporarily
-        console.log(`API key deactivated due to quota/permission issues: ${apiKeyObj.key.substring(0, 10)}...`);
       }
       else {
-        console.error(`API key error (non-quota):`, err.message);
-        // Don't throw immediately, try other keys first
-        continue;
+        throw err; // something else went wrong — throw it
       }
     }
   }
@@ -282,62 +277,12 @@ Please provide a helpful and informative response.`;
 }
 
 // gemini res request
-router.post('/', upload.single('file'), async (req, res) => {
+router.post('/', async (req, res) => {
   try {
-    // Extract data from form fields
-    const chatId = req.body.chatId;
-    const prompt = req.body.prompt;
-    const contentType = req.body.contentType;
-    const platform = req.body.platform;
-    const parsedFileName = req.body.parsedFileName;
-
-    console.log('=== REQUEST DEBUG ===');
-    console.log('chatId:', chatId);
-    console.log('prompt:', prompt);
-    console.log('contentType:', contentType);
-    console.log('platform:', platform);
-    console.log('parsedFileName:', parsedFileName);
-    console.log('file:', req.file);
-    console.log('=== END DEBUG ===');
+    const { chatId, prompt, parsedFileName } = req.body;
 
     if (!req.user) {
       return res.status(401).json({ error: "Unauthorized" });
-    }
-
-    if (!prompt) {
-      return res.status(400).json({ error: "Prompt is required" });
-    }
-
-    // Handle content generation (viral posts, blogs, etc.)
-    if (contentType === 'viral-post') {
-      try {
-        const answer = await generateWithFallback(prompt);
-        
-        // Create a simple message record for content generation
-        const userMessage = await Message.create({
-          chat: chatId || 'content-generation',
-          sender: 'user',
-          content: prompt,
-        });
-
-        return res.json({ 
-          answer,
-          messageId: userMessage._id,
-          contentType: 'viral-post',
-          platform: platform
-        });
-      } catch (error) {
-        console.error('Content generation error:', error);
-        return res.status(500).json({ 
-          error: "Failed to generate content",
-          details: error.message 
-        });
-      }
-    }
-
-    // Handle regular chat requests
-    if (!chatId) {
-      return res.status(400).json({ error: "Chat ID is required for regular chat requests" });
     }
 
     const userMessage = await Message.create({
@@ -396,7 +341,7 @@ Your mission is to respond like ChatGPT: clear, helpful, structured, and friendl
 ---
 
 ## 1. CONVERSATION FLOW
-- Do **not** start every message with "Hello User!".  
+- Do **not** start every message with “Hello User!”.  
 - Use a greeting only:  
   - ✅ At the **first interaction** (personalized if user details like name are known).  
   - ✅ At a **new context shift** (e.g., starting a fresh topic).  
@@ -406,52 +351,83 @@ Your mission is to respond like ChatGPT: clear, helpful, structured, and friendl
 ---
 
 ## 2. TONE ADAPTATION
-- Mirror the **user's tone and style**:  
-  - If they're formal → be formal  
-  - If they're casual → be casual  
-  - If they're technical → be technical  
-  - If they're creative → be creative  
-- **Adapt silently** without mentioning the change.  
+- Mirror the **user’s tone and style**:  
+  - If user is casual: *“hello bhai”* → reply casually: *“Arre hi Suraj bhai 👋😄 Kaise ho?”*  
+  - If user is formal: *“Explain binary search.”* → reply professionally, with structure.  
+  - If user is emotional: respond empathetically and reassuringly.  
+- Use emojis **sparingly** in casual/warm responses, but avoid them in serious or technical contexts.  
 
 ---
 
-## 3. RESPONSE STRUCTURE
-- **Be concise** but comprehensive  
-- Use **bullet points** when listing multiple items  
-- Use **numbered lists** for step-by-step instructions  
-- Use **bold** for emphasis on key points  
-- Use **code blocks** for code, commands, or technical terms  
-- Use **blockquotes** for important notes or warnings  
+## 3. ANSWERING BEHAVIOR
+- Always give **direct, accurate answers first**, then expand with details/examples if helpful.  
+- Do **not** over-clarify unless essential. Example:  
+  - ❌ “Since you didn’t specify which president…”  
+  - ✅ “If you meant the U.S. President, it’s Joe Biden. If you were asking about another country, let me know 👍.”  
+- Keep responses **focused** — avoid filler sentences like “I understand you’re asking about…”  
+- If unsure, admit limitations and suggest next steps.  
 
 ---
 
-## 4. CONTEXT AWARENESS
-- Reference **previous conversation** when relevant  
-- Build on **earlier points** naturally  
-- Acknowledge **user's progress** or learning  
-- Connect **related topics** when helpful  
+## 4. PERSONALIZATION
+- Reference user’s **name or context** when available.  
+- Adapt explanations to **user’s knowledge level** (simple for beginners, detailed for advanced).  
+- Make examples relatable and culturally sensitive.  
 
 ---
 
-## 5. PERSONALIZATION
+## 5. STYLE & FORMATTING
+- Use **markdown**:  
+  - Headings (##),  
+  - Lists (- or 1.),  
+  - Code blocks when explaining technical concepts.  
+- Highlight important terms with **bold** or *italics*.  
+- Provide **actionable insights or next steps** where relevant.  
+
+---
+
+## 6. EXAMPLES OF IDEAL RESPONSES
+- User: *“hello bhai”*  
+  Response: *“Arre hi Suraj bhai 👋😄 Kaise ho?”*  
+
+- User: *“who is pm of india”*  
+  Response: *“The current Prime Minister of India is **Narendra Modi**. He has been in office since May 26, 2014, representing the Bharatiya Janata Party (BJP).”*  
+
+- User: *“what is president work and who is currently president”*  
+  Response:  
+  *“The role of a President varies by country, but generally they are responsible for leading the government, representing the nation abroad, and ensuring laws are upheld.  
+  - In the **U.S.**, the President is head of state and commander-in-chief of the armed forces.  
+  - In **India**, the President serves as the ceremonial head of state with constitutional powers.  
+
+  Currently:  
+  - U.S. President → **Joe Biden**  
+  - Indian President → **Droupadi Murmu***  
+
+---
+
+## 7. IDENTITY
+You are not just answering questions — you are a **guide, mentor, and companion**.  
+Every response should feel **natural, human-like, and confidence-boosting**.  
+
+`;
+
+    // Use comprehensive conversation context from RAG
+    const conversationMemory = conversationContext;
+
+    let finalPrompt = `${systemInstructions}
+
 ${userInfo}
 
----
+${conversationMemory}
 
-## 6. CONVERSATION CONTEXT
-${conversationContext.length > 0 ? `Recent relevant context:
-${conversationContext.map((ctx, i) => `${i + 1}. ${ctx.content}`).join('\n')}` : 'No recent context available.'}
+CURRENT USER QUERY: ${prompt}
 
----
-
-## 7. CURRENT QUERY
-User Query: ${prompt}
-
----
-
-**Remember**: Be helpful, accurate, and naturally conversational. Adapt to the user's style without being obvious about it.`;
-
-    let finalPrompt = systemInstructions;
+IMPORTANT: 
+- Address the user by name: ${userName}
+- Use your long-term memory and relevant past conversations for context
+- Reference previous discussions when relevant
+- Provide a helpful, accurate, and well-structured response
+- Maintain conversation continuity across sessions`;
 
     if (parseText) {
       finalPrompt += `\n text/file: ${parseText}`;

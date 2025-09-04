@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext.jsx';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { LuSendHorizontal } from 'react-icons/lu';
 import { IoMdAttach } from 'react-icons/io';
 import { FiShare2, FiTrash2, FiMoreVertical, FiEdit3, FiSearch } from 'react-icons/fi';
 import ReactMarkdown from 'react-markdown';
 import ShareModal from './ShareModal.jsx';
-import { LuPencil } from 'react-icons/lu';
 
 export default function ChatWindow() {
   const { user, isSignedIn } = useAuth();
+  const navigate = useNavigate();
   
   // Debug: Log user data to see what's available
   useEffect(() => {
@@ -36,11 +37,12 @@ export default function ChatWindow() {
   const [messages, setMessages] = useState([]);
   const [prompt, setPrompt] = useState('');
   const [chatId, setChatId] = useState(null);
-
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isTyping, setIsTyping] = useState(false);
   const [uploadedParsedFileName, setUploadedParsedFileName] = useState('');
   const [chatHistory, setChatHistory] = useState([]);
+  const [currentChatTitle, setCurrentChatTitle] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [editingChatId, setEditingChatId] = useState(null);
@@ -51,7 +53,6 @@ export default function ChatWindow() {
   const [chatToDelete, setChatToDelete] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredChats, setFilteredChats] = useState([]);
-  const [sidebarHidden, setSidebarHidden] = useState(false);
 
   const fileInputRef = useRef(null);
   const containerRef = useRef(null);
@@ -110,20 +111,57 @@ export default function ChatWindow() {
     }
   }, [isSignedIn]);
 
-  // Initialize chat once on sign-in - Render immediately without loading state
+  // Initialize chat once on sign-in
   useEffect(() => {
     const initializeChat = async () => {
       if (!isSignedIn) {
         setError('Please sign in to use the chat');
         return;
       }
-      
-      // Render immediately with new chat
-      setChatId(null);
-      setMessages([]);
-      
-      // Load chat history in background
-      await loadChatHistory();
+      setLoading(true);
+      setError(null);
+      try {
+        const storedChatId = localStorage.getItem('chatId');
+        if (storedChatId && storedChatId !== 'undefined' && storedChatId !== 'NaN') {
+          setChatId(storedChatId);
+          await Promise.all([loadChatHistory(), loadMessages(storedChatId)]);
+          // Try to set a nicer title from history
+          const fromHist = (chats) => chats.find?.(c => c._id === storedChatId);
+          const hist = await loadChatHistory();
+          const thisChat = fromHist(hist);
+          setCurrentChatTitle(thisChat?.title || 'New Chat');
+        } else {
+          localStorage.removeItem('chatId');
+          const chats = await loadChatHistory();
+          if (chats.length > 0) {
+            const mostRecent = chats[0];
+            setChatId(mostRecent._id);
+            setCurrentChatTitle(mostRecent.title || `Chat ${new Date(mostRecent.startedAt).toLocaleDateString()}`);
+            localStorage.setItem('chatId', mostRecent._id);
+            await loadMessages(mostRecent._id);
+          } else {
+            // create a new chat
+            const newChatRes = await axios.post(
+              `${import.meta.env.VITE_APP_BE_BASEURL}/api/chats`,
+              {},
+              { headers: { 'Content-Type': 'application/json' }, withCredentials: true }
+            );
+            if (!newChatRes.data?._id) throw new Error('Failed to create new chat: No ID returned');
+            setChatId(newChatRes.data._id);
+            setCurrentChatTitle('New Chat');
+            localStorage.setItem('chatId', newChatRes.data._id);
+            setMessages([]);
+            await loadChatHistory();
+          }
+        }
+      } catch (err) {
+        console.error('Error initializing chat:', err);
+        if (err.response?.status === 401) setError('Session expired. Please sign in again.');
+        else if (err.response?.status >= 500) setError('Server error. Please try again later.');
+        else setError(`Failed to initialize chat: ${err.message}`);
+      } finally {
+        setLoading(false);
+      }
     };
     initializeChat();
   }, [isSignedIn]);
@@ -136,7 +174,7 @@ export default function ChatWindow() {
 
   // --- Handlers ---
   const handleSend = async () => {
-    if (!prompt.trim()) return;
+    if (!prompt.trim() || !chatId) return;
 
     const originalPrompt = prompt; // capture before clearing
     const prevLen = messages.length;
@@ -147,27 +185,9 @@ export default function ChatWindow() {
 
     try {
       setIsTyping(true);
-      
-      // If this is a new chat, create it first
-      let currentChatId = chatId;
-      if (!chatId) {
-        const newChatRes = await axios.post(
-          `${import.meta.env.VITE_APP_BE_BASEURL}/api/chats`,
-          {},
-          { headers: { 'Content-Type': 'application/json' }, withCredentials: true }
-        );
-        if (!newChatRes.data?._id) throw new Error('Failed to create new chat: No ID returned');
-        currentChatId = newChatRes.data._id;
-        setChatId(currentChatId);
-        localStorage.setItem('chatId', currentChatId);
-        
-        // Update chat history
-        await loadChatHistory();
-      }
-
       const res = await axios.post(
         `${import.meta.env.VITE_APP_BE_BASEURL}/api/gemini`,
-        { chatId: currentChatId, prompt: originalPrompt, parsedFileName: uploadedParsedFileName },
+        { chatId, prompt: originalPrompt, parsedFileName: uploadedParsedFileName },
         { withCredentials: true }
       );
       if (!res.data?.answer) throw new Error('No answer received from server');
@@ -177,13 +197,7 @@ export default function ChatWindow() {
         const updated = [...prev, aiMessage];
         if (prevLen === 0) {
           const newTitle = originalPrompt.length > 30 ? originalPrompt.slice(0, 30) + '...' : originalPrompt;
-          // Update chat history to reflect the new title
-          setChatHistory(prevHistory => {
-            const updatedHistory = prevHistory.map(chat => 
-              chat._id === chatId ? { ...chat, title: newTitle } : chat
-            );
-            return updatedHistory;
-          });
+          setCurrentChatTitle(newTitle);
         }
         return updated;
       });
@@ -204,68 +218,66 @@ export default function ChatWindow() {
     }
   };
 
-  const handleAttachClick = () => {
-    fileInputRef.current?.click();
-  };
-
   const handleFileChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    if (file.type !== 'application/pdf') {
-      setError('Please select a PDF file');
-      return;
-    }
-
-    if (file.size > 10 * 1024 * 1024) {
-      setError('File size must be less than 10MB');
-      return;
-    }
-
+    const selected = e.target.files?.[0];
+    if (!selected) return;
     const formData = new FormData();
-    formData.append('file', file);
-
+    formData.append('file', selected);
+    formData.append('fileName', selected.name);
     try {
-      setUploadedParsedFileName(file.name);
-      const response = await axios.post(
-        `${import.meta.env.VITE_APP_BE_BASEURL}/api/upload`,
-        formData,
-        {
-          headers: { 'Content-Type': 'multipart/form-data' },
-          withCredentials: true,
-        }
-      );
-      console.log('File uploaded successfully:', response.data);
+      const res = await axios.post(`${import.meta.env.VITE_APP_BE_BASEURL}/api/upload`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        withCredentials: true,
+      });
+      if (!res.data?.parsedFileName) throw new Error('No parsed file name returned from server');
+      setUploadedParsedFileName(res.data.parsedFileName);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (err) {
-      console.error('Failed to upload file:', err);
+      console.error('Error uploading file:', err);
       setError(`Failed to upload file: ${err.message}`);
-      setUploadedParsedFileName('');
     }
   };
+
+  const handleAttachClick = () => fileInputRef.current?.click();
 
   const handleNewChat = async () => {
     try {
+      setLoading(true);
+      setError(null);
       setMessages([]);
       setPrompt('');
       setUploadedParsedFileName('');
-      setChatId(null);
-      localStorage.removeItem('chatId');
+      const newChatRes = await axios.post(
+        `${import.meta.env.VITE_APP_BE_BASEURL}/api/chats`,
+        {},
+        { headers: { 'Content-Type': 'application/json' }, withCredentials: true }
+      );
+      if (!newChatRes.data?._id) throw new Error('Failed to create new chat: No ID returned');
+      const newChatId = newChatRes.data._id;
+      setChatId(newChatId);
+      setCurrentChatTitle('New Chat');
+      localStorage.setItem('chatId', newChatId);
+      await loadChatHistory();
     } catch (err) {
       console.error('Error creating new chat:', err);
       setError('Failed to create new chat');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const switchToChat = async (chatId) => {
+  const switchToChat = async (id) => {
     try {
-      setChatId(chatId);
-      localStorage.setItem('chatId', chatId);
-      await loadMessages(chatId);
-      // Auto-hide sidebar when chat is selected
-      setSidebarOpen(false);
+      setChatId(id);
+      localStorage.setItem('chatId', id);
+      const found = chatHistory.find(c => c._id === id);
+      setCurrentChatTitle(found?.title || `Chat ${new Date(found?.startedAt || Date.now()).toLocaleDateString()}`);
+      setPrompt('');
+      setUploadedParsedFileName('');
+      await loadMessages(id);
     } catch (err) {
       console.error('Error switching to chat:', err);
-      setError('Failed to switch to chat');
+      setError('Failed to load chat');
     }
   };
 
@@ -381,13 +393,11 @@ export default function ChatWindow() {
       console.log('Rename response:', response.data); // Debug log
       if (response.data?.success) {
         setChatHistory(prev => prev.map(c => (c._id === chatIdToRename ? { ...c, title: newTitle } : c)));
-        if (chatId === chatIdToRename) {
-          // No need to setCurrentChatTitle here, as the chat is already selected
-          setEditingChatId(null);
-          setEditingTitle('');
-          setOpenMenuId(null);
-          console.log('Chat renamed successfully'); // Debug log
-        }
+        if (chatId === chatIdToRename) setCurrentChatTitle(newTitle);
+        setEditingChatId(null);
+        setEditingTitle('');
+        setOpenMenuId(null);
+        console.log('Chat renamed successfully'); // Debug log
       } else {
         console.log('Rename failed - no success flag:', response.data); // Debug log
         alert('Failed to rename chat. Server response indicates failure.');
@@ -429,7 +439,13 @@ export default function ChatWindow() {
     );
   }
 
-
+  if (loading) {
+    return (
+      <div className="max-w-2xl mx-auto mt-10 p-4 bg-transparent rounded-2xl shadow-lg h-[80vh] flex items-center justify-center">
+        <div className="text-white">Loading chat...</div>
+      </div>
+    );
+  }
 
   if (error) {
     return (
@@ -443,276 +459,221 @@ export default function ChatWindow() {
   }
 
   return (
-    <div className="relative flex h-[calc(100vh-64px)] bg-gray-900 mt-4">
+    <div className="relative flex h-[calc(100vh-64px)] bg-black mt-4">
+
+
       {/* SIDEBAR */}
-      {!sidebarHidden && (
-        <div className={`${sidebarOpen ? 'w-full md:w-56' : 'w-0'} bg-white dark:bg-gray-800 flex flex-col transition-all duration-300 overflow-hidden h-full md:relative absolute z-40 border-r border-gray-200 dark:border-gray-700`}>
-          {/* Top controls */}
-          <div className="p-2 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-            <button onClick={handleNewChat} className="flex-1 py-1.5 px-2 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg flex items-center justify-center gap-1.5 transition-colors text-xs font-medium">
-              <LuPencil className="w-3 h-3" />
-              New chat
-            </button>
-            {/* Toggle button for mobile - only show when sidebar is open */}
-            {sidebarOpen && (
-              <button 
-                onClick={toggleSidebar} 
-                className="ml-1.5 p-1 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg transition-colors"
-                title="Close sidebar"
-              >
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            )}
-          </div>
+      <div className={`${sidebarOpen ? 'w-full md:w-64' : 'w-0'} bg-gray-900 flex flex-col transition-all duration-300 overflow-hidden h-full md:relative absolute z-40 border-r border-gray-700`}>
+        {/* Top controls */}
+        <div className="p-2 flex gap-2">
+          <button onClick={handleNewChat} className="flex-1 py-2 px-3 border border-gray-600 hover:bg-gray-700 text-white rounded-lg flex items-center justify-center gap-2 transition-colors text-sm">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+            New chat
+          </button>
+          <button onClick={toggleSidebar} className="py-2 px-3 border border-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors" title={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+          </button>
+        </div>
 
-          {/* Search Bar */}
-          <div className="p-2 border-b border-gray-200 dark:border-gray-700">
-            <div className="relative">
-              <FiSearch className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search chats..."
-                className="w-full pl-7 pr-2 py-1.5 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg border border-gray-200 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none text-xs placeholder-gray-500 dark:placeholder-gray-400"
-              />
-            </div>
-          </div>
-
-          {/* Chat history list */}
-          <div className="flex-1 overflow-y-auto p-1 space-y-0.5 scrollbar-hide">
-            {searchQuery && filteredChats.length === 0 ? (
-              <div className="text-center text-gray-500 dark:text-gray-400 py-4">
-                <FiSearch className="w-5 h-5 mx-auto mb-1 opacity-50" />
-                <p className="text-xs">No chats found</p>
-                <p className="text-xs mt-0.5">Try a different search term</p>
-              </div>
-            ) : (
-              (searchQuery ? filteredChats : chatHistory).map((chat) => (
-                <div key={chat._id} className={`group relative rounded-lg transition-colors ${chatId === chat._id ? 'bg-gray-100 dark:bg-gray-700' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}>
-                  <button onClick={() => switchToChat(chat._id)} className={`w-full p-1.5 text-left transition-colors ${chatId === chat._id ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}>
-                    <div className="truncate text-xs font-medium">
-                      {searchQuery ? 
-                        highlightSearchTerms(
-                          chat.title || (chat.messages?.[0]?.content?.slice(0,20) + '...') || `Chat ${new Date(chat.startedAt).toLocaleDateString()}`,
-                          searchQuery
-                        ) : 
-                        (chat.title || (chat.messages?.[0]?.content?.slice(0,20) + '...') || `Chat ${new Date(chat.startedAt).toLocaleDateString()}`)
-                      }
-                    </div>
-                  </button>
-                  {/* 3-dot menu */}
-                  <button onClick={(e) => toggleMenu(chat._id, e)} className="absolute right-1 top-1 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded" title="More options">
-                    <FiMoreVertical className="w-2.5 h-2.5" />
-                  </button>
-                  {openMenuId === chat._id && (
-                    <div className="absolute right-0 top-5 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg min-w-[120px]">
-                      <button onClick={(e) => { e.stopPropagation(); startEditingTitle(chat._id, chat.title); }} className="w-full px-2 py-1.5 text-left text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-1.5"><FiEdit3 className="w-2.5 h-2.5" />Rename</button>
-                      <button onClick={(e) => { e.stopPropagation(); shareChat(chat._id); }} className="w-full px-2 py-1.5 text-left text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-1.5"><FiShare2 className="w-2.5 h-2.5" />Share</button>
-                      <button onClick={(e) => { e.stopPropagation(); deleteChat(chat._id); }} className="w-full px-2 py-1.5 text-left text-xs text-red-600 dark:text-red-400 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-1.5 border-t border-gray-200 dark:border-gray-600"><FiTrash2 className="w-2.5 h-2.5" />Delete</button>
-                    </div>
-                  )}
-                  {editingChatId === chat._id && (
-                    <div className="absolute right-0 top-5 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg p-1.5 min-w-[160px]">
-                      <input type="text" value={editingTitle} onChange={(e) => setEditingTitle(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') renameChat(chat._id, editingTitle); if (e.key === 'Escape') closeMenu(); }} className="w-full px-1.5 py-1 text-xs text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded focus:outline-none focus:border-blue-500 dark:focus:border-blue-400" placeholder="Enter new title..." autoFocus />
-                      <div className="flex gap-1 mt-1.5">
-                        <button onClick={() => renameChat(chat._id, editingTitle)} className="px-1.5 py-0.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
-                        <button onClick={closeMenu} className="px-1.5 py-0.5 text-xs bg-gray-600 text-white rounded hover:bg-gray-700">Cancel</button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))
-            )}
-          </div>
-
-          {/* User info */}
-          <div className="p-2 border-t border-gray-200 dark:border-gray-700">
-            <div className="flex items-center gap-1.5">
-              <div className="w-5 h-5 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-xs font-medium text-white">
-                {user?.displayName?.charAt(0) || user?.name?.charAt(0) || user?.email?.charAt(0) || 'U'}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-gray-900 dark:text-white truncate">
-                  {user?.displayName || user?.name || user?.email || 'User'}
-                </p>
-              </div>
-              <button 
-                onClick={() => setSidebarHidden(true)} 
-                className="p-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                title="Hide sidebar"
-              >
-                <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-                </svg>
-              </button>
-            </div>
+        {/* Search Bar */}
+        <div className="mx-2 mb-2">
+          <div className="relative">
+            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search chats..."
+              className="w-full pl-10 pr-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-gray-500 focus:outline-none text-sm placeholder-gray-400"
+            />
           </div>
         </div>
-      )}
 
-      {/* MAIN */}
-      <div className="flex-1 flex flex-col h-[92vh] bg-gray-50 dark:bg-gray-900">
-        {/* Toggle Button - Only show when sidebar is closed or hidden */}
-        {(!sidebarOpen || sidebarHidden) && (
-          <div className="absolute top-8 left-8 z-10">
-            <button 
-              onClick={() => {
-                if (sidebarHidden) {
-                  setSidebarHidden(false);
-                  setSidebarOpen(true);
-                } else {
-                  toggleSidebar();
-                }
-              }} 
-              className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg transition-all duration-200 hover:scale-105"
-              title={sidebarHidden ? "Show sidebar" : "Show sidebar"}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-          </div>
-        )}
-
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto scrollbar-hide bg-gray-50 dark:bg-gray-900 pb-2" ref={containerRef}>
-          {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full px-4 pt-20">
-              <div className="text-center max-w-md">
-                <div className="mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mx-auto mb-3 shadow-lg">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                    </svg>
-                  </div>
-                </div>
-                <h2 className="text-xl font-semibold mb-2 text-gray-900 dark:text-gray-100">How can I help you today?</h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-                  I'm here to help with any questions, tasks, or creative projects you have in mind.
-                </p>
-                
-                {/* Centered Input Bar */}
-                <div className="max-w-lg mx-auto">
-                  <div className="relative">
-                    <textarea
-                      value={prompt}
-                      onChange={(e) => setPrompt(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      className="w-full p-3 pr-10 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg border border-gray-200 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none resize-none placeholder-gray-500 dark:placeholder-gray-400 text-sm leading-relaxed shadow-sm"
-                      placeholder="Message FastGen AI..."
-                      rows={1}
-                      style={{ minHeight: '44px', maxHeight: '120px' }}
-                    />
-                    <div className="absolute right-2 bottom-2 flex gap-1">
-                      <button onClick={handleAttachClick} className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded group relative" title="Attach PDF file">
-                        <IoMdAttach className="w-4 h-4" />
-                      </button>
-                      <button onClick={handleSend} disabled={!prompt.trim()} className="p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors rounded disabled:opacity-50 disabled:cursor-not-allowed" title="Send message">
-                        <LuSendHorizontal className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                  <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept=".pdf" />
-                </div>
-              </div>
+        {/* Chat history list */}
+        <div className="flex-1 overflow-y-auto p-2 space-y-1 scrollbar-hide">
+          {searchQuery && filteredChats.length === 0 ? (
+            <div className="text-center text-gray-400 py-8">
+              <FiSearch className="w-8 h-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">No chats found</p>
+              <p className="text-xs mt-1">Try a different search term</p>
             </div>
           ) : (
-            <>
-              {messages.map((msg, idx) => (
-                <div key={idx} className={`py-3 px-4 ${msg.sender === 'user' ? 'bg-gray-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'}`}>
-                  <div className={`max-w-3xl mx-auto flex gap-3 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    {msg.sender === 'ai' && (
-                      <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-xs font-medium text-white flex-shrink-0 shadow-sm">
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                        </svg>
-                      </div>
-                    )}
-                    <div className={`${msg.sender === 'user' ? 'max-w-[70%]' : 'max-w-[85%]'} text-gray-900 dark:text-gray-100`}>
-                      {msg.sender === 'ai' ? (
-                        <div className="prose prose-gray dark:prose-invert max-w-none prose-sm leading-relaxed">
-                          {searchQuery ? 
-                            highlightSearchTerms(msg.content, searchQuery) : 
-                            <ReactMarkdown>{msg.content}</ReactMarkdown>
-                          }
-                        </div>
-                      ) : (
-                        <div className="whitespace-pre-wrap text-sm leading-relaxed text-right">
-                          {searchQuery ? 
-                            highlightSearchTerms(msg.content, searchQuery) : 
-                            msg.content
-                          }
-                        </div>
-                      )}
-                    </div>
-                    {msg.sender === 'user' && (
-                      <div className="w-7 h-7 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center text-xs font-medium text-white flex-shrink-0 shadow-sm">
-                        {user?.displayName?.charAt(0) || user?.name?.charAt(0) || user?.email?.charAt(0) || 'U'}
-                      </div>
-                    )}
-                  </div>
+            (searchQuery ? filteredChats : chatHistory).map((chat) => (
+              <div key={chat._id} className={`group relative rounded-md transition-colors ${chatId === chat._id ? 'bg-gray-700' : 'hover:bg-gray-700'}`}>
+              <button onClick={() => switchToChat(chat._id)} className={`w-full p-3 text-left transition-colors ${chatId === chat._id ? 'text-white' : 'text-gray-300 hover:text-white'}`}>
+                <div className="truncate text-sm">
+                  {searchQuery ? 
+                    highlightSearchTerms(
+                      chat.title || (chat.messages?.[0]?.content?.slice(0,30) + '...') || `Chat ${new Date(chat.startedAt).toLocaleDateString()}`,
+                      searchQuery
+                    ) : 
+                    (chat.title || (chat.messages?.[0]?.content?.slice(0,30) + '...') || `Chat ${new Date(chat.startedAt).toLocaleDateString()}`)
+                  }
                 </div>
-              ))}
-
-              {isTyping && (
-                <div className="py-3 px-4 bg-white dark:bg-gray-900">
-                  <div className="max-w-3xl mx-auto flex gap-3 justify-start">
-                    <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-xs font-medium text-white flex-shrink-0 shadow-sm">
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                      </svg>
-                    </div>
-                    <div className="max-w-[85%] text-gray-900 dark:text-gray-100">
-                      <div className="flex items-center gap-1">
-                        <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" />
-                        <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                        <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
-                      </div>
-                    </div>
+              </button>
+              {/* 3-dot menu */}
+              <button onClick={(e) => toggleMenu(chat._id, e)} className="absolute right-2 top-2 opacity-100 group-hover:opacity-100 transition-opacity p-1 text-gray-400 hover:text-white rounded" title="More options">
+                <FiMoreVertical className="w-4 h-4" />
+              </button>
+              {openMenuId === chat._id && (
+                <div className="absolute right-0 top-8 z-50 bg-gray-800 border border-gray-600 rounded-md shadow-lg min-w-[160px]">
+                  <button onClick={(e) => { e.stopPropagation(); startEditingTitle(chat._id, chat.title); }} className="w-full px-3 py-2 text-left text-sm text-white hover:bg-gray-700 flex items-center gap-2"><FiEdit3 className="w-4 h-4" />Rename</button>
+                  <button onClick={(e) => { e.stopPropagation(); shareChat(chat._id); }} className="w-full px-3 py-2 text-left text-sm text-white hover:bg-gray-700 flex items-center gap-2"><FiShare2 className="w-4 h-4" />Share</button>
+                  <button onClick={(e) => { e.stopPropagation(); deleteChat(chat._id); }} className="w-full px-3 py-2 text-left text-sm text-white hover:bg-gray-700 flex items-center gap-2 border-t border-gray-600"><FiTrash2 className="w-4 h-4" />Delete</button>
+                </div>
+              )}
+              {editingChatId === chat._id && (
+                <div className="absolute right-0 top-8 z-50 bg-gray-800 border border-gray-600 rounded-md shadow-lg p-2 min-w-[220px]">
+                  <input type="text" value={editingTitle} onChange={(e) => setEditingTitle(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') renameChat(chat._id, editingTitle); if (e.key === 'Escape') closeMenu(); }} className="w-full px-2 py-1 text-sm text-white bg-gray-700 border border-gray-500 rounded focus:outline-none focus:border-blue-500" placeholder="Enter new title..." autoFocus />
+                  <div className="flex gap-2 mt-2">
+                    <button onClick={() => renameChat(chat._id, editingTitle)} className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
+                    <button onClick={closeMenu} className="px-2 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-700">Cancel</button>
                   </div>
                 </div>
               )}
-            </>
+            </div>
+          )))}
+        </div>
+
+        {/* User info */}
+        <div className="p-3 border-t border-gray-600">
+          <div className="flex items-center gap-3 text-gray-300 p-2 rounded-md hover:bg-gray-700 cursor-pointer">
+            {user?.avatar ? (
+              <img 
+                src={user.avatar} 
+                alt={user?.displayName || user?.name || 'User'} 
+                className="w-8 h-8 rounded-full"
+              />
+            ) : (
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-medium shadow-lg">
+                {(user?.displayName || user?.name || user?.email?.charAt(0) || 'U')}
+            </div>
+            )}
+            <div className="text-sm">
+              <div className="font-medium">
+                {user?.displayName || user?.name || user?.email || 'User'}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* MAIN */}
+      <div className="flex-1 flex flex-col h-[92vh]">
+        {/* Header */}
+        <div className="bg-gray-900 border-b border-gray-700 p-3 relative">
+          {!sidebarOpen && (
+            <button 
+              onClick={toggleSidebar} 
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 p-1.5 hover:bg-gray-700 text-white rounded-md transition-colors" 
+              title="Show sidebar"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          )}
+          <h1 className="text-base font-medium text-gray-300 text-center">{currentChatTitle || 'New Chat'}</h1>
+        </div>
+
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto scrollbar-hide" ref={containerRef}>
+          {messages.length === 0 ? (
+            <div className="text-center text-gray-300 mt-20">
+              <div className="mb-3">
+                <svg className="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-semibold mb-2">How can I help you today?</h2>
+              <p className="text-sm text-gray-400">Ask me anything or start a new conversation.</p>
+            </div>
+          ) : (
+                        messages.map((msg, idx) => (
+              <div key={idx} className="py-4 px-4">
+                <div className={`max-w-3xl mx-auto flex gap-4 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  {msg.sender === 'ai' && (
+                    <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-sm font-medium text-white flex-shrink-0">
+                      AI
+                    </div>
+                  )}
+                  <div className={`${msg.sender === 'user' ? 'max-w-[70%] text-right' : 'flex-1'} text-gray-100`}>
+                    {msg.sender === 'ai' ? (
+                      <div className="prose prose-invert max-w-none prose-sm">
+                        {searchQuery ? 
+                          highlightSearchTerms(msg.content, searchQuery) : 
+                          <ReactMarkdown>{msg.content}</ReactMarkdown>
+                        }
+                      </div>
+                    ) : (
+                      <div className="whitespace-pre-wrap">
+                        {searchQuery ? 
+                          highlightSearchTerms(msg.content, searchQuery) : 
+                          msg.content
+                        }
+                      </div>
+                    )}
+                  </div>
+                  {msg.sender === 'user' && (
+                    <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-medium text-white flex-shrink-0">
+                      {user?.displayName?.charAt(0) || user?.name?.charAt(0) || user?.email?.charAt(0) || 'U'}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
+
+                    {isTyping && (
+            <div className="py-4 px-4">
+              <div className="max-w-3xl mx-auto flex gap-4">
+                <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-sm font-medium text-white flex-shrink-0">AI</div>
+                <div className="flex-1 text-gray-100">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
         </div>
 
         {/* File Upload Status */}
         {uploadedParsedFileName && (
-          <div className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 text-center border-t border-gray-200 dark:border-gray-700 text-xs">
-            📎 File uploaded successfully
-          </div>
-        )}
+          <div className="px-4 py-2 bg-blue-900/20 text-blue-300 text-center border-t border-gray-700">📎 File Uploaded: {uploadedParsedFileName}</div>
+      )}
 
-        {/* Input - Only show when there are messages */}
-        {messages.length > 0 && (
-          <div className="border-t border-gray-200 dark:border-gray-700 p-3 bg-white dark:bg-gray-800 flex-shrink-0">
-            <div className="max-w-3xl mx-auto">
-              <div className="relative">
-                <textarea
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  className="w-full p-3 pr-16 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg border border-gray-200 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none resize-none placeholder-gray-500 dark:placeholder-gray-400 text-sm leading-relaxed"
-                  placeholder="Message FastGen AI..."
-                  rows={1}
-                  style={{ minHeight: '44px', maxHeight: '120px' }}
-                />
-                <div className="absolute right-2 bottom-2 flex gap-1">
-                  <button onClick={handleAttachClick} className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded group relative" title="Attach PDF file">
-                    <IoMdAttach className="w-4 h-4" />
-                  </button>
-                  <button onClick={handleSend} disabled={!prompt.trim()} className="p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors rounded disabled:opacity-50 disabled:cursor-not-allowed" title="Send message">
-                    <LuSendHorizontal className="w-4 h-4" />
-                  </button>
-                </div>
+                {/* Input */}
+        <div className="border-t border-gray-700 p-3 bg-black flex-shrink-0">
+          <div className="max-w-3xl mx-auto">
+            <div className="relative">
+              <textarea
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+                onKeyDown={handleKeyDown}
+                className="w-full p-3 pr-12 bg-gray-800 text-white rounded-lg border border-gray-600 focus:border-gray-500 focus:outline-none resize-none placeholder-gray-400"
+                placeholder="Message FastGen AI..."
+          disabled={!chatId}
+                rows={1}
+                style={{ minHeight: '44px', maxHeight: '120px' }}
+        />
+              <div className="absolute right-3 bottom-3 flex gap-2">
+                <button onClick={handleAttachClick} className="p-1 text-gray-400 hover:text-white transition-colors rounded group relative" title="Attach PDF file">
+                  <IoMdAttach className="w-4 h-4" />
+                  <span className="absolute bottom-full right-0 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                    PDF only
+                  </span>
+                </button>
+                <button onClick={handleSend} disabled={!chatId || !prompt.trim()} className="p-1 text-gray-400 hover:text-white transition-colors rounded disabled:opacity-50 disabled:cursor-not-allowed" title="Send message">
+                  <LuSendHorizontal className="w-4 h-4" />
+        </button>
               </div>
-              <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept=".pdf" />
             </div>
+            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept=".pdf" />
           </div>
-        )}
+        </div>
       </div>
 
       {/* Delete Confirmation Modal */}
