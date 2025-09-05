@@ -470,13 +470,13 @@ export default function ChatWindow() {
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
             New chat
           </button>
-          <button onClick={toggleSidebar} className="py-2 px-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors" title={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}>
+          <button onClick={toggleSidebar} className="py-2 px-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors" title={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
           </button>
         </div>
 
         {/* Search Bar */}
-        <div className="mx-3 mb-3">
+        <div className="px-3 mb-3">
           <div className="relative">
             <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
@@ -490,7 +490,7 @@ export default function ChatWindow() {
         </div>
 
         {/* Chat history list */}
-        <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-1 scrollbar-hide">
+        <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-2 scrollbar-hide">
           {searchQuery && filteredChats.length === 0 ? (
             <div className="text-center text-gray-400 py-8">
               <FiSearch className="w-8 h-8 mx-auto mb-2 opacity-50" />
@@ -500,7 +500,7 @@ export default function ChatWindow() {
           ) : (
             (searchQuery ? filteredChats : chatHistory).map((chat) => (
               <div key={chat._id} className={`group relative rounded-lg transition-colors ${chatId === chat._id ? 'bg-gray-700' : 'hover:bg-gray-700'}`}>
-              <button onClick={() => switchToChat(chat._id)} className={`w-full p-2 text-left transition-colors ${chatId === chat._id ? 'text-white' : 'text-gray-300 hover:text-white'}`}>
+              <button onClick={() => switchToChat(chat._id)} className={`w-full p-3 text-left transition-colors ${chatId === chat._id ? 'text-white' : 'text-gray-300 hover:text-white'}`}>
                 <div className="truncate text-sm">
                   {searchQuery ? 
                     highlightSearchTerms(
@@ -536,8 +536,8 @@ export default function ChatWindow() {
         </div>
 
         {/* User info */}
-        <div className="px-3 pb-4">
-          <div className="flex items-center gap-3 text-gray-300 p-2 rounded-lg hover:bg-gray-700 cursor-pointer transition-colors">
+        <div className="px-3 pb-3">
+          <div className="flex items-center gap-3 text-gray-300 p-3 rounded-lg hover:bg-gray-700 cursor-pointer transition-colors">
             {user?.avatar ? (
               <img 
                 src={user.avatar} 
