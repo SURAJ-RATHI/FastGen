@@ -7,7 +7,6 @@ import Content from "./Content";
 import Quizzes from "./Quizzes";
 import Notes from "./Notes";
 import Header from "./Header";
-import Footer from "./Footer";
 import { useNavigate } from "react-router-dom";
 
 const Main = () => {
@@ -56,7 +55,6 @@ const Main = () => {
             <ChatWindow />
           )}
         </div>
-        <Footer />
       </div>
     );
   }
@@ -78,7 +76,6 @@ const Main = () => {
           <ChatWindow />
         )}
       </div>
-      <Footer />
     </div>
   );
 };
