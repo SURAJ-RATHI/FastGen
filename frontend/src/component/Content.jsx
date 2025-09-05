@@ -86,7 +86,7 @@ const Content = () => {
   };
 
   return (
-    <div className="h-[91vh] bg-black overflow-hidden">
+    <div className="h-screen bg-black overflow-hidden">
       <div className="h-full overflow-y-auto scrollbar-hide p-4">
       <label htmlFor="topic" className="block text-white mb-2 font-medium">Enter a topic:</label>
       <div className="flex items-center gap-3 mb-4">
@@ -97,11 +97,11 @@ const Content = () => {
           onChange={(e) => setTopic(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && getVideoRecommendations()}
           placeholder="e.g., Quadratic Equations"
-          className="flex-1 px-4 py-2 rounded bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="flex-1 px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         />
         <button
           onClick={getVideoRecommendations}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition whitespace-nowrap"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors whitespace-nowrap"
         >
           {loading ? 'Searching...' : 'Search'}
         </button>
@@ -111,7 +111,7 @@ const Content = () => {
 
       <div className="mt-6">
         <div className="flex items-center justify-between mb-4">
-          <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm">
+          <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-medium">
             {videoData.length} videos found
           </span>
           {videoData.length > 0 && (
@@ -132,7 +132,7 @@ const Content = () => {
             <div
               key={video.videoId}
               onClick={() => handleVideoClick(video)}
-              className="bg-gray-800 rounded-lg p-4 hover:bg-gray-700 transition-colors border border-gray-600 hover:border-blue-400 shadow-sm cursor-pointer"
+              className="bg-gray-800 rounded-lg p-4 hover:bg-gray-700 transition-colors border border-gray-700 hover:border-blue-400 shadow-lg cursor-pointer"
             >
               <div className="relative">
                 <img
