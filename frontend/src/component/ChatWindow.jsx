@@ -465,7 +465,7 @@ export default function ChatWindow() {
       {/* SIDEBAR */}
       <div className={`${sidebarOpen ? 'w-full md:w-64' : 'w-0'} bg-black flex flex-col transition-all duration-300 overflow-hidden h-screen md:relative absolute z-50`}>
         {/* Top controls */}
-        <div className="pt-4 px-3 pb-3 flex gap-2">
+        <div className="pt-8 px-3 pb-3 flex gap-2">
           <button onClick={handleNewChat} className="flex-1 py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center gap-2 transition-colors text-sm font-medium">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
             New chat
