@@ -559,22 +559,21 @@ export default function ChatWindow() {
       </div>
 
       {/* MAIN */}
-      <div className="flex-1 flex flex-col h-[92vh]">
-        {/* Header */}
-        <div className="bg-gray-900 border-b border-gray-700 p-3 relative">
-          {!sidebarOpen && (
+      <div className="flex-1 flex flex-col h-[100vh]">
+        {/* Sidebar toggle button when sidebar is closed */}
+        {!sidebarOpen && (
+          <div className="absolute left-3 top-3 z-10">
             <button 
               onClick={toggleSidebar} 
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 p-1.5 hover:bg-gray-700 text-white rounded-md transition-colors" 
+              className="p-1.5 hover:bg-gray-700 text-white rounded-md transition-colors bg-gray-800" 
               title="Show sidebar"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
-          )}
-          <h1 className="text-base font-medium text-gray-300 text-center">{currentChatTitle || 'New Chat'}</h1>
-        </div>
+          </div>
+        )}
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto scrollbar-hide" ref={containerRef}>
@@ -646,7 +645,7 @@ export default function ChatWindow() {
       )}
 
                 {/* Input */}
-        <div className="border-t border-gray-700 p-3 bg-black flex-shrink-0">
+        <div className="border-t border-gray-700 p-1 bg-black flex-shrink-0">
           <div className="max-w-3xl mx-auto">
             <div className="relative">
               <textarea
