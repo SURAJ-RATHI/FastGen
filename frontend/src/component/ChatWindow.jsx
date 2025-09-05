@@ -647,18 +647,18 @@ export default function ChatWindow() {
                 {/* Input */}
         <div className="border-t border-gray-700 p-4 bg-black flex-shrink-0">
           <div className="max-w-3xl mx-auto">
-            <div className="relative">
+            <div className="relative bg-gray-800 rounded-2xl border border-gray-600 focus-within:border-blue-500 transition-colors">
               <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 onKeyDown={handleKeyDown}
-                className="w-full p-4 pr-16 bg-gray-800 text-white rounded-xl border border-gray-600 focus:border-blue-500 focus:outline-none resize-none placeholder-gray-400 shadow-sm"
+                className="w-full p-4 pr-20 bg-transparent text-white focus:outline-none resize-none placeholder-gray-400"
                 placeholder="Message FastGen AI..."
                 disabled={!chatId}
                 rows={1}
                 style={{ minHeight: '52px', maxHeight: '120px' }}
               />
-              <div className="absolute right-4 bottom-4 flex gap-2">
+              <div className="absolute right-2 bottom-2 flex gap-1">
                 <button onClick={handleAttachClick} className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 transition-colors rounded-lg group relative" title="Attach PDF file">
                   <IoMdAttach className="w-4 h-4" />
                   <span className="absolute bottom-full right-0 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
@@ -668,10 +668,10 @@ export default function ChatWindow() {
                 <button 
                   onClick={handleSend} 
                   disabled={!chatId || !prompt.trim()} 
-                  className={`p-2 rounded-lg transition-colors ${
+                  className={`p-2 rounded-lg transition-all duration-200 ${
                     !chatId || !prompt.trim() 
                       ? 'text-gray-500 bg-gray-700 cursor-not-allowed' 
-                      : 'text-white bg-blue-600 hover:bg-blue-700 shadow-sm'
+                      : 'text-white bg-blue-600 hover:bg-blue-700 hover:shadow-lg transform hover:scale-105'
                   }`} 
                   title="Send message"
                 >
