@@ -27,7 +27,7 @@ const Notes = () => {
       {/* Notion button */}
       <button
         onClick={handleNotionToggle}
-        className="absolute top-2 right-4 flex items-center gap-2 px-4 py-2 bg-gray-800 text-white rounded shadow-md hover:bg-gray-700 transition border border-gray-600"
+        className="absolute top-6 right-6 flex items-center gap-2 px-4 py-2 bg-gray-800 text-white rounded-lg shadow-md hover:bg-gray-700 transition-colors border border-gray-600"
       >
         <RxNotionLogo className="text-lg" />
         <span>Notion</span>
