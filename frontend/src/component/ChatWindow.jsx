@@ -463,14 +463,14 @@ export default function ChatWindow() {
 
 
       {/* SIDEBAR */}
-      <div className={`${sidebarOpen ? 'w-full md:w-64' : 'w-0'} bg-gray-900 flex flex-col transition-all duration-300 overflow-hidden h-full md:relative absolute z-40 border-r border-gray-700`}>
+      <div className={`${sidebarOpen ? 'w-full md:w-64' : 'w-0'} bg-black flex flex-col transition-all duration-300 overflow-hidden h-full md:relative absolute z-40 border-r border-gray-700`}>
         {/* Top controls */}
-        <div className="p-2 flex gap-2">
-          <button onClick={handleNewChat} className="flex-1 py-2 px-3 border border-gray-600 hover:bg-gray-700 text-white rounded-lg flex items-center justify-center gap-2 transition-colors text-sm">
+        <div className="p-3 flex gap-2">
+          <button onClick={handleNewChat} className="flex-1 py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center gap-2 transition-colors text-sm font-medium shadow-sm">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
             New chat
           </button>
-          <button onClick={toggleSidebar} className="py-2 px-3 border border-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors" title={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}>
+          <button onClick={toggleSidebar} className="py-2.5 px-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors shadow-sm" title={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
           </button>
         </div>
@@ -562,10 +562,10 @@ export default function ChatWindow() {
       <div className="flex-1 flex flex-col h-[100vh]">
         {/* Sidebar toggle button when sidebar is closed */}
         {!sidebarOpen && (
-          <div className="absolute left-3 top-3 z-10">
+          <div className="absolute left-4 top-4 z-10">
             <button 
               onClick={toggleSidebar} 
-              className="p-1.5 hover:bg-gray-700 text-white rounded-md transition-colors bg-gray-800" 
+              className="p-2.5 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors shadow-sm border border-gray-600" 
               title="Show sidebar"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -645,29 +645,38 @@ export default function ChatWindow() {
       )}
 
                 {/* Input */}
-        <div className="border-t border-gray-700 p-1 bg-black flex-shrink-0">
+        <div className="border-t border-gray-700 p-4 bg-black flex-shrink-0">
           <div className="max-w-3xl mx-auto">
             <div className="relative">
               <textarea
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
                 onKeyDown={handleKeyDown}
-                className="w-full p-3 pr-12 bg-gray-800 text-white rounded-lg border border-gray-600 focus:border-gray-500 focus:outline-none resize-none placeholder-gray-400"
+                className="w-full p-4 pr-16 bg-gray-800 text-white rounded-xl border border-gray-600 focus:border-blue-500 focus:outline-none resize-none placeholder-gray-400 shadow-sm"
                 placeholder="Message FastGen AI..."
-          disabled={!chatId}
+                disabled={!chatId}
                 rows={1}
-                style={{ minHeight: '44px', maxHeight: '120px' }}
-        />
-              <div className="absolute right-3 bottom-3 flex gap-2">
-                <button onClick={handleAttachClick} className="p-1 text-gray-400 hover:text-white transition-colors rounded group relative" title="Attach PDF file">
+                style={{ minHeight: '52px', maxHeight: '120px' }}
+              />
+              <div className="absolute right-4 bottom-4 flex gap-2">
+                <button onClick={handleAttachClick} className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 transition-colors rounded-lg group relative" title="Attach PDF file">
                   <IoMdAttach className="w-4 h-4" />
                   <span className="absolute bottom-full right-0 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                     PDF only
                   </span>
                 </button>
-                <button onClick={handleSend} disabled={!chatId || !prompt.trim()} className="p-1 text-gray-400 hover:text-white transition-colors rounded disabled:opacity-50 disabled:cursor-not-allowed" title="Send message">
+                <button 
+                  onClick={handleSend} 
+                  disabled={!chatId || !prompt.trim()} 
+                  className={`p-2 rounded-lg transition-colors ${
+                    !chatId || !prompt.trim() 
+                      ? 'text-gray-500 bg-gray-700 cursor-not-allowed' 
+                      : 'text-white bg-blue-600 hover:bg-blue-700 shadow-sm'
+                  }`} 
+                  title="Send message"
+                >
                   <LuSendHorizontal className="w-4 h-4" />
-        </button>
+                </button>
               </div>
             </div>
             <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept=".pdf" />
