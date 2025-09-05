@@ -459,7 +459,7 @@ export default function ChatWindow() {
   }
 
   return (
-    <div className="relative flex h-[calc(100vh-64px)] bg-black mt-4">
+    <div className="relative flex h-[calc(100vh-120px)] bg-black">
 
 
       {/* SIDEBAR */}
@@ -559,7 +559,7 @@ export default function ChatWindow() {
       </div>
 
       {/* MAIN */}
-      <div className="flex-1 flex flex-col h-[100vh]">
+      <div className="flex-1 flex flex-col h-full">
         {/* Sidebar toggle button when sidebar is closed */}
         {!sidebarOpen && (
           <div className="absolute left-4 top-4 z-10">
@@ -576,7 +576,7 @@ export default function ChatWindow() {
         )}
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto scrollbar-hide" ref={containerRef}>
+        <div className="flex-1 overflow-y-auto scrollbar-hide pb-24" ref={containerRef}>
           {messages.length === 0 ? (
             <div className="text-center text-gray-300 mt-20">
               <div className="mb-3">
@@ -645,7 +645,7 @@ export default function ChatWindow() {
       )}
 
                 {/* Input */}
-        <div className="border-t border-gray-700 p-4 bg-black flex-shrink-0">
+        <div className="fixed bottom-0 left-0 right-0 border-t border-gray-700 p-4 bg-black z-50">
           <div className="max-w-3xl mx-auto">
             <div className="relative bg-gray-800 rounded-2xl border border-gray-600 focus-within:border-blue-500 transition-colors">
               <textarea
