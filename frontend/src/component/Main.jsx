@@ -45,7 +45,7 @@ const Main = () => {
         <div className="fixed top-0 left-0 right-0 z-50">
           <Header />
         </div>
-        <div className="pt-14 pb-8">
+        <div className="pt-20 pb-8">
           {activeTab === 'content' ? (
             <Content />
           ) : activeTab === 'quizzes' ? (
@@ -67,7 +67,7 @@ const Main = () => {
       <div className="fixed top-0 left-0 right-0 z-50">
         <Header />
       </div>
-      <div className="pt-14 pb-8">
+      <div className="pt-20 pb-8">
         {activeTab === 'content' ? (
           <Content />
         ) : activeTab === 'quizzes' ? (
