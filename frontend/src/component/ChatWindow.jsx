@@ -535,8 +535,8 @@ export default function ChatWindow() {
           )))}
         </div>
 
-        {/* User info */}
-        <div className="px-3 pb-3">
+        {/* User info - Fixed at bottom */}
+        <div className="mt-auto px-3 pb-3">
           <div className="flex items-center gap-3 text-gray-300 p-3 rounded-lg hover:bg-gray-700 cursor-pointer transition-colors">
             <img 
               alt="Suraj Rathi" 
