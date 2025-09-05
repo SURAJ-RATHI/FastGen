@@ -490,7 +490,7 @@ export default function ChatWindow() {
         </div>
 
         {/* Chat history list */}
-        <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-2 scrollbar-hide">
+        <div className="flex-1 overflow-y-auto px-3 pb-20 space-y-2 scrollbar-hide">
           {searchQuery && filteredChats.length === 0 ? (
             <div className="text-center text-gray-400 py-8">
               <FiSearch className="w-8 h-8 mx-auto mb-2 opacity-50" />
@@ -536,7 +536,7 @@ export default function ChatWindow() {
         </div>
 
         {/* User info - Fixed at bottom */}
-        <div className="mt-auto px-3 pb-3">
+        <div className="absolute bottom-0 left-0 right-0 px-3 pb-3">
           <div className="flex items-center gap-3 text-gray-300 p-3 rounded-lg hover:bg-gray-700 cursor-pointer transition-colors">
             <img 
               alt="Suraj Rathi" 
