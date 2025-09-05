@@ -459,11 +459,11 @@ export default function ChatWindow() {
   }
 
   return (
-    <div className="relative flex h-[calc(100vh-140px)] bg-black">
+    <div className="relative flex h-screen bg-black">
 
 
       {/* SIDEBAR */}
-      <div className={`${sidebarOpen ? 'w-full md:w-64' : 'w-0'} bg-black flex flex-col transition-all duration-300 overflow-hidden h-full md:relative absolute z-50`}>
+      <div className={`${sidebarOpen ? 'w-full md:w-64' : 'w-0'} bg-black flex flex-col transition-all duration-300 overflow-hidden h-screen md:relative absolute z-50`}>
         {/* Top controls */}
         <div className="pt-4 px-3 pb-3 flex gap-2">
           <button onClick={handleNewChat} className="flex-1 py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center gap-2 transition-colors text-sm font-medium">
