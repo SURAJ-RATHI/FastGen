@@ -65,7 +65,7 @@ const Header = () => {
     };
 
     return ( 
-        <header className="w-full bg-transparent shadow-md py-2 md:py-3 flex items-center justify-between">
+        <header className="w-full bg-transparent shadow-md pt-6 pb-2 md:pt-8 md:pb-3 flex items-center justify-between">
             {/* Logo */}
             <div 
                 onClick={() => navigate('/')}

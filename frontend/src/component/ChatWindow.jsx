@@ -463,9 +463,9 @@ export default function ChatWindow() {
 
 
       {/* SIDEBAR */}
-      <div className={`${sidebarOpen ? 'w-full md:w-64' : 'w-0'} bg-black flex flex-col transition-all duration-300 overflow-hidden h-full md:relative absolute z-40 border-r border-gray-700`}>
+      <div className={`${sidebarOpen ? 'w-full md:w-64' : 'w-0'} bg-black flex flex-col transition-all duration-300 overflow-hidden h-full md:relative absolute z-50`}>
         {/* Top controls */}
-        <div className="p-3 flex gap-2">
+        <div className="pt-6 px-3 pb-3 flex gap-2">
           <button onClick={handleNewChat} className="flex-1 py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center gap-2 transition-colors text-sm font-medium shadow-sm">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
             New chat
@@ -476,7 +476,7 @@ export default function ChatWindow() {
         </div>
 
         {/* Search Bar */}
-        <div className="mx-2 mb-2">
+        <div className="mx-3 mb-3">
           <div className="relative">
             <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
@@ -490,7 +490,7 @@ export default function ChatWindow() {
         </div>
 
         {/* Chat history list */}
-        <div className="flex-1 overflow-y-auto p-2 space-y-1 scrollbar-hide">
+        <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-1 scrollbar-hide">
           {searchQuery && filteredChats.length === 0 ? (
             <div className="text-center text-gray-400 py-8">
               <FiSearch className="w-8 h-8 mx-auto mb-2 opacity-50" />
@@ -536,7 +536,7 @@ export default function ChatWindow() {
         </div>
 
         {/* User info */}
-        <div className="p-3 border-t border-gray-600">
+        <div className="px-3 pb-6">
           <div className="flex items-center gap-3 text-gray-300 p-2 rounded-md hover:bg-gray-700 cursor-pointer">
             {user?.avatar ? (
               <img 
@@ -565,7 +565,7 @@ export default function ChatWindow() {
           <div className="absolute left-4 top-4 z-10">
             <button 
               onClick={toggleSidebar} 
-              className="p-2.5 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors shadow-sm border border-gray-600" 
+              className="p-2.5 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors shadow-sm" 
               title="Show sidebar"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -641,25 +641,25 @@ export default function ChatWindow() {
 
         {/* File Upload Status */}
         {uploadedParsedFileName && (
-          <div className="px-4 py-2 bg-blue-900/20 text-blue-300 text-center border-t border-gray-700">📎 File Uploaded: {uploadedParsedFileName}</div>
+          <div className="px-4 py-2 bg-blue-900/20 text-blue-300 text-center">📎 File Uploaded: {uploadedParsedFileName}</div>
       )}
 
                 {/* Input */}
-        <div className="fixed bottom-0 left-0 right-0 border-t border-gray-700 p-4 bg-black z-50">
+        <div className={`fixed bottom-0 ${sidebarOpen ? 'left-64' : 'left-0'} right-0 p-4 bg-black z-40 transition-all duration-300`}>
           <div className="max-w-3xl mx-auto">
-            <div className="relative bg-gray-800 rounded-2xl border border-gray-600 focus-within:border-blue-500 transition-colors">
+            <div className="relative bg-gray-800 rounded-2xl focus-within:ring-2 focus-within:ring-blue-500 transition-all">
               <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 onKeyDown={handleKeyDown}
-                className="w-full p-4 pr-20 bg-transparent text-white focus:outline-none resize-none placeholder-gray-400"
+                className="w-full p-3 pr-16 bg-transparent text-white focus:outline-none resize-none placeholder-gray-400 text-sm"
                 placeholder="Message FastGen AI..."
                 disabled={!chatId}
                 rows={1}
-                style={{ minHeight: '52px', maxHeight: '120px' }}
+                style={{ minHeight: '44px', maxHeight: '120px' }}
               />
               <div className="absolute right-2 bottom-2 flex gap-1">
-                <button onClick={handleAttachClick} className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 transition-colors rounded-lg group relative" title="Attach PDF file">
+                <button onClick={handleAttachClick} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 transition-colors rounded-lg group relative" title="Attach PDF file">
                   <IoMdAttach className="w-4 h-4" />
                   <span className="absolute bottom-full right-0 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                     PDF only
@@ -668,7 +668,7 @@ export default function ChatWindow() {
                 <button 
                   onClick={handleSend} 
                   disabled={!chatId || !prompt.trim()} 
-                  className={`p-2 rounded-lg transition-all duration-200 ${
+                  className={`p-1.5 rounded-lg transition-all duration-200 ${
                     !chatId || !prompt.trim() 
                       ? 'text-gray-500 bg-gray-700 cursor-not-allowed' 
                       : 'text-white bg-blue-600 hover:bg-blue-700 hover:shadow-lg transform hover:scale-105'
