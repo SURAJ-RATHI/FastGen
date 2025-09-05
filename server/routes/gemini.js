@@ -152,44 +152,30 @@ Title:`;
   }
 }
 
-// Function to build comprehensive conversation context
+// Function to build comprehensive conversation context - OPTIMIZED
 async function buildConversationContext(userId, chatId, currentQuery) {
   try {
-    // Get recent messages for immediate context
+    // Get recent messages for immediate context (reduced limit for faster loading)
     const recentMessages = await Message.find({ chat: chatId })
+      .select('content sender createdAt')
       .sort({ createdAt: -1 })
-      .limit(5);
+      .limit(3); // Reduced from 5 to 3
     
-    // Get relevant long-term memory
-    const relevantMemory = retrieveRelevantContext(userId, currentQuery, 8);
-    
-    // Get user's overall chat history summary
-    const userChats = await Chat.find({ user: userId })
-      .populate('messages')
-      .sort({ updatedAt: -1 })
-      .limit(3);
+    // Get relevant long-term memory (reduced limit)
+    const relevantMemory = retrieveRelevantContext(userId, currentQuery, 4); // Reduced from 8 to 4
     
     let context = "";
     
     // Add recent conversation context
     if (recentMessages.length > 0) {
-      context += `\nRECENT CONVERSATION CONTEXT (Last ${recentMessages.length} messages):
-${recentMessages.reverse().map(msg => `- ${msg.sender === 'user' ? 'User' : 'AI'}: ${msg.content.substring(0, 150)}${msg.content.length > 150 ? '...' : ''}`).join('\n')}`;
+      context += `\nRECENT CONTEXT (Last ${recentMessages.length} messages):
+${recentMessages.reverse().map(msg => `- ${msg.sender === 'user' ? 'User' : 'AI'}: ${msg.content.substring(0, 100)}${msg.content.length > 100 ? '...' : ''}`).join('\n')}`;
     }
     
-    // Add relevant long-term memory
+    // Add relevant long-term memory (simplified)
     if (relevantMemory.length > 0) {
-      context += `\n\nRELEVANT PAST CONVERSATIONS (Semantically related):
-${relevantMemory.map(mem => `- ${mem.metadata.sender === 'user' ? 'User' : 'AI'} (${new Date(mem.metadata.timestamp).toLocaleDateString()}): ${mem.content.substring(0, 120)}${mem.content.length > 120 ? '...' : ''}`).join('\n')}`;
-    }
-    
-    // Add conversation patterns and user preferences
-    if (userChats.length > 0) {
-      const totalMessages = userChats.reduce((sum, chat) => sum + chat.messages.length, 0);
-      context += `\n\nUSER CONVERSATION PATTERNS:
-- Total conversations: ${userChats.length}
-- Total messages across conversations: ${totalMessages}
-- Most recent conversation: ${userChats[0]?.startedAt ? new Date(userChats[0].startedAt).toLocaleDateString() : 'Unknown'}`;
+      context += `\n\nRELEVANT PAST CONVERSATIONS:
+${relevantMemory.map(mem => `- ${mem.metadata.sender === 'user' ? 'User' : 'AI'}: ${mem.content.substring(0, 80)}${mem.content.length > 80 ? '...' : ''}`).join('\n')}`;
     }
     
     return context;

@@ -53,6 +53,8 @@ export default function ChatWindow() {
   const [chatToDelete, setChatToDelete] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredChats, setFilteredChats] = useState([]);
+  const [chatHistoryCache, setChatHistoryCache] = useState(null);
+  const [cacheTimestamp, setCacheTimestamp] = useState(null);
 
   const fileInputRef = useRef(null);
   const containerRef = useRef(null);
@@ -85,16 +87,32 @@ export default function ChatWindow() {
     }
   };
 
-  const loadChatHistory = async () => {
+  const loadChatHistory = async (limit = 20, forceRefresh = false) => {
     try {
+      // Check cache first (5 minute cache)
+      const now = Date.now();
+      const cacheAge = now - (cacheTimestamp || 0);
+      const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+      
+      if (!forceRefresh && chatHistoryCache && cacheAge < CACHE_DURATION) {
+        console.log('Using cached chat history');
+        setChatHistory(chatHistoryCache);
+        return chatHistoryCache;
+      }
+      
       console.log('Loading chat history...'); // Debug log
       const res = await axios.get(`${import.meta.env.VITE_APP_BE_BASEURL}/api/chats/getChat`, {
         withCredentials: true,
+        params: { limit, sort: 'updatedAt' }
       });
       const chats = Array.isArray(res.data) ? res.data : res.data?.chats || [];
       if (!Array.isArray(chats)) throw new Error('Invalid chats response: Expected an array');
       const sorted = chats.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
       console.log('Chat history loaded:', sorted.length, 'chats'); // Debug log
+      
+      // Update cache
+      setChatHistoryCache(sorted);
+      setCacheTimestamp(now);
       setChatHistory(sorted);
       return sorted; // important so callers can use immediately
     } catch (err) {
@@ -111,7 +129,7 @@ export default function ChatWindow() {
     }
   }, [isSignedIn]);
 
-  // Initialize chat once on sign-in
+  // Initialize chat once on sign-in - OPTIMIZED
   useEffect(() => {
     const initializeChat = async () => {
       if (!isSignedIn) {
@@ -122,25 +140,41 @@ export default function ChatWindow() {
       setError(null);
       try {
         const storedChatId = localStorage.getItem('chatId');
+        
         if (storedChatId && storedChatId !== 'undefined' && storedChatId !== 'NaN') {
+          // Set chat ID immediately for faster UI response
           setChatId(storedChatId);
-          await Promise.all([loadChatHistory(), loadMessages(storedChatId)]);
-          // Try to set a nicer title from history
-          const fromHist = (chats) => chats.find?.(c => c._id === storedChatId);
-          const hist = await loadChatHistory();
-          const thisChat = fromHist(hist);
-          setCurrentChatTitle(thisChat?.title || 'New Chat');
+          setCurrentChatTitle('Loading...');
+          
+          // Load chat history and messages in parallel
+          const [chatHistoryData, messagesData] = await Promise.allSettled([
+            loadChatHistory(),
+            loadMessages(storedChatId)
+          ]);
+          
+          // Set title from loaded history
+          if (chatHistoryData.status === 'fulfilled') {
+            const thisChat = chatHistoryData.value.find(c => c._id === storedChatId);
+            setCurrentChatTitle(thisChat?.title || 'New Chat');
+          }
         } else {
           localStorage.removeItem('chatId');
+          
+          // Load chat history first
           const chats = await loadChatHistory();
+          
           if (chats.length > 0) {
             const mostRecent = chats[0];
             setChatId(mostRecent._id);
             setCurrentChatTitle(mostRecent.title || `Chat ${new Date(mostRecent.startedAt).toLocaleDateString()}`);
             localStorage.setItem('chatId', mostRecent._id);
-            await loadMessages(mostRecent._id);
+            
+            // Load messages in background
+            loadMessages(mostRecent._id).catch(err => 
+              console.error('Background message loading failed:', err)
+            );
           } else {
-            // create a new chat
+            // Create new chat
             const newChatRes = await axios.post(
               `${import.meta.env.VITE_APP_BE_BASEURL}/api/chats`,
               {},
@@ -151,7 +185,6 @@ export default function ChatWindow() {
             setCurrentChatTitle('New Chat');
             localStorage.setItem('chatId', newChatRes.data._id);
             setMessages([]);
-            await loadChatHistory();
           }
         }
       } catch (err) {
@@ -257,7 +290,7 @@ export default function ChatWindow() {
       setChatId(newChatId);
       setCurrentChatTitle('New Chat');
       localStorage.setItem('chatId', newChatId);
-      await loadChatHistory();
+      await loadChatHistory(20, true); // Force refresh cache
     } catch (err) {
       console.error('Error creating new chat:', err);
       setError('Failed to create new chat');
@@ -441,8 +474,42 @@ export default function ChatWindow() {
 
   if (loading) {
     return (
-      <div className="max-w-2xl mx-auto mt-10 p-4 bg-transparent rounded-2xl shadow-lg h-[80vh] flex items-center justify-center">
-        <div className="text-white">Loading chat...</div>
+      <div className="relative flex h-screen bg-black">
+        {/* Sidebar Skeleton */}
+        <div className="w-64 bg-black flex flex-col h-screen">
+          <div className="pt-8 px-3 pb-3 flex gap-2">
+            <div className="flex-1 h-10 bg-gray-700 rounded-lg animate-pulse"></div>
+            <div className="w-10 h-10 bg-gray-700 rounded-lg animate-pulse"></div>
+          </div>
+          <div className="px-3 mb-3">
+            <div className="h-10 bg-gray-700 rounded-lg animate-pulse"></div>
+          </div>
+          <div className="flex-1 px-3 space-y-2">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="h-16 bg-gray-700 rounded-lg animate-pulse"></div>
+            ))}
+          </div>
+        </div>
+        
+        {/* Main Content Skeleton */}
+        <div className="flex-1 flex flex-col h-full">
+          <div className="flex-1 p-4">
+            <div className="max-w-3xl mx-auto space-y-4">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="flex gap-4">
+                  <div className="w-8 h-8 bg-gray-700 rounded-full animate-pulse"></div>
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-gray-700 rounded animate-pulse w-3/4"></div>
+                    <div className="h-4 bg-gray-700 rounded animate-pulse w-1/2"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="p-4">
+            <div className="max-w-3xl mx-auto h-12 bg-gray-700 rounded-xl animate-pulse"></div>
+          </div>
+        </div>
       </div>
     );
   }

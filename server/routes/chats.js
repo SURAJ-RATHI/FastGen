@@ -32,7 +32,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-// fetch chat 
+// fetch chat - OPTIMIZED
 router.get('/getChat', async (req, res) => {
   console.log('=== getChat route hit ===');
   console.log('req.user:', req.user);
@@ -43,7 +43,12 @@ router.get('/getChat', async (req, res) => {
   }
 
   try {
-    const { includeArchived = false } = req.query;
+    const { 
+      includeArchived = false, 
+      limit = 20, 
+      page = 1,
+      sort = 'updatedAt'
+    } = req.query;
     
     console.log('User authenticated, fetching chats for user:', req.user.userId);
     
@@ -53,15 +58,25 @@ router.get('/getChat', async (req, res) => {
       query.archived = { $ne: true };
     }
     
+    // Calculate pagination
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    
+    // Optimized query - only get essential fields and limit messages
     const chats = await Chat.find(query)
+      .select('title startedAt updatedAt messages')
       .populate({
         path: 'messages',
-        options: { sort: { sentAt: 1 } }
+        select: 'content sender sentAt',
+        options: { 
+          sort: { sentAt: 1 },
+          limit: 1 // Only get first message for preview
+        }
       })
-      .sort({ startedAt: -1 });
+      .sort({ [sort]: -1 })
+      .limit(parseInt(limit))
+      .skip(skip);
 
     console.log('Chats found:', chats.length);
-    console.log('Chats:', chats);
     res.json(chats);
   } catch (error) {
     console.error('=== Error in getChat ===');
