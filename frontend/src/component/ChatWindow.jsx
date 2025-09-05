@@ -538,21 +538,13 @@ export default function ChatWindow() {
         {/* User info */}
         <div className="px-3 pb-3">
           <div className="flex items-center gap-3 text-gray-300 p-3 rounded-lg hover:bg-gray-700 cursor-pointer transition-colors">
-            {user?.avatar ? (
-              <img 
-                src={user.avatar} 
-                alt={user?.displayName || user?.name || 'User'} 
-                className="w-8 h-8 rounded-full"
-              />
-            ) : (
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-medium shadow-lg">
-                {(user?.displayName || user?.name || user?.email?.charAt(0) || 'U')}
-            </div>
-            )}
+            <img 
+              alt="Suraj Rathi" 
+              className="w-8 h-8 rounded-full" 
+              src="https://lh3.googleusercontent.com/a/ACg8ocI-pz2vamZU3_DjcH701awV83zThpQkB-APYHhXSmEy6ecP4g=s96-c"
+            />
             <div className="text-sm">
-              <div className="font-medium">
-                {user?.displayName || user?.name || user?.email || 'User'}
-              </div>
+              <div className="font-medium">Suraj Rathi</div>
             </div>
           </div>
         </div>
