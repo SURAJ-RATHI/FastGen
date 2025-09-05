@@ -465,12 +465,12 @@ export default function ChatWindow() {
       {/* SIDEBAR */}
       <div className={`${sidebarOpen ? 'w-full md:w-64' : 'w-0'} bg-black flex flex-col transition-all duration-300 overflow-hidden h-full md:relative absolute z-50`}>
         {/* Top controls */}
-        <div className="pt-6 px-3 pb-3 flex gap-2">
-          <button onClick={handleNewChat} className="flex-1 py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center gap-2 transition-colors text-sm font-medium shadow-sm">
+        <div className="pt-4 px-3 pb-3 flex gap-2">
+          <button onClick={handleNewChat} className="flex-1 py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center gap-2 transition-colors text-sm font-medium">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
             New chat
           </button>
-          <button onClick={toggleSidebar} className="py-2.5 px-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors shadow-sm" title={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}>
+          <button onClick={toggleSidebar} className="py-2 px-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors" title={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
           </button>
         </div>
@@ -484,7 +484,7 @@ export default function ChatWindow() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search chats..."
-              className="w-full pl-10 pr-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-gray-500 focus:outline-none text-sm placeholder-gray-400"
+              className="w-full pl-10 pr-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none text-sm placeholder-gray-400"
             />
           </div>
         </div>
@@ -499,8 +499,8 @@ export default function ChatWindow() {
             </div>
           ) : (
             (searchQuery ? filteredChats : chatHistory).map((chat) => (
-              <div key={chat._id} className={`group relative rounded-md transition-colors ${chatId === chat._id ? 'bg-gray-700' : 'hover:bg-gray-700'}`}>
-              <button onClick={() => switchToChat(chat._id)} className={`w-full p-3 text-left transition-colors ${chatId === chat._id ? 'text-white' : 'text-gray-300 hover:text-white'}`}>
+              <div key={chat._id} className={`group relative rounded-lg transition-colors ${chatId === chat._id ? 'bg-gray-700' : 'hover:bg-gray-700'}`}>
+              <button onClick={() => switchToChat(chat._id)} className={`w-full p-2 text-left transition-colors ${chatId === chat._id ? 'text-white' : 'text-gray-300 hover:text-white'}`}>
                 <div className="truncate text-sm">
                   {searchQuery ? 
                     highlightSearchTerms(
@@ -536,8 +536,8 @@ export default function ChatWindow() {
         </div>
 
         {/* User info */}
-        <div className="px-3 pb-6">
-          <div className="flex items-center gap-3 text-gray-300 p-2 rounded-md hover:bg-gray-700 cursor-pointer">
+        <div className="px-3 pb-4">
+          <div className="flex items-center gap-3 text-gray-300 p-2 rounded-lg hover:bg-gray-700 cursor-pointer transition-colors">
             {user?.avatar ? (
               <img 
                 src={user.avatar} 
@@ -565,7 +565,7 @@ export default function ChatWindow() {
           <div className="absolute left-4 top-4 z-10">
             <button 
               onClick={toggleSidebar} 
-              className="p-2.5 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors shadow-sm" 
+              className="p-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors" 
               title="Show sidebar"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -647,7 +647,7 @@ export default function ChatWindow() {
                 {/* Input */}
         <div className={`fixed bottom-0 ${sidebarOpen ? 'left-64' : 'left-0'} right-0 p-4 bg-black z-50 transition-all duration-300`}>
           <div className="max-w-3xl mx-auto">
-            <div className="relative bg-gray-800 rounded-2xl focus-within:ring-2 focus-within:ring-blue-500 transition-all">
+            <div className="relative bg-gray-800 rounded-xl focus-within:ring-2 focus-within:ring-blue-500 transition-all">
               <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
@@ -671,7 +671,7 @@ export default function ChatWindow() {
                   className={`p-1.5 rounded-lg transition-all duration-200 ${
                     !chatId || !prompt.trim() 
                       ? 'text-gray-500 bg-gray-700 cursor-not-allowed' 
-                      : 'text-white bg-blue-600 hover:bg-blue-700 hover:shadow-lg transform hover:scale-105'
+                      : 'text-white bg-blue-600 hover:bg-blue-700'
                   }`} 
                   title="Send message"
                 >
