@@ -26,9 +26,10 @@ router.post('/', async (req, res) => {
   }
 });
 
-// GET /messages/:chatId — Get all messages in a chat
+// GET /messages/:chatId — Get messages in a chat with pagination
 router.get('/:chatId', async (req, res) => {
   const { chatId } = req.params;
+  const { limit = 100, page = 1 } = req.query;
 
   // Validate chatId is a valid ObjectId
   if (!chatId || chatId === 'undefined' || chatId === 'NaN' || !mongoose.Types.ObjectId.isValid(chatId)) {
@@ -36,10 +37,27 @@ router.get('/:chatId', async (req, res) => {
   }
 
   try {
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    
+    // Get messages with pagination
     const messages = await Message.find({ chat: chatId })
-      .sort({ sentAt: 1 });
+      .select('content sender sentAt')
+      .sort({ sentAt: 1 })
+      .limit(parseInt(limit))
+      .skip(skip);
 
-    res.json(messages);
+    // Get total count for pagination info
+    const totalMessages = await Message.countDocuments({ chat: chatId });
+
+    res.json({
+      messages,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(totalMessages / parseInt(limit)),
+        totalMessages,
+        hasMore: skip + messages.length < totalMessages
+      }
+    });
   } catch (error) {
     console.error('Error fetching messages:', error);
     res.status(500).json({ error: 'Failed to fetch messages' });

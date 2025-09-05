@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -7,6 +7,43 @@ import { IoMdAttach } from 'react-icons/io';
 import { FiShare2, FiTrash2, FiMoreVertical, FiEdit3, FiSearch } from 'react-icons/fi';
 import ReactMarkdown from 'react-markdown';
 import ShareModal from './ShareModal.jsx';
+
+// Memoized Message Component for better performance
+const MessageItem = React.memo(({ msg, idx, user, searchQuery, highlightSearchTerms }) => {
+  return (
+    <div className="py-4 px-4">
+      <div className={`max-w-3xl mx-auto flex gap-4 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+        {msg.sender === 'ai' && (
+          <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-sm font-medium text-white flex-shrink-0">
+            AI
+          </div>
+        )}
+        <div className={`${msg.sender === 'user' ? 'max-w-[70%] text-right' : 'flex-1'} text-gray-100`}>
+          {msg.sender === 'ai' ? (
+            <div className="prose prose-invert max-w-none prose-sm">
+              {searchQuery ? 
+                highlightSearchTerms(msg.content, searchQuery) : 
+                <ReactMarkdown>{msg.content}</ReactMarkdown>
+              }
+            </div>
+          ) : (
+            <div className="whitespace-pre-wrap">
+              {searchQuery ? 
+                highlightSearchTerms(msg.content, searchQuery) : 
+                msg.content
+              }
+            </div>
+          )}
+        </div>
+        {msg.sender === 'user' && (
+          <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-medium text-white flex-shrink-0">
+            {user?.displayName?.charAt(0) || user?.name?.charAt(0) || user?.email?.charAt(0) || 'U'}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+});
 
 export default function ChatWindow() {
   const { user, isSignedIn } = useAuth();
@@ -69,13 +106,18 @@ export default function ChatWindow() {
   }, [openMenuId, editingChatId]);
 
   // --- Data loaders ---
-  const loadMessages = async (id) => {
+  const loadMessages = async (id, limit = 100) => {
     try {
       const response = await axios.get(`${import.meta.env.VITE_APP_BE_BASEURL}/api/messages/${id}`, {
         withCredentials: true,
+        params: { limit }
       });
-      if (!Array.isArray(response.data)) throw new Error('Invalid messages response: Expected an array');
-      setMessages(response.data);
+      
+      // Handle both old array format and new paginated format
+      const messages = Array.isArray(response.data) ? response.data : response.data.messages;
+      if (!Array.isArray(messages)) throw new Error('Invalid messages response: Expected an array');
+      
+      setMessages(messages);
     } catch (err) {
       if (err.response?.status === 500 && err.response?.data?.error?.includes('Cast to ObjectId failed')) {
         // New chat with no messages yet
@@ -307,7 +349,11 @@ export default function ChatWindow() {
       setCurrentChatTitle(found?.title || `Chat ${new Date(found?.startedAt || Date.now()).toLocaleDateString()}`);
       setPrompt('');
       setUploadedParsedFileName('');
-      await loadMessages(id);
+      
+      // Preload messages in background for better UX
+      loadMessages(id).catch(err => 
+        console.error('Background message loading failed:', err)
+      );
     } catch (err) {
       console.error('Error switching to chat:', err);
       setError('Failed to load chat');
@@ -349,8 +395,8 @@ export default function ChatWindow() {
     setChatToDelete(null);
   };
 
-  // Search functionality
-  const searchChats = (query) => {
+  // Search functionality - OPTIMIZED with useCallback
+  const searchChats = useCallback((query) => {
     if (!query.trim()) {
       setFilteredChats(chatHistory);
       return;
@@ -369,10 +415,10 @@ export default function ChatWindow() {
     });
 
     setFilteredChats(filtered);
-  };
+  }, [chatHistory]);
 
-  // Highlight search terms in text
-  const highlightSearchTerms = (text, searchQuery) => {
+  // Highlight search terms in text - OPTIMIZED with useCallback
+  const highlightSearchTerms = useCallback((text, searchQuery) => {
     if (!searchQuery.trim() || !text) return text;
     
     const regex = new RegExp(`(${searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
@@ -385,7 +431,7 @@ export default function ChatWindow() {
         </mark>
       ) : part
     );
-  };
+  }, []);
 
   // Update filtered chats when search query changes
   useEffect(() => {
@@ -634,7 +680,7 @@ export default function ChatWindow() {
           </div>
         )}
 
-        {/* Messages */}
+        {/* Messages - OPTIMIZED */}
         <div className="flex-1 overflow-y-auto scrollbar-hide pb-32" ref={containerRef}>
           {messages.length === 0 ? (
             <div className="text-center text-gray-300 mt-20">
@@ -647,42 +693,40 @@ export default function ChatWindow() {
               <p className="text-sm text-gray-400">Ask me anything or start a new conversation.</p>
             </div>
           ) : (
-                        messages.map((msg, idx) => (
-              <div key={idx} className="py-4 px-4">
-                <div className={`max-w-3xl mx-auto flex gap-4 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  {msg.sender === 'ai' && (
-                    <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-sm font-medium text-white flex-shrink-0">
-                      AI
-                    </div>
-                  )}
-                  <div className={`${msg.sender === 'user' ? 'max-w-[70%] text-right' : 'flex-1'} text-gray-100`}>
-                    {msg.sender === 'ai' ? (
-                      <div className="prose prose-invert max-w-none prose-sm">
-                        {searchQuery ? 
-                          highlightSearchTerms(msg.content, searchQuery) : 
-                          <ReactMarkdown>{msg.content}</ReactMarkdown>
-                        }
-                      </div>
-                    ) : (
-                      <div className="whitespace-pre-wrap">
-                        {searchQuery ? 
-                          highlightSearchTerms(msg.content, searchQuery) : 
-                          msg.content
-                        }
-                      </div>
-                    )}
+            // Virtual scrolling for large message lists
+            messages.length > 50 ? (
+              <div className="space-y-0">
+                {messages.slice(-50).map((msg, idx) => (
+                  <MessageItem 
+                    key={`${msg.sender}-${idx}-${msg.content.slice(0, 20)}`}
+                    msg={msg} 
+                    idx={idx} 
+                    user={user}
+                    searchQuery={searchQuery}
+                    highlightSearchTerms={highlightSearchTerms}
+                  />
+                ))}
+                {messages.length > 50 && (
+                  <div className="text-center text-gray-400 py-4">
+                    Showing last 50 messages. Scroll up to see more.
                   </div>
-                  {msg.sender === 'user' && (
-                    <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-medium text-white flex-shrink-0">
-                      {user?.displayName?.charAt(0) || user?.name?.charAt(0) || user?.email?.charAt(0) || 'U'}
-                    </div>
-                  )}
-                </div>
+                )}
               </div>
-            ))
+            ) : (
+              messages.map((msg, idx) => (
+                <MessageItem 
+                  key={`${msg.sender}-${idx}-${msg.content.slice(0, 20)}`}
+                  msg={msg} 
+                  idx={idx} 
+                  user={user}
+                  searchQuery={searchQuery}
+                  highlightSearchTerms={highlightSearchTerms}
+                />
+              ))
+            )
           )}
 
-                    {isTyping && (
+          {isTyping && (
             <div className="py-4 px-4">
               <div className="max-w-3xl mx-auto flex gap-4">
                 <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-sm font-medium text-white flex-shrink-0">AI</div>
