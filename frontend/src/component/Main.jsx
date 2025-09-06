@@ -3,7 +3,7 @@ import { useEffect, useState, Suspense, lazy } from "react";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { useTab } from "../contexts/TabContext.jsx";
 import Header from "./Header";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 // Lazy load components for better performance
 const ChatWindow = lazy(() => import("./ChatWindow"));
@@ -13,9 +13,10 @@ const Notes = lazy(() => import("./Notes"));
 
 const Main = () => {
   const { isLoading } = useAuth();
-  const { activeTab } = useTab();
+  const { activeTab, setActiveTab } = useTab();
   const { isSignedIn } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -23,6 +24,14 @@ const Main = () => {
       navigate('/signUp');
     }
   }, [isLoading, isSignedIn, navigate]);
+
+  // Handle URL parameters to set active tab
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam && ['chatbot', 'content', 'quizzes', 'notes'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams, setActiveTab]);
 
   useEffect(() => {
     const checkScreenSize = () => {

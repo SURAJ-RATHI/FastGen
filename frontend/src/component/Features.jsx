@@ -8,36 +8,43 @@ const features = [
     title: "Personalized Learning",
     description: "FastGen adapts to your learning style and pace for maximum results.",
     icon: "🎯",
+    route: "/main?tab=chatbot",
   },
   {
     title: "All Content in One Place",
     description: "Easily access all your study material including PDFs and text files in a single content hub.",
     icon: "📚",
+    route: "/main?tab=content",
   },
   {
     title: "Key Points Extraction",
     description: "Get key points from any uploaded file to focus on what really matters.",
     icon: "🔑",
+    route: "/main?tab=content",
   },
   {
     title: "Quiz Generator",
     description: "Generate quizzes from your files to test and reinforce your knowledge instantly.",
     icon: "❓",
+    route: "/main?tab=quizzes",
   },
   {
     title: "Smart Notes",
     description: "Take important notes as you learn and keep them organized.",
     icon: "📝",
+    route: "/main?tab=notes",
   },
   {
     title: "One-Click Notion Access",
     description: "Open your Notion files directly with a single click—no more switching tabs.",
     icon: "⚡",
+    route: "/main?tab=content",
   },
   {
     title: "Super Modern Design",
     description: "FastGen boasts a sleek, vibrant UI that makes last-minute learning feel exciting and fun.",
     icon: "✨",
+    route: "/main?tab=chatbot",
   },
 ];
 
@@ -70,7 +77,7 @@ export default function FeaturePage() {
           <div
             key={index}
             ref={(el) => (cardsRef.current[index] = el)}
-            onClick={() => navigate('/main')}
+            onClick={() => navigate(feature.route)}
             className="bg-white/20 backdrop-blur-lg border border-white/30 rounded-2xl p-6 shadow-lg text-white hover:scale-105 transition-transform cursor-pointer hover:border-blue-400 hover:bg-white/30"
           >
             <div className="text-4xl mb-4">{feature.icon}</div>
