@@ -106,7 +106,7 @@ export default function ChatWindow() {
   }, [openMenuId, editingChatId]);
 
   // --- Data loaders ---
-  const loadMessages = async (id, limit = 100) => {
+  const loadMessages = useCallback(async (id, limit = 100) => {
     try {
       const response = await axios.get(`${import.meta.env.VITE_APP_BE_BASEURL}/api/messages/${id}`, {
         withCredentials: true,
@@ -127,9 +127,9 @@ export default function ChatWindow() {
       console.error('Failed to load messages:', err);
       setError(`Failed to load messages: ${err.message}`);
     }
-  };
+  }, []);
 
-  const loadChatHistory = async (limit = 20, forceRefresh = false) => {
+  const loadChatHistory = useCallback(async (limit = 20, forceRefresh = false) => {
     try {
       // Check cache first (5 minute cache)
       const now = Date.now();
@@ -143,10 +143,12 @@ export default function ChatWindow() {
       }
       
       console.log('Loading chat history...'); // Debug log
+      console.log('Making request to:', `${import.meta.env.VITE_APP_BE_BASEURL}/api/chats/getChat`);
       const res = await axios.get(`${import.meta.env.VITE_APP_BE_BASEURL}/api/chats/getChat`, {
         withCredentials: true,
         params: { limit, sort: 'updatedAt' }
       });
+      console.log('Chat history response:', res.data); // Debug log
       const chats = Array.isArray(res.data) ? res.data : res.data?.chats || [];
       if (!Array.isArray(chats)) throw new Error('Invalid chats response: Expected an array');
       const sorted = chats.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
@@ -161,15 +163,16 @@ export default function ChatWindow() {
       console.error('Error loading chat history:', err);
       return [];
     }
-  };
+  }, [chatHistoryCache, cacheTimestamp]);
 
   // Load chat history immediately when user signs in
   useEffect(() => {
     if (isSignedIn) {
       console.log('User signed in, loading chat history...'); // Debug log
+      console.log('User data:', user); // Debug log
       loadChatHistory();
     }
-  }, [isSignedIn]);
+  }, [isSignedIn, loadChatHistory, user]);
 
   // Initialize chat once on sign-in - OPTIMIZED
   useEffect(() => {
@@ -239,7 +242,7 @@ export default function ChatWindow() {
       }
     };
     initializeChat();
-  }, [isSignedIn]);
+  }, [isSignedIn, loadChatHistory, loadMessages]);
 
   // Auto-scroll when messages change
   useEffect(() => {
