@@ -182,38 +182,44 @@ const LandingPage = () => {
             {[
               {
                 title: "Personalized Chatbot",
-                description: "FastGen’s chatbot answers all your questions — from learning to personal queries.",
+                description: "FastGen's chatbot answers all your questions — from learning to personal queries.",
                 icon: "🎯",
+                route: "/main?tab=chatbot",
               },
               {
                 title: "Content Searcher",
                 description: "Suggest Best youtube video related to your search query",
                 icon: "▶️",
+                route: "/main?tab=content",
               },
               {
                 title: "Key Points Extraction",
                 description: "Get key points from any uploaded file to focus on what really matters.",
                 icon: "🔑",
+                route: "/main?tab=chatbot",
               },
               {
                 title: "Quiz Generator",
                 description: "Generate quizzes from your files to test and reinforce your knowledge instantly.",
                 icon: "❓",
+                route: "/main?tab=quizzes",
               },
               {
                 title: "Smart Notes",
                 description: "Take important notes as you learn and keep them organized.",
                 icon: "📝",
+                route: "/main?tab=notes",
               },
               {
                 title: "All Content in One Place",
                 description: "Easily access all your study material including PDFs and text files in a single content hub",
                 icon: "📚",
+                route: "/main?tab=chatbot",
               }
             ].map((feature, index) => (
               <div
                 key={index}
-                onClick={() => navigate('/main')}
+                onClick={() => navigate(feature.route)}
                 className="bg-gray-800/50 backdrop-blur-lg border border-gray-600 rounded-2xl p-6 shadow-lg text-white hover:scale-105 transition-transform cursor-pointer hover:border-blue-400 hover:bg-gray-700/50"
               >
                 <div className="text-4xl mb-4">{feature.icon}</div>
