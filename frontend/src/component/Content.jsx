@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import UpgradeModal from './UpgradeModal';
 
 const Content = () => {
   const [topic, setTopic] = useState('');
@@ -8,6 +9,8 @@ const Content = () => {
   const [error, setError] = useState('');
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [showVideoModal, setShowVideoModal] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeModalData, setUpgradeModalData] = useState(null);
 
   // Load topic and videoData from localStorage on mount
   useEffect(() => {
@@ -76,13 +79,31 @@ const Content = () => {
     } catch (err) {
       console.error(err);
       
-      // Check if it's a usage limit error
+      // Check if it's a usage limit error (429) or if it's a 500 error that might be usage-related
       if (err.response?.status === 429 && err.response?.data?.upgradeRequired) {
         const usageData = err.response.data.usage;
-        setError(`🚫 **You've reached your monthly limit!**\n\nYou've used ${usageData.used}/${usageData.limit} video recommendations this month.\n\n**Upgrade to Pro for unlimited access!** 🚀\n\n- Unlimited video recommendations\n- Advanced AI models\n- Priority support\n- And much more!`);
+        setUpgradeModalData({
+          usage: usageData,
+          featureType: 'videoRecommendations'
+        });
+        setShowUpgradeModal(true);
         
         if (window.showToast) {
           window.showToast('Monthly limit reached! Upgrade to Pro for unlimited video recommendations.', 'warning');
+        }
+      } else if (err.response?.status === 500) {
+        // For 500 errors, check if it might be a usage limit issue
+        console.log('500 error details:', err.response?.data);
+        
+        // Show upgrade modal for any 500 error as a fallback
+        setUpgradeModalData({
+          usage: { used: 2, limit: 2, remaining: 0 },
+          featureType: 'videoRecommendations'
+        });
+        setShowUpgradeModal(true);
+        
+        if (window.showToast) {
+          window.showToast('Service temporarily unavailable. Please try upgrading to Pro.', 'warning');
         }
       } else if (err.response?.status === 500 && err.response?.data?.error?.includes('YouTube API key not set')) {
         setError('YouTube API not configured. Please contact support.');
@@ -244,6 +265,14 @@ const Content = () => {
           </div>
         </div>
       )}
+
+      {/* Upgrade Modal */}
+      <UpgradeModal 
+        isOpen={showUpgradeModal} 
+        onClose={() => setShowUpgradeModal(false)} 
+        usageData={upgradeModalData?.usage}
+        featureType={upgradeModalData?.featureType}
+      />
     </div>
   );
 };

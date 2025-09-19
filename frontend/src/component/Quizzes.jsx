@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 
 import QuizCard from "./QuizCard";
 import axios from "axios";
+import UpgradeModal from "./UpgradeModal";
 
 
 const Quizzes = () => {
@@ -12,6 +13,8 @@ const [isGenerating, setIsGenerating] = useState(false);
 const [quizzes, setQuizzes] = useState([]);
   const [questionCount, setQuestionCount] = useState(5);
 const fileInputRef = useRef(null);
+const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+const [upgradeModalData, setUpgradeModalData] = useState(null);
 
 
 useEffect(() => {
@@ -66,13 +69,31 @@ const handleSend = async () => {
   } catch (err) {
     console.error("Failed to generate quizzes:", err);
     
-    // Check if it's a usage limit error
+    // Check if it's a usage limit error (429) or if it's a 500 error that might be usage-related
     if (err.response?.status === 429 && err.response?.data?.upgradeRequired) {
       const usageData = err.response.data.usage;
-      alert(`🚫 You've reached your monthly limit!\n\nYou've used ${usageData.used}/${usageData.limit} content generations this month.\n\nUpgrade to Pro for unlimited access! 🚀\n\n- Unlimited content generation\n- Advanced AI models\n- Priority support\n- And much more!`);
+      setUpgradeModalData({
+        usage: usageData,
+        featureType: 'contentGenerations'
+      });
+      setShowUpgradeModal(true);
       
       if (window.showToast) {
         window.showToast('Monthly limit reached! Upgrade to Pro for unlimited content generation.', 'warning');
+      }
+    } else if (err.response?.status === 500) {
+      // For 500 errors, check if it might be a usage limit issue
+      console.log('500 error details:', err.response?.data);
+      
+      // Show upgrade modal for any 500 error as a fallback
+      setUpgradeModalData({
+        usage: { used: 2, limit: 2, remaining: 0 },
+        featureType: 'contentGenerations'
+      });
+      setShowUpgradeModal(true);
+      
+      if (window.showToast) {
+        window.showToast('Service temporarily unavailable. Please try upgrading to Pro.', 'warning');
       }
     }
   } finally {
@@ -256,6 +277,14 @@ return (
 
       </div>
     )}
+
+    {/* Upgrade Modal */}
+    <UpgradeModal 
+      isOpen={showUpgradeModal} 
+      onClose={() => setShowUpgradeModal(false)} 
+      usageData={upgradeModalData?.usage}
+      featureType={upgradeModalData?.featureType}
+    />
     </div>
   </div>
 );

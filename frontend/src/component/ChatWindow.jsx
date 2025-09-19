@@ -8,6 +8,7 @@ import { FiShare2, FiTrash2, FiMoreVertical, FiEdit3, FiSearch } from 'react-ico
 import ReactMarkdown from 'react-markdown';
 import ShareModal from './ShareModal.jsx';
 import TypingIndicator from './TypingIndicator.jsx';
+import UpgradeModal from './UpgradeModal.jsx';
 
 // Memoized Message Component for better performance
 const MessageItem = React.memo(({ msg, user, searchQuery, highlightSearchTerms }) => {
@@ -104,6 +105,8 @@ export default function ChatWindow() {
   const [filteredChats, setFilteredChats] = useState([]);
   const [chatHistoryCache, setChatHistoryCache] = useState(null);
   const [cacheTimestamp, setCacheTimestamp] = useState(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeModalData, setUpgradeModalData] = useState(null);
 
   const fileInputRef = useRef(null);
   const containerRef = useRef(null);
@@ -318,20 +321,32 @@ export default function ChatWindow() {
     } catch (err) {
       console.error('Failed to send message:', err);
       
-      // Check if it's a usage limit error
+      // Check if it's a usage limit error (429) or if it's a 500 error that might be usage-related
       if (err.response?.status === 429 && err.response?.data?.upgradeRequired) {
         const usageData = err.response.data.usage;
-        const limitType = err.response.data.message.includes('chatbot') ? 'chatbot chats' : 
-                         err.response.data.message.includes('video') ? 'video recommendations' : 
-                         'content generations';
-        
-        setMessages(prev => [...prev, { 
-          sender: 'ai', 
-          content: `🚫 **You've reached your monthly limit!**\n\nYou've used ${usageData.used}/${usageData.limit} ${limitType} this month.\n\n**Upgrade to Pro for unlimited access!** 🚀\n\n- Unlimited AI conversations\n- Advanced AI models\n- Priority support\n- And much more!` 
-        }]);
+        setUpgradeModalData({
+          usage: usageData,
+          featureType: 'chatbotChats'
+        });
+        setShowUpgradeModal(true);
         
         if (window.showToast) {
           window.showToast('Monthly limit reached! Upgrade to Pro for unlimited access.', 'warning');
+        }
+      } else if (err.response?.status === 500) {
+        // For 500 errors, check if it might be a usage limit issue
+        // This is a fallback in case the middleware isn't working properly
+        console.log('500 error details:', err.response?.data);
+        
+        // Show upgrade modal for any 500 error as a fallback
+        setUpgradeModalData({
+          usage: { used: 5, limit: 5, remaining: 0 },
+          featureType: 'chatbotChats'
+        });
+        setShowUpgradeModal(true);
+        
+        if (window.showToast) {
+          window.showToast('Service temporarily unavailable. Please try upgrading to Pro.', 'warning');
         }
       } else {
         setMessages(prev => [...prev, { sender: 'ai', content: 'Sorry, I encountered an error. Please try again.' }]);
@@ -1144,6 +1159,14 @@ export default function ChatWindow() {
 
       {/* Share Modal */}
       <ShareModal isOpen={showShareModal} onClose={() => { setShowShareModal(false); setShareData(null); }} shareData={shareData} />
+
+      {/* Upgrade Modal */}
+      <UpgradeModal 
+        isOpen={showUpgradeModal} 
+        onClose={() => setShowUpgradeModal(false)} 
+        usageData={upgradeModalData?.usage}
+        featureType={upgradeModalData?.featureType}
+      />
     </div>
   );
 }
