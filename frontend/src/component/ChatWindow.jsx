@@ -89,6 +89,8 @@ export default function ChatWindow() {
   const [error, setError] = useState(null);
   const [isTyping, setIsTyping] = useState(false);
   const [uploadedParsedFileName, setUploadedParsedFileName] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [chatHistory, setChatHistory] = useState([]);
   const [currentChatTitle, setCurrentChatTitle] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -180,10 +182,9 @@ export default function ChatWindow() {
   useEffect(() => {
     if (isSignedIn) {
       console.log('User signed in, loading chat history...'); // Debug log
-      console.log('User data:', user); // Debug log
       loadChatHistory();
     }
-  }, [isSignedIn, loadChatHistory, user]);
+  }, [isSignedIn]); // Removed loadChatHistory and user from dependencies
 
   // Initialize chat once on sign-in - ULTRA OPTIMIZED
   useEffect(() => {
@@ -466,20 +467,58 @@ export default function ChatWindow() {
   const handleFileChange = async (e) => {
     const selected = e.target.files?.[0];
     if (!selected) return;
+    
+    // Validate file type
+    if (!selected.type.includes('pdf')) {
+      if (window.showToast) {
+        window.showToast('Please upload a PDF file only', 'error');
+      }
+      return;
+    }
+    
+    // Validate file size (10MB limit)
+    if (selected.size > 10 * 1024 * 1024) {
+      if (window.showToast) {
+        window.showToast('File size must be less than 10MB', 'error');
+      }
+      return;
+    }
+    
+    setIsUploading(true);
+    setUploadProgress(0);
+    setError(null);
+    
     const formData = new FormData();
     formData.append('file', selected);
     formData.append('fileName', selected.name);
+    
     try {
       const res = await axios.post(`${import.meta.env.VITE_APP_BE_BASEURL}/api/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         withCredentials: true,
+        onUploadProgress: (progressEvent) => {
+          const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          setUploadProgress(progress);
+        }
       });
+      
       if (!res.data?.parsedFileName) throw new Error('No parsed file name returned from server');
+      
       setUploadedParsedFileName(res.data.parsedFileName);
       if (fileInputRef.current) fileInputRef.current.value = '';
+      
+      if (window.showToast) {
+        window.showToast(`File "${selected.name}" uploaded successfully!`, 'success');
+      }
     } catch (err) {
       console.error('Error uploading file:', err);
       setError(`Failed to upload file: ${err.message}`);
+      if (window.showToast) {
+        window.showToast(`Failed to upload file: ${err.message}`, 'error');
+      }
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -644,7 +683,7 @@ export default function ChatWindow() {
   // Update filtered chats when search query changes
   useEffect(() => {
     searchChats(searchQuery);
-  }, [searchQuery, chatHistory]);
+  }, [searchQuery]); // Removed chatHistory from dependencies to prevent excessive re-renders
 
   const shareChat = async (chatIdToShare) => {
     try {
@@ -959,14 +998,44 @@ export default function ChatWindow() {
           )}
         </div>
 
-        {/* File Upload Status */}
-        {uploadedParsedFileName && (
-          <div className="px-4 py-2 bg-blue-900/20 text-blue-300 text-center">📎 File Uploaded: {uploadedParsedFileName}</div>
-      )}
-
-                {/* Input */}
+        {/* Input */}
         <div className={`fixed bottom-0 ${sidebarOpen ? 'left-64' : 'left-0'} right-0 p-4 bg-black z-50 transition-all duration-300`}>
           <div className="max-w-3xl mx-auto">
+            {/* File attachment indicator */}
+            {uploadedParsedFileName && (
+              <div className="mb-2 p-2 bg-green-900 border border-green-700 rounded-lg flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span className="text-green-300 text-sm">File attached</span>
+                </div>
+                <button 
+                  onClick={() => {
+                    setUploadedParsedFileName('');
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                  }}
+                  className="text-green-400 hover:text-green-300 text-sm"
+                >
+                  Remove
+                </button>
+              </div>
+            )}
+            
+            {/* Upload progress indicator */}
+            {isUploading && (
+              <div className="mb-2 p-2 bg-blue-900 border border-blue-700 rounded-lg">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                  <span className="text-blue-300 text-sm">Uploading file...</span>
+                </div>
+                <div className="w-full bg-blue-800 rounded-full h-1">
+                  <div 
+                    className="bg-blue-500 h-1 rounded-full transition-all duration-300" 
+                    style={{ width: `${uploadProgress}%` }}
+                  ></div>
+                </div>
+              </div>
+            )}
+            
             <div className="relative bg-gray-800 rounded-xl focus-within:ring-2 focus-within:ring-blue-500 transition-all">
               <textarea
                 value={prompt}
@@ -979,10 +1048,24 @@ export default function ChatWindow() {
                 style={{ minHeight: '44px', maxHeight: '120px' }}
               />
               <div className="absolute right-2 bottom-2 flex gap-1">
-                <button onClick={handleAttachClick} className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 transition-colors rounded-lg group relative" title="Attach PDF file">
-                  <IoMdAttach className="w-4 h-4" />
+                <button 
+                  onClick={handleAttachClick} 
+                  disabled={isUploading}
+                  className={`p-1.5 transition-colors rounded-lg group relative ${
+                    isUploading 
+                      ? 'text-blue-400 bg-blue-900 cursor-not-allowed' 
+                      : uploadedParsedFileName
+                        ? 'text-green-400 hover:text-green-300 hover:bg-green-900'
+                        : 'text-gray-400 hover:text-white hover:bg-gray-700'
+                  }`} 
+                  title={uploadedParsedFileName ? "File attached - click to change" : "Attach PDF file"}
+                >
+                  <IoMdAttach className={`w-4 h-4 ${isUploading ? 'animate-pulse' : ''}`} />
+                  {uploadedParsedFileName && (
+                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full"></div>
+                  )}
                   <span className="absolute bottom-full right-0 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                    PDF only
+                    {isUploading ? `Uploading... ${uploadProgress}%` : uploadedParsedFileName ? 'File attached' : 'PDF only (max 10MB)'}
                   </span>
                 </button>
                 <button 
