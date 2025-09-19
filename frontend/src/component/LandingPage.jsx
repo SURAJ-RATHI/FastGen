@@ -1,5 +1,5 @@
 import HomeHeader from "./HomeHeader";
-import { useRef, useState } from "react";
+import { useRef, useState, useCallback, useMemo } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import Button from "./compo/Button";
@@ -82,15 +82,15 @@ const LandingPage = () => {
   const [isSubmittingContact, setIsSubmittingContact] = useState(false);
   const [contactSubmitStatus, setContactSubmitStatus] = useState('');
 
-  const handleContactInputChange = (e) => {
+  const handleContactInputChange = useCallback((e) => {
     const { name, value } = e.target;
     setContactFormData(prev => ({
       ...prev,
       [name]: value
     }));
-  };
+  }, []);
 
-  const handleContactSubmit = async (e) => {
+  const handleContactSubmit = useCallback(async (e) => {
     e.preventDefault();
     
     if (!contactFormData.name || !contactFormData.email || !contactFormData.message) {
@@ -118,7 +118,7 @@ const LandingPage = () => {
     } finally {
       setIsSubmittingContact(false);
     }
-  };
+  }, [contactFormData]);
 
 
   useGSAP(() => {
@@ -270,7 +270,7 @@ const LandingPage = () => {
           </p>
           
           <div className="grid md:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-8">
-            {[
+            {useMemo(() => [
               {
                 title: "Personalized Chatbot",
                 description: "FastGen's intelligent chatbot answers all your questions with context-aware responses and memory of past conversations.",
@@ -313,7 +313,7 @@ const LandingPage = () => {
                 route: "/main?tab=chatbot",
                 gradient: "from-teal-500 to-cyan-500"
               }
-            ].map((feature, index) => (
+            ], []).map((feature, index) => (
               <div
                 key={index}
                 onClick={() => navigate(feature.route)}
@@ -352,7 +352,7 @@ const LandingPage = () => {
           </p>
           
           <div className="grid md:grid-cols-3 gap-8">
-            {[
+            {useMemo(() => [
               {
                 name: "Free",
                 price: "₹0",
@@ -407,7 +407,7 @@ const LandingPage = () => {
                 buttonText: "Contact Sales",
                 buttonStyle: "bg-purple-600 hover:bg-purple-700"
               }
-            ].map((plan, index) => (
+            ], []).map((plan, index) => (
               <div 
                 key={index}
                 className={`group relative bg-gradient-to-br from-gray-800/90 to-gray-900/90 backdrop-blur-xl p-8 rounded-3xl border-2 transition-all duration-500 animate-fade-in delay-${(index + 1) * 300} ${

@@ -160,8 +160,8 @@ export default function ChatWindow() {
       if (!Array.isArray(messages)) throw new Error('Invalid messages response: Expected an array');
       
       setMessages(messages);
-    } catch {
-      if (err.response?.status === 500 && err.response?.data?.error?.includes('Cast to ObjectId failed')) {
+    } catch (error) {
+      if (error.response?.status === 500 && error.response?.data?.error?.includes('Cast to ObjectId failed')) {
         // New chat with no messages yet
         setMessages([]);
         return;
@@ -198,8 +198,8 @@ export default function ChatWindow() {
       setCacheTimestamp(now);
       setChatHistory(sorted);
       return sorted; // important so callers can use immediately
-    } catch {
-      console.error('Failed to load chat history:', err);
+    } catch (error) {
+      console.error('Failed to load chat history:', error);
       return [];
     }
   }, [chatHistoryCache, cacheTimestamp]);
@@ -207,9 +207,14 @@ export default function ChatWindow() {
   // Load chat history immediately when user signs in
   useEffect(() => {
     if (isSignedIn) {
-      loadChatHistory();
+      loadChatHistory().catch(error => {
+        console.error('Failed to load chat history:', error);
+        if (window.showToast) {
+          window.showToast('Failed to load chat history. Please refresh the page.', 'error');
+        }
+      });
     }
-  }, [isSignedIn]); // Removed loadChatHistory and user from dependencies
+  }, [isSignedIn, loadChatHistory]);
 
   // Initialize chat once on sign-in - ULTRA OPTIMIZED
   useEffect(() => {
@@ -255,8 +260,12 @@ export default function ChatWindow() {
           // Always create a new chat when no stored chatId (e.g., from "Explore Now" button)
           await createNewChat();
         }
-      } catch {
+      } catch (error) {
         if (!isMounted) return;
+        console.error('Failed to initialize chat:', error);
+        if (window.showToast) {
+          window.showToast('Failed to initialize chat. Please try again.', 'error');
+        }
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -335,18 +344,18 @@ export default function ChatWindow() {
           loadChatHistory(20, true); // Force refresh to get updated title
         }, 1000);
       }
-    } catch {
+    } catch (error) {
       
       // Check if it's a usage limit error (429) or if it's a 500 error that might be usage-related
-      if (err.response?.status === 429 && err.response?.data?.upgradeRequired) {
-        const usageData = err.response.data.usage;
+      if (error.response?.status === 429 && error.response?.data?.upgradeRequired) {
+        const usageData = error.response.data.usage;
         setUpgradeModalData({
           usage: usageData,
           featureType: 'chatbotChats'
         });
         setShowUpgradeModal(true);
         
-      } else if (err.response?.status === 500) {
+      } else if (error.response?.status === 500) {
         // For 500 errors, check if it might be a usage limit issue
         // This is a fallback in case the middleware isn't working properly
         
@@ -356,6 +365,11 @@ export default function ChatWindow() {
           featureType: 'chatbotChats'
         });
         setShowUpgradeModal(true);
+      } else {
+        // Show generic error message
+        if (window.showToast) {
+          window.showToast('Failed to send message. Please try again.', 'error');
+        }
       }
     } finally {
       setIsTyping(false);
@@ -531,8 +545,11 @@ export default function ChatWindow() {
       setUploadedParsedFileName(res.data.parsedFileName);
       if (fileInputRef.current) fileInputRef.current.value = '';
       
-    } catch {
-      // Silently handle error
+    } catch (error) {
+      console.error('Failed to upload file:', error);
+      if (window.showToast) {
+        window.showToast('Failed to upload file. Please try again.', 'error');
+      }
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
@@ -730,7 +747,6 @@ export default function ChatWindow() {
         setEditingChatId(null);
         setEditingTitle('');
         setOpenMenuId(null);
-      } else {
       }
     } catch {
       // Silently handle error

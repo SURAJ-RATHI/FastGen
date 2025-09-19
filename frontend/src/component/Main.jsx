@@ -1,8 +1,9 @@
 // src/pages/Main.jsx
-import { useEffect, useState, Suspense, lazy } from "react";
+import { useEffect, useState, Suspense, lazy, useMemo } from "react";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { useTab } from "../contexts/TabContext.jsx";
 import Header from "./Header";
+import LoadingSpinner from "./LoadingSpinner";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 // Lazy load components for better performance
@@ -44,16 +45,26 @@ const Main = () => {
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
+  // Professional loading component for Suspense
+  const LoadingFallback = useMemo(() => (
+    <LoadingSpinner 
+      size="large" 
+      color="blue" 
+      text="Loading component..." 
+      className="h-64"
+    />
+  ), []);
 
-  // Loading component for Suspense
-  const LoadingSpinner = () => (
-    <div className="flex items-center justify-center h-64">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-    </div>
-  );
+  if (isLoading) {
+    return (
+      <LoadingSpinner 
+        size="xl" 
+        color="blue" 
+        text="Loading FastGen..." 
+        fullScreen={true}
+      />
+    );
+  }
 
   // Mobile layout: Show only one component at a time
   if (isMobile) {
@@ -63,7 +74,7 @@ const Main = () => {
           <Header />
         </div>
         <div className="pt-16 pb-8">
-          <Suspense fallback={<LoadingSpinner />}>
+          <Suspense fallback={<LoadingFallback />}>
             {activeTab === 'content' ? (
               <Content />
             ) : activeTab === 'quizzes' ? (
@@ -86,7 +97,7 @@ const Main = () => {
         <Header />
       </div>
       <div className="pt-16 pb-8">
-        <Suspense fallback={<LoadingSpinner />}>
+        <Suspense fallback={<LoadingFallback />}>
           {activeTab === 'content' ? (
             <Content />
           ) : activeTab === 'quizzes' ? (

@@ -3,7 +3,7 @@ import { FiPlay, FiExternalLink, FiX } from 'react-icons/fi';
 
 export default function VideoSearch() {
   const [searchTopic, setSearchTopic] = useState('book');
-  const [videos, setVideos] = useState([
+  const [videos] = useState([
     {
       id: 1,
       title: "romance only bookstore in NYC 🍎💌",
@@ -143,8 +143,6 @@ export default function VideoSearch() {
               {video.duration}
             </div>
           </div>
-          </div>
-          </div>
           <div>
             <h3
               className="text-gray-200 font-semibold text-sm mb-2 overflow-hidden"
@@ -170,8 +168,7 @@ export default function VideoSearch() {
         <h2 className="text-xl font-semibold text-white">Video Search</h2>
         <div className="flex gap-2">
           <button
-            onClick={() => window.open('https://www.youtube.com', '_blank');
-          }}
+            onClick={() => window.open('https://www.youtube.com', '_blank')}
             className="bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded transition-colors flex items-center gap-2"
           >
             <FiExternalLink className="w-4 h-4" />
@@ -194,7 +191,7 @@ export default function VideoSearch() {
           <input
             id="topic"
             placeholder="e.g., Quadratic Equations"
-            className="flex-1 px-4 py-2 rounded bg-gray-800 text-gray-200 focus:outline-none focus:ring-2 ring-blue-500"
+            className="flex-1 px-4 py-2 rounded bg-gray-800 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
             type="text"
             value={searchTopic}
             onChange={(e) => setSearchTopic(e.target.value)}
@@ -211,8 +208,7 @@ export default function VideoSearch() {
       {/* Results Count */}
       <div className="mb-4">
         <div className="text-gray-300 text-center">
-          <span className="bg-blue-600 px-3 py-1 rounded-full text-sm">{videos.length} videos found
-          </span>
+          <span className="bg-blue-600 px-3 py-1 rounded-full text-sm">{videos.length} videos found</span>
         </div>
       </div>
 
@@ -255,23 +251,25 @@ export default function VideoSearch() {
             <div className="mt-4 flex justify-between items-center">
               <div>
                 <p className="text-gray-300 text-sm">Channel: {selectedVideo.channel}</p>
-              <p className="text-gray-400 text-xs">Duration: {selectedVideo.duration}
+                <p className="text-gray-400 text-xs">Duration: {selectedVideo.duration}</p>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={handlePlayVideo}
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition-colors flex items-center gap-2"
+                >
+                  <FiPlay className="w-4 h-4" />
+                  Play Video
+                </button>
+                <button
+                  onClick={() => handlePlayOnYouTube(selectedVideo.videoId)}
+                  className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded transition-colors flex items-center gap-2"
+                >
+                  <FiExternalLink className="w-4 h-4" />
+                  Open on YouTube
+                </button>
+              </div>
             </div>
-            <div className="flex gap-3">
-              <button
-                onClick={handlePlayVideo}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition-colors flex items-center gap-2"
-              >
-                <FiPlay className="w-4 h-4" />
-                Play Video
-              </button>
-              <button
-                onClick={() => handlePlayOnYouTube(selectedVideo.videoId)}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition-colors flex items-center gap-2"
-              >
-                <FiExternalLink className="w-4 h-4" />
-                Open on YouTube
-            </button>
           </div>
         </div>
       )}

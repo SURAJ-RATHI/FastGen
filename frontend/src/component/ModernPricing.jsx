@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { Check, Zap, Crown, Building } from 'lucide-react';
 import ModernPaymentModal from './ModernPaymentModal';
 import useModernPayment from '../hooks/useModernPayment';
@@ -18,7 +18,7 @@ const ModernPricing = () => {
     closeModal
   } = useModernPayment();
 
-  const plans = [
+  const plans = useMemo(() => [
     {
       id: 'free',
       name: 'Free',
@@ -75,9 +75,9 @@ const ModernPricing = () => {
       buttonText: 'Contact Sales',
       buttonStyle: 'secondary'
     }
-  ];
+  ], []);
 
-  const handlePlanSelect = async (plan) => {
+  const handlePlanSelect = useCallback(async (plan) => {
     if (plan.id === 'free') {
       return; // Already on free plan
     }
@@ -98,7 +98,7 @@ const ModernPricing = () => {
       await initiatePayment(plan.price, plan.id);
     } catch (error) {
     }
-  };
+  }, [isSignedIn, navigate, initiatePayment]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 py-12 px-4">

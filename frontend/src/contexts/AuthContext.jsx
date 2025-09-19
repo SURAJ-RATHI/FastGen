@@ -1,5 +1,7 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import apiService from '../services/apiService';
 import axios from 'axios';
+import { AUTH_STORAGE_KEY, AUTH_ENDPOINTS, AUTH_ERROR_MESSAGES } from '../constants/authConstants';
 
 const AuthContext = createContext();
 
@@ -15,7 +17,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSignedIn, setIsSignedIn] = useState(false);
-  const [token, setToken] = useState(localStorage.getItem('authToken'));
+  const [token, setToken] = useState(localStorage.getItem(AUTH_STORAGE_KEY));
 
   // Configure axios defaults
   useEffect(() => {
@@ -33,80 +35,89 @@ export const AuthProvider = ({ children }) => {
     } else {
       setIsLoading(false);
     }
-  }, [token]);
+  }, [token, checkAuthStatus]);
 
-  const checkAuthStatus = async () => {
+  const checkAuthStatus = useCallback(async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_APP_BE_BASEURL}/api/auth/me`);
-      setUser(response.data);
+      const userData = await apiService.get(AUTH_ENDPOINTS.ME);
+      setUser(userData);
       setIsSignedIn(true);
-    } catch {
+    } catch (error) {
+      console.error('Auth check failed:', error);
       // Token is invalid, clear it
-      localStorage.removeItem('authToken');
+      localStorage.removeItem(AUTH_STORAGE_KEY);
       setToken(null);
       setUser(null);
       setIsSignedIn(false);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const signInWithGoogle = async (credential) => {
+  const signInWithGoogle = useCallback(async (credential) => {
     try {
       
-      const response = await axios.post(`${import.meta.env.VITE_APP_BE_BASEURL}/api/auth/google`, {
+      const response = await apiService.post(AUTH_ENDPOINTS.GOOGLE, {
         credential
       });
       
       const { token: newToken, user: userData } = response.data;
-      localStorage.setItem('authToken', newToken);
+      localStorage.setItem(AUTH_STORAGE_KEY, newToken);
       setToken(newToken);
       setUser(userData);
       setIsSignedIn(true);
       
       return { success: true };
-    } catch {
+    } catch (error) {
+      console.error('Google sign-in failed:', error);
       
       if (error.code === 'ERR_NETWORK') {
         return { 
           success: false, 
+          error: AUTH_ERROR_MESSAGES.NETWORK_ERROR
         };
       }
       
       if (error.response?.status === 403) {
         return { 
           success: false, 
+          error: AUTH_ERROR_MESSAGES.ACCESS_DENIED
         };
       }
       
       return { 
         success: false, 
+        error: AUTH_ERROR_MESSAGES.SIGNIN_FAILED
       };
     }
-  };
+  }, []);
 
-  const signInWithEmail = async (email, password) => {
+  const signInWithEmail = useCallback(async (email, password) => {
     try {
-      const response = await axios.post(`${import.meta.env.VITE_APP_BE_BASEURL}/api/auth/signin`, {
+      const response = await apiService.post(AUTH_ENDPOINTS.SIGNIN, {
         email,
         password
       });
       
       const { token: newToken, user: userData } = response.data;
-      localStorage.setItem('authToken', newToken);
+      localStorage.setItem(AUTH_STORAGE_KEY, newToken);
       setToken(newToken);
       setUser(userData);
       setIsSignedIn(true);
       
       return { success: true };
-    } catch {
-      return { success: false };
+    } catch (error) {
+      console.error('Email sign-in failed:', error);
+      return { 
+        success: false, 
+        error: AUTH_ERROR_MESSAGES.INVALID_CREDENTIALS
+      };
     }
-  };
+  }, []);
 
-  const signUpWithEmail = async (name, email, password) => {
+  const signUpWithEmail = useCallback(async (name, email, password) => {
     try {
-      const response = await axios.post(`${import.meta.env.VITE_APP_BE_BASEURL}/api/auth/signup`, {
+      const response = await apiService.post(AUTH_ENDPOINTS.SIGNUP, {
         name,
         email,
         password
@@ -117,33 +128,39 @@ export const AuthProvider = ({ children }) => {
         return await signInWithEmail(email, password);
       }
       
-      return { success: false };
-    } catch {
-      return { success: false };
+      return { success: false, error: AUTH_ERROR_MESSAGES.SIGNUP_FAILED };
+    } catch (error) {
+      console.error('Email sign-up failed:', error);
+      return { 
+        success: false, 
+        error: AUTH_ERROR_MESSAGES.SIGNUP_FAILED
+      };
     }
-  };
+  }, [signInWithEmail]);
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     try {
-      await axios.post(`${import.meta.env.VITE_APP_BE_BASEURL}/api/auth/logout`);
-    } catch {
-      // Silently handle error
+      await apiService.post(AUTH_ENDPOINTS.LOGOUT);
+    } catch (error) {
+      console.error('Sign-out failed:', error);
+      // Still clear local data even if server request fails
     } finally {
-      localStorage.removeItem('authToken');
+      localStorage.removeItem(AUTH_STORAGE_KEY);
       setToken(null);
       setUser(null);
       setIsSignedIn(false);
     }
-  };
+  }, []);
 
-  const getUserData = async () => {
+  const getUserData = useCallback(async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_APP_BE_BASEURL}/api/user/me`);
+      const response = await apiService.get(AUTH_ENDPOINTS.USER_ME);
       return response.data;
-    } catch {
-      throw new Error();
+    } catch (error) {
+      console.error('Failed to get user data:', error);
+      throw new Error(AUTH_ERROR_MESSAGES.USER_DATA_FAILED);
     }
-  };
+  }, []);
 
   const value = {
     user,
