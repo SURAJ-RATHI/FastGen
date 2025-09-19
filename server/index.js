@@ -123,6 +123,9 @@ app.use('/api/email', emailRoutes);
 import paymentRoutes from './routes/payments.js';
 app.use('/api/payments', requireAuth, paymentRoutes);
 
+import usageRoutes from './routes/usage.js';
+app.use('/api/usage', requireAuth, usageRoutes);
+
 // Root route
 app.get('/', (req, res) => {
   res.json({ 

@@ -4,6 +4,7 @@ import fs from 'fs'
 import path from "path"
 import { extractJSON } from "../utils/extractJSON.js"
 import { requireAuth } from '../middleware/authMiddleware.js';
+import { checkUsageLimit, incrementUsage } from '../middleware/usageMiddleware.js';
 
 const router = express.Router()
 
@@ -17,7 +18,7 @@ router.options('/', (req, res) => {
 });
 
 // generate quizzes - require authentication
-router.post('/', requireAuth, async (req, res) => {
+router.post('/', requireAuth, checkUsageLimit('contentGenerations'), async (req, res) => {
   try {
     // Log CORS and request details
     console.log('=== GQuizzes Route Hit ===');
@@ -100,6 +101,16 @@ Text:${parseText}
       }
     } catch (parseErr) {
       console.log('Could not parse response to count questions:', parseErr.message);
+    }
+
+    // Increment usage for successful content generation
+    try {
+      if (req.usage) {
+        await req.usage.incrementUsage('contentGenerations');
+        console.log(`Incremented content generation usage for user ${req.user.userId}`);
+      }
+    } catch (error) {
+      console.error('Error incrementing usage:', error);
     }
 
     res.json({ answer: extractedJSON });

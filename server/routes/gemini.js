@@ -5,6 +5,7 @@ import UserPreference from "../models/UserPreference.js"
 import Message from "../models/Message.js"
 import Chat from "../models/Chat.js"
 import pineconeService from "../services/pineconeService.js"
+import { checkUsageLimit, incrementUsage } from "../middleware/usageMiddleware.js"
 import dotenv from "dotenv" 
 import fs from 'fs'
 import path from "path"
@@ -422,7 +423,7 @@ Please provide a helpful, accurate, and well-structured response.`;
 }
 
 // gemini streaming request
-router.post('/stream', async (req, res) => {
+router.post('/stream', checkUsageLimit('chatbotChats'), async (req, res) => {
   try {
     console.log('=== STREAMING REQUEST START ===');
     console.log('Request body:', req.body);
@@ -701,6 +702,16 @@ IMPORTANT:
       console.error('Error updating chat title:', error);
     }
 
+    // Increment usage for successful chat
+    try {
+      if (req.usage) {
+        await req.usage.incrementUsage('chatbotChats');
+        console.log(`Incremented chatbot usage for user ${req.user.userId}`);
+      }
+    } catch (error) {
+      console.error('Error incrementing usage:', error);
+    }
+
     res.end();
 
   } catch (err) {
@@ -719,7 +730,7 @@ IMPORTANT:
 });
 
 // gemini res request (non-streaming fallback)
-router.post('/', async (req, res) => {
+router.post('/', checkUsageLimit('chatbotChats'), async (req, res) => {
   try {
     const { chatId, prompt, parsedFileName } = req.body;
 
@@ -899,6 +910,16 @@ IMPORTANT:
 
     if (parsedFilePath && fs.existsSync(parsedFilePath)) {
       fs.unlinkSync(parsedFilePath);
+    }
+
+    // Increment usage for successful chat
+    try {
+      if (req.usage) {
+        await req.usage.incrementUsage('chatbotChats');
+        console.log(`Incremented chatbot usage for user ${req.user.userId}`);
+      }
+    } catch (error) {
+      console.error('Error incrementing usage:', error);
     }
 
     res.json({ answer: ans });

@@ -1,5 +1,6 @@
 import express from 'express';
 import { requireAuth } from '../middleware/authMiddleware.js';
+import { checkUsageLimit, incrementUsage } from '../middleware/usageMiddleware.js';
 
 const router = express.Router();
 
@@ -7,7 +8,7 @@ const router = express.Router();
  * GET /youtube — Get video recommendations for a topic
  * Example: /youtube?topic=Quadratic Equations
  */
-router.get('/', requireAuth, async (req, res) => {
+router.get('/', requireAuth, checkUsageLimit('videoRecommendations'), async (req, res) => {
   console.log('=== YouTube Route Hit ===');
   console.log('Request received at:', new Date().toISOString());
   console.log('Request headers:', req.headers);
@@ -71,6 +72,17 @@ router.get('/', requireAuth, async (req, res) => {
     }));
 
     console.log(`Successfully fetched ${videos.length} videos for topic: ${topic}`);
+    
+    // Increment usage for successful video recommendation
+    try {
+      if (req.usage) {
+        await req.usage.incrementUsage('videoRecommendations');
+        console.log(`Incremented video recommendation usage for user ${req.user.userId}`);
+      }
+    } catch (error) {
+      console.error('Error incrementing usage:', error);
+    }
+    
     res.status(200).json({ videos });
   } catch (error) {
     console.error('=== YouTube API Error ===');
