@@ -16,9 +16,39 @@ const SignInPage = () => {
     }
   }, [isSignedIn, isLoading, navigate]);
 
-  const handleGoogleSignIn = async () => {
+  // Initialize Google OAuth
+  useEffect(() => {
+    // Load Google Identity Services
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    document.head.appendChild(script);
+
+    script.onload = () => {
+      if (window.google) {
+        window.google.accounts.id.initialize({
+          client_id: '887137562653-q092j43greip16g706ggmb0006n3s5rr.apps.googleusercontent.com',
+          callback: handleGoogleSignIn
+        });
+        
+        window.google.accounts.id.renderButton(
+          document.getElementById('google-signin-button'),
+          { theme: 'outline', size: 'large', width: '100%' }
+        );
+      }
+    };
+
+    return () => {
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+    };
+  }, []);
+
+  const handleGoogleSignIn = async (response) => {
     try {
-      const result = await signInWithGoogle();
+      const result = await signInWithGoogle(response.credential);
       if (result.success) {
         navigate("/main");
       } else {
@@ -81,18 +111,7 @@ const SignInPage = () => {
 
           {!showManualForm ? (
             <>
-              {/* Google Button */}
-              <button
-                onClick={handleGoogleSignIn}
-                className="w-full flex items-center justify-center gap-2 bg-white text-black font-medium py-2.5 sm:py-3 px-4 rounded-lg shadow hover:bg-gray-100 transition"
-              >
-                <img
-                  src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-                  alt="Google logo"
-                  className="w-5 h-5"
-                />
-                Sign in with Google
-              </button>
+              <div id="google-signin-button" className="w-full mt-4"></div>
 
               <div className="relative my-4 sm:my-6">
                 <div className="absolute inset-0 flex items-center">
