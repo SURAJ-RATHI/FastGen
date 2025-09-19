@@ -1,11 +1,24 @@
 import HomeHeader from "./HomeHeader";
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import useModernPayment from '../hooks/useModernPayment';
+import ModernPaymentModal from './ModernPaymentModal';
 
 const Pricing = () => {
   const navigate = useNavigate();
   const { isSignedIn } = useAuth();
-  const handlePlanSelect = (plan) => {
+  
+  // Modern payment hook
+  const {
+    isModalOpen,
+    paymentData,
+    isLoading,
+    initiatePayment,
+    handlePaymentSuccess,
+    handlePaymentError,
+    closeModal
+  } = useModernPayment();
+  const handlePlanSelect = async (plan) => {
     if (plan.name === 'Free') {
       navigate('/main');
       return;
@@ -26,14 +39,40 @@ const Pricing = () => {
       return;
     }
 
-    // For Pro plan, redirect to main with upgrade modal or handle payment
+    // For Pro plan, initiate payment
     if (plan.name === 'Pro') {
-      // You can implement payment logic here or redirect to a payment page
+      try {
+        await initiatePayment(999, 'pro');
+      } catch (error) {
+        console.error('Failed to initiate payment:', error);
+        if (window.showToast) {
+          window.showToast('Payment processing failed', 'error');
+        }
+      }
+    }
+  };
+
+  // Handle payment success
+  const onPaymentSuccess = async (paymentDetails) => {
+    try {
+      const result = await handlePaymentSuccess(paymentDetails);
       if (window.showToast) {
-        window.showToast('Pro plan subscription coming soon!', 'info');
+        window.showToast(`Welcome to ${result.subscription.plan.charAt(0).toUpperCase() + result.subscription.plan.slice(1)} plan!`, 'success');
       }
       navigate('/main');
+    } catch (error) {
+      if (window.showToast) {
+        window.showToast(`Payment verification failed: ${error.message}`, 'error');
+      }
     }
+  };
+
+  // Handle payment error
+  const onPaymentError = (error) => {
+    if (window.showToast) {
+      window.showToast(`Payment failed: ${error}`, 'error');
+    }
+    handlePaymentError(error);
   };
 
   const plans = [
@@ -139,9 +178,10 @@ const Pricing = () => {
                 
                 <button
                   onClick={() => handlePlanSelect(plan)}
-                  className={`w-full py-3 px-6 rounded-lg text-white font-semibold transition-colors ${plan.buttonStyle}`}
+                  disabled={isLoading}
+                  className={`w-full py-3 px-6 rounded-lg text-white font-semibold transition-colors ${plan.buttonStyle} ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  {plan.buttonText}
+                  {isLoading ? 'Processing...' : plan.buttonText}
                 </button>
               </div>
             ))}
@@ -153,6 +193,17 @@ const Pricing = () => {
           </div>
         </div>
       </div>
+
+      {/* Modern Payment Modal */}
+      <ModernPaymentModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        amount={paymentData?.amount}
+        plan={paymentData?.plan}
+        orderId={paymentData?.order?.id}
+        onPaymentSuccess={onPaymentSuccess}
+        onPaymentError={onPaymentError}
+      />
     </div>
   );
 };
