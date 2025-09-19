@@ -14,6 +14,7 @@ import HelpCenter from './component/HelpCenter';
 import Documentation from './component/Documentation';
 import PrivacyPolicy from './component/PrivacyPolicy';
 import TermsOfService from './component/TermsOfService';
+import ToastContainer from './component/ToastContainer';
 import { TabProvider } from './contexts/TabContext.jsx';
 
 function AppContent() {
@@ -41,6 +42,7 @@ function AppContent() {
           <Route path="/privacy" element={<PrivacyPolicy/>} />
           <Route path="/terms" element={<TermsOfService/>} />
         </Routes>
+        <ToastContainer />
       </TabProvider>
     </div>
   );

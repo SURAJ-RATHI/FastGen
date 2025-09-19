@@ -94,6 +94,75 @@ function retrieveRelevantContext(userId, currentQuery, limit = 8) {
   }
 }
 
+// Function to retrieve relevant past messages from database
+async function retrieveRelevantPastMessages(userId, currentChatId, currentQuery, limit = 6) {
+  try {
+    const queryWords = currentQuery.toLowerCase().split(/\s+/).filter(word => word.length > 2);
+    
+    if (queryWords.length === 0) {
+      // If no meaningful words, return recent messages from other chats
+      const userChats = await Chat.find({ user: userId, _id: { $ne: currentChatId } })
+        .select('_id')
+        .sort({ updatedAt: -1 })
+        .limit(5);
+      
+      if (userChats.length === 0) return [];
+      
+      const chatIds = userChats.map(chat => chat._id);
+      const recentMessages = await Message.find({ 
+        chat: { $in: chatIds },
+        sender: 'user' // Focus on user messages for context
+      })
+        .select('content sender createdAt')
+        .sort({ createdAt: -1 })
+        .limit(limit);
+      
+      return recentMessages;
+    }
+    
+    // Search for relevant messages using text search
+    const userChats = await Chat.find({ user: userId, _id: { $ne: currentChatId } })
+      .select('_id')
+      .sort({ updatedAt: -1 })
+      .limit(10); // Check last 10 chats
+    
+    if (userChats.length === 0) return [];
+    
+    const chatIds = userChats.map(chat => chat._id);
+    
+    // Get messages from other chats and score them
+    const pastMessages = await Message.find({ 
+      chat: { $in: chatIds },
+      sender: 'user' // Focus on user messages
+    })
+      .select('content sender createdAt')
+      .sort({ createdAt: -1 })
+      .limit(50); // Get more messages to score
+    
+    // Score messages based on word overlap
+    const scoredMessages = pastMessages.map(msg => {
+      const contentWords = msg.content.toLowerCase().split(/\s+/);
+      const overlap = queryWords.filter(word => 
+        contentWords.some(contentWord => 
+          contentWord.includes(word) || word.includes(contentWord)
+        )
+      ).length;
+      
+      return { ...msg, score: overlap };
+    });
+    
+    // Return top scored messages
+    return scoredMessages
+      .filter(msg => msg.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, limit);
+      
+  } catch (error) {
+    console.error('Error retrieving past messages:', error);
+    return [];
+  }
+}
+
 // Function to generate chat title based on conversation content
 async function generateChatTitle(messages) {
   try {
@@ -152,17 +221,20 @@ Title:`;
   }
 }
 
-// Function to build comprehensive conversation context - OPTIMIZED
+// Function to build comprehensive conversation context - ENHANCED
 async function buildConversationContext(userId, chatId, currentQuery) {
   try {
-    // Get recent messages for immediate context (reduced limit for faster loading)
+    // Get recent messages for immediate context
     const recentMessages = await Message.find({ chat: chatId })
       .select('content sender createdAt')
       .sort({ createdAt: -1 })
-      .limit(3); // Reduced from 5 to 3
+      .limit(5); // Increased for better context
     
-    // Get relevant long-term memory (reduced limit)
-    const relevantMemory = retrieveRelevantContext(userId, currentQuery, 4); // Reduced from 8 to 4
+    // Get relevant messages from other chats using database queries
+    const relevantPastMessages = await retrieveRelevantPastMessages(userId, chatId, currentQuery, 6);
+    
+    // Get relevant long-term memory (in-memory)
+    const relevantMemory = retrieveRelevantContext(userId, currentQuery, 4);
     
     let context = "";
     
@@ -172,9 +244,15 @@ async function buildConversationContext(userId, chatId, currentQuery) {
 ${recentMessages.reverse().map(msg => `- ${msg.sender === 'user' ? 'User' : 'AI'}: ${msg.content.substring(0, 100)}${msg.content.length > 100 ? '...' : ''}`).join('\n')}`;
     }
     
-    // Add relevant long-term memory (simplified)
+    // Add relevant past conversations from database
+    if (relevantPastMessages.length > 0) {
+      context += `\n\nRELEVANT PAST CONVERSATIONS (from other chats):
+${relevantPastMessages.map(msg => `- ${msg.sender === 'user' ? 'User' : 'AI'}: ${msg.content.substring(0, 80)}${msg.content.length > 80 ? '...' : ''}`).join('\n')}`;
+    }
+    
+    // Add relevant long-term memory (in-memory)
     if (relevantMemory.length > 0) {
-      context += `\n\nRELEVANT PAST CONVERSATIONS:
+      context += `\n\nRELEVANT MEMORY:
 ${relevantMemory.map(mem => `- ${mem.metadata.sender === 'user' ? 'User' : 'AI'}: ${mem.content.substring(0, 80)}${mem.content.length > 80 ? '...' : ''}`).join('\n')}`;
     }
     
@@ -459,19 +537,19 @@ IMPORTANT:
       $push: { messages: aiMessage._id }
     });
 
-    // Generate/update chat title after a few messages (every 4 messages)
+    // Generate/update chat title more frequently for better UX
     try {
       const messageCount = await Message.countDocuments({ chat: chatId });
-      if (messageCount === 4 || messageCount === 8) { // Generate title at 4th and 8th message
+      if (messageCount === 2 || messageCount === 4 || messageCount === 8) { // Generate title at 2nd, 4th, and 8th message
         const chatMessages = await Message.find({ chat: chatId })
           .sort({ createdAt: 1 })
-          .limit(4);
+          .limit(Math.min(messageCount, 6)); // Use more messages for better title generation
         
         const newTitle = await generateChatTitle(chatMessages);
         
         // Update chat title
         await Chat.findByIdAndUpdate(chatId, { title: newTitle });
-        console.log(`Updated chat title to: ${newTitle}`);
+        console.log(`Updated chat title to: ${newTitle} (message count: ${messageCount})`);
       }
     } catch (error) {
       console.error('Error updating chat title:', error);

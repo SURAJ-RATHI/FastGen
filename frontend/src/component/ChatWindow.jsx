@@ -273,17 +273,24 @@ export default function ChatWindow() {
       const aiMessage = { sender: 'ai', content: res.data.answer };
       setMessages(prev => {
         const updated = [...prev, aiMessage];
-        if (prevLen === 0) {
-          const newTitle = originalPrompt.length > 30 ? originalPrompt.slice(0, 30) + '...' : originalPrompt;
-          setCurrentChatTitle(newTitle);
-        }
+        // Don't set temporary title - let server generate proper title
         return updated;
       });
       setUploadedParsedFileName('');
+      
+      // Refresh chat title if we have 4 or 8 messages (when server generates title)
+      if (messages.length + 2 === 4 || messages.length + 2 === 8) {
+        setTimeout(() => {
+          loadChatHistory(20, true); // Force refresh to get updated title
+        }, 1000);
+      }
     } catch (err) {
       console.error('Failed to send message:', err);
       setMessages(prev => [...prev, { sender: 'ai', content: 'Sorry, I encountered an error. Please try again.' }]);
       setError(`Failed to send message: ${err.message}`);
+      if (window.showToast) {
+        window.showToast(`Failed to send message: ${err.message}`, 'error');
+      }
     } finally {
       setIsTyping(false);
     }
@@ -336,9 +343,15 @@ export default function ChatWindow() {
       setCurrentChatTitle('New Chat');
       localStorage.setItem('chatId', newChatId);
       await loadChatHistory(20, true); // Force refresh cache
+      if (window.showToast) {
+        window.showToast('New chat created successfully', 'success');
+      }
     } catch (err) {
       console.error('Error creating new chat:', err);
       setError('Failed to create new chat');
+      if (window.showToast) {
+        window.showToast('Failed to create new chat', 'error');
+      }
     } finally {
       setLoading(false);
     }
@@ -348,7 +361,10 @@ export default function ChatWindow() {
     try {
       setChatId(id);
       localStorage.setItem('chatId', id);
-      const found = chatHistory.find(c => c._id === id);
+      
+      // Refresh chat history to get latest titles
+      const updatedHistory = await loadChatHistory(20, true);
+      const found = updatedHistory.find(c => c._id === id);
       setCurrentChatTitle(found?.title || `Chat ${new Date(found?.startedAt || Date.now()).toLocaleDateString()}`);
       setPrompt('');
       setUploadedParsedFileName('');
@@ -387,9 +403,14 @@ export default function ChatWindow() {
       }
       setShowDeleteModal(false);
       setChatToDelete(null);
+      if (window.showToast) {
+        window.showToast('Chat deleted successfully', 'success');
+      }
     } catch (err) {
       console.error('Error deleting chat:', err);
-      alert('Failed to delete chat. Please try again.');
+      if (window.showToast) {
+        window.showToast('Failed to delete chat. Please try again.', 'error');
+      }
     }
   };
 
@@ -460,7 +481,9 @@ export default function ChatWindow() {
       }
     } catch (err) {
       console.error('Error sharing chat:', err);
-      alert('Failed to share chat. Please try again.');
+      if (window.showToast) {
+        window.showToast('Failed to share chat. Please try again.', 'error');
+      }
     }
   };
 
@@ -480,14 +503,21 @@ export default function ChatWindow() {
         setEditingTitle('');
         setOpenMenuId(null);
         console.log('Chat renamed successfully'); // Debug log
+        if (window.showToast) {
+          window.showToast('Chat renamed successfully', 'success');
+        }
       } else {
         console.log('Rename failed - no success flag:', response.data); // Debug log
-        alert('Failed to rename chat. Server response indicates failure.');
+        if (window.showToast) {
+          window.showToast('Failed to rename chat. Server response indicates failure.', 'error');
+        }
       }
     } catch (err) {
       console.error('Error renaming chat:', err);
       console.error('Error details:', err.response?.data); // Debug log
-      alert(`Failed to rename chat: ${err.response?.data?.error || err.message}`);
+      if (window.showToast) {
+        window.showToast(`Failed to rename chat: ${err.response?.data?.error || err.message}`, 'error');
+      }
     }
   };
 
