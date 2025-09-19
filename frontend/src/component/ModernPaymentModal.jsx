@@ -6,6 +6,7 @@ const ModernPaymentModal = ({
   onClose, 
   amount, 
   plan, 
+  orderId,
   onPaymentSuccess, 
   onPaymentError 
 }) => {
@@ -39,21 +40,62 @@ const ModernPaymentModal = ({
     setStep('processing');
     
     try {
-      // Simulate payment processing
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Here you would integrate with Razorpay API
-      // For now, we'll simulate success
-      setStep('success');
-      
-      setTimeout(() => {
-        onPaymentSuccess({
-          plan: plan,
-          amount: amount,
-          method: selectedMethod
-        });
-        onClose();
-      }, 1500);
+      // Check if Razorpay is available
+      if (!window.Razorpay) {
+        throw new Error('Razorpay not loaded. Please refresh the page.');
+      }
+
+      // Configure Razorpay options
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount: amount * 100, // Convert to paise
+        currency: 'INR',
+        name: 'FastGen AI',
+        description: `${plan.charAt(0).toUpperCase() + plan.slice(1)} Plan Subscription`,
+        order_id: orderId, // This should be passed as prop
+        handler: async (response) => {
+          try {
+            setStep('success');
+            
+            // Call success handler with Razorpay response
+            await onPaymentSuccess({
+              plan: plan,
+              amount: amount,
+              method: selectedMethod,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature
+            });
+            
+            setTimeout(() => {
+              onClose();
+            }, 1500);
+            
+          } catch (error) {
+            setStep('method');
+            setIsProcessing(false);
+            onPaymentError(error.message);
+          }
+        },
+        prefill: {
+          name: 'User',
+          email: 'user@example.com'
+        },
+        theme: {
+          color: '#3B82F6'
+        },
+        modal: {
+          ondismiss: () => {
+            setStep('method');
+            setIsProcessing(false);
+            onPaymentError('Payment cancelled by user');
+          }
+        }
+      };
+
+      // Open Razorpay checkout
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
       
     } catch (error) {
       setStep('method');

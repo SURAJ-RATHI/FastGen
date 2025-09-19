@@ -31,15 +31,11 @@ const useModernPayment = () => {
 
   const handlePaymentSuccess = async (paymentDetails) => {
     try {
-      // Simulate payment verification
-      // In real implementation, you'd get these from Razorpay
-      const mockPaymentId = 'pay_' + Date.now();
-      const mockSignature = 'mock_signature_' + Date.now();
-      
+      // Verify payment with Razorpay response
       const verifyResponse = await paymentService.verifyModernPayment(
-        paymentData.order.id,
-        mockPaymentId,
-        mockSignature,
+        paymentDetails.razorpay_order_id,
+        paymentDetails.razorpay_payment_id,
+        paymentDetails.razorpay_signature,
         paymentData.plan
       );
 
