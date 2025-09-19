@@ -558,9 +558,11 @@ CURRENT USER QUERY: ${prompt}
 IMPORTANT: 
 - Address the user by name: ${userName}
 - Use your long-term memory and relevant past conversations for context
-- Reference previous discussions when relevant
+- Reference previous discussions when relevant (e.g., "As we discussed earlier about...", "Remember when you mentioned...")
+- If the user refers to something from a past conversation, acknowledge it and build upon it
 - Provide a helpful, accurate, and well-structured response
-- Maintain conversation continuity across sessions`;
+- Maintain conversation continuity across sessions
+- If you have access to past conversations, use them to provide more personalized responses`;
 
     if (parseText) {
       finalPrompt += `\n text/file: ${parseText}`;
@@ -816,9 +818,11 @@ CURRENT USER QUERY: ${prompt}
 IMPORTANT: 
 - Address the user by name: ${userName}
 - Use your long-term memory and relevant past conversations for context
-- Reference previous discussions when relevant
+- Reference previous discussions when relevant (e.g., "As we discussed earlier about...", "Remember when you mentioned...")
+- If the user refers to something from a past conversation, acknowledge it and build upon it
 - Provide a helpful, accurate, and well-structured response
-- Maintain conversation continuity across sessions`;
+- Maintain conversation continuity across sessions
+- If you have access to past conversations, use them to provide more personalized responses`;
 
     if (parseText) {
       finalPrompt += `\n text/file: ${parseText}`;

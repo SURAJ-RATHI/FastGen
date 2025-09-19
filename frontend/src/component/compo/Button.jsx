@@ -6,9 +6,16 @@ import styled from 'styled-components';
 const Button = () => {
 
   const navigate = useNavigate();
+  
+  const handleExploreNow = () => {
+    // Clear any existing chat ID to force new chat creation
+    localStorage.removeItem('chatId');
+    navigate('/main');
+  };
+  
   return (
     <StyledWrapper>
-      <button className="Btn-Container bg-transparent" onClick={() => navigate('/main')}>
+      <button className="Btn-Container bg-transparent" onClick={handleExploreNow}>
               <span className="text bg-transparent">Explore Now </span>
         <span className="icon-Container bg-transparent">
           <svg width={16} className='bg-transparent' height={19} viewBox="0 0 16 19" fill="nones" xmlns="http://www.w3.org/2000/svg">

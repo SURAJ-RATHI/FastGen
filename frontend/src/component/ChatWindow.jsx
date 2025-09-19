@@ -121,7 +121,8 @@ export default function ChatWindow() {
     try {
       const response = await axios.get(`${import.meta.env.VITE_APP_BE_BASEURL}/api/messages/${id}`, {
         withCredentials: true,
-        params: { limit }
+        params: { limit },
+        timeout: 10000 // 10 second timeout for faster failure
       });
       
       // Handle both old array format and new paginated format
@@ -142,10 +143,10 @@ export default function ChatWindow() {
 
   const loadChatHistory = useCallback(async (limit = 20, forceRefresh = false) => {
     try {
-      // Check cache first (5 minute cache)
+      // Check cache first (10 minute cache for better performance)
       const now = Date.now();
       const cacheAge = now - (cacheTimestamp || 0);
-      const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+      const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
       
       if (!forceRefresh && chatHistoryCache && cacheAge < CACHE_DURATION) {
         console.log('Using cached chat history');
@@ -154,12 +155,11 @@ export default function ChatWindow() {
       }
       
       console.log('Loading chat history...'); // Debug log
-      console.log('Making request to:', `${import.meta.env.VITE_APP_BE_BASEURL}/api/chats/getChat`);
       const res = await axios.get(`${import.meta.env.VITE_APP_BE_BASEURL}/api/chats/getChat`, {
         withCredentials: true,
         params: { limit, sort: 'updatedAt' }
       });
-      console.log('Chat history response:', res.data); // Debug log
+      
       const chats = Array.isArray(res.data) ? res.data : res.data?.chats || [];
       if (!Array.isArray(chats)) throw new Error('Invalid chats response: Expected an array');
       const sorted = chats.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
@@ -185,39 +185,51 @@ export default function ChatWindow() {
     }
   }, [isSignedIn, loadChatHistory, user]);
 
-  // Initialize chat once on sign-in - OPTIMIZED
+  // Initialize chat once on sign-in - ULTRA OPTIMIZED
   useEffect(() => {
+    let isMounted = true;
+    
     const initializeChat = async () => {
       if (!isSignedIn) {
         setError('Please sign in to use the chat');
         return;
       }
+      
+      // Prevent multiple initializations
+      if (chatId) return;
+      
       setLoading(true);
       setError(null);
+      
       try {
         const storedChatId = localStorage.getItem('chatId');
         
         if (storedChatId && storedChatId !== 'undefined' && storedChatId !== 'NaN') {
-          // Set chat ID immediately for faster UI response
+          // Set chat ID immediately for instant UI response
           setChatId(storedChatId);
           setCurrentChatTitle('Loading...');
           
-          // Load chat history and messages in parallel
-          const [chatHistoryData, messagesData] = await Promise.allSettled([
-            loadChatHistory(),
-            loadMessages(storedChatId)
-          ]);
+          // Load chat history first (cached), then messages
+          const chats = await loadChatHistory();
+          if (!isMounted) return;
           
-          // Set title from loaded history
-          if (chatHistoryData.status === 'fulfilled') {
-            const thisChat = chatHistoryData.value.find(c => c._id === storedChatId);
-            setCurrentChatTitle(thisChat?.title || 'New Chat');
+          const thisChat = chats.find(c => c._id === storedChatId);
+          if (thisChat) {
+            setCurrentChatTitle(thisChat.title || 'New Chat');
+            // Load messages in background without blocking UI
+            loadMessages(storedChatId).catch(err => 
+              console.error('Background message loading failed:', err)
+            );
+          } else {
+            // Chat not found, create new one
+            await createNewChat();
           }
         } else {
           localStorage.removeItem('chatId');
           
-          // Load chat history first
+          // Load chat history (cached)
           const chats = await loadChatHistory();
+          if (!isMounted) return;
           
           if (chats.length > 0) {
             const mostRecent = chats[0];
@@ -230,45 +242,58 @@ export default function ChatWindow() {
               console.error('Background message loading failed:', err)
             );
           } else {
-            // Create new chat
-            const newChatRes = await axios.post(
-              `${import.meta.env.VITE_APP_BE_BASEURL}/api/chats`,
-              {},
-              { headers: { 'Content-Type': 'application/json' }, withCredentials: true }
-            );
-            if (!newChatRes.data?._id) throw new Error('Failed to create new chat: No ID returned');
-            
-            const newChatId = newChatRes.data._id;
-            const newChat = {
-              _id: newChatId,
-              title: 'New Chat',
-              startedAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-              messages: []
-            };
-            
-            setChatId(newChatId);
-            setCurrentChatTitle('New Chat');
-            localStorage.setItem('chatId', newChatId);
-            setMessages([]);
-            
-            // Update chat history optimistically
-            setChatHistory([newChat]);
-            setChatHistoryCache([newChat]);
-            setCacheTimestamp(Date.now());
+            await createNewChat();
           }
         }
       } catch (err) {
+        if (!isMounted) return;
         console.error('Error initializing chat:', err);
         if (err.response?.status === 401) setError('Session expired. Please sign in again.');
         else if (err.response?.status >= 500) setError('Server error. Please try again later.');
         else setError(`Failed to initialize chat: ${err.message}`);
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
+    
+    const createNewChat = async () => {
+      const newChatRes = await axios.post(
+        `${import.meta.env.VITE_APP_BE_BASEURL}/api/chats`,
+        {},
+        { headers: { 'Content-Type': 'application/json' }, withCredentials: true }
+      );
+      if (!isMounted) return;
+      
+      if (!newChatRes.data?._id) throw new Error('Failed to create new chat: No ID returned');
+      
+      const newChatId = newChatRes.data._id;
+      const newChat = {
+        _id: newChatId,
+        title: 'New Chat',
+        startedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        messages: []
+      };
+      
+      setChatId(newChatId);
+      setCurrentChatTitle('New Chat');
+      localStorage.setItem('chatId', newChatId);
+      setMessages([]);
+      
+      // Update chat history optimistically
+      setChatHistory([newChat]);
+      setChatHistoryCache([newChat]);
+      setCacheTimestamp(Date.now());
+    };
+    
     initializeChat();
-  }, [isSignedIn, loadChatHistory, loadMessages]);
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [isSignedIn]); // Removed loadChatHistory and loadMessages from dependencies
 
   // Auto-scroll when messages change
   useEffect(() => {
