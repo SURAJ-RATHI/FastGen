@@ -7,6 +7,7 @@ import { IoMdAttach } from 'react-icons/io';
 import { FiShare2, FiTrash2, FiMoreVertical, FiEdit3, FiSearch } from 'react-icons/fi';
 import ReactMarkdown from 'react-markdown';
 import ShareModal from './ShareModal.jsx';
+import TypingIndicator from './TypingIndicator.jsx';
 
 // Memoized Message Component for better performance
 const MessageItem = React.memo(({ msg, idx, user, searchQuery, highlightSearchTerms }) => {
@@ -21,10 +22,20 @@ const MessageItem = React.memo(({ msg, idx, user, searchQuery, highlightSearchTe
         <div className={`${msg.sender === 'user' ? 'max-w-[70%] text-right' : 'flex-1'} text-gray-100`}>
           {msg.sender === 'ai' ? (
             <div className="prose prose-invert max-w-none prose-sm">
-              {searchQuery ? 
-                highlightSearchTerms(msg.content, searchQuery) : 
-                <ReactMarkdown>{msg.content}</ReactMarkdown>
-              }
+              {msg.isStreaming ? (
+                <div className="flex items-center space-x-2">
+                  <ReactMarkdown>{msg.content}</ReactMarkdown>
+                  <div className="flex space-x-1">
+                    <div className="w-1 h-1 bg-gray-400 rounded-full animate-pulse"></div>
+                    <div className="w-1 h-1 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                    <div className="w-1 h-1 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                  </div>
+                </div>
+              ) : (
+                searchQuery ? 
+                  highlightSearchTerms(msg.content, searchQuery) : 
+                  <ReactMarkdown>{msg.content}</ReactMarkdown>
+              )}
             </div>
           ) : (
             <div className="whitespace-pre-wrap">
@@ -278,19 +289,15 @@ export default function ChatWindow() {
 
     try {
       setIsTyping(true);
-      const res = await axios.post(
-        `${import.meta.env.VITE_APP_BE_BASEURL}/api/gemini`,
-        { chatId, prompt: originalPrompt, parsedFileName: uploadedParsedFileName },
-        { withCredentials: true }
-      );
-      if (!res.data?.answer) throw new Error('No answer received from server');
-
-      const aiMessage = { sender: 'ai', content: res.data.answer };
-      setMessages(prev => {
-        const updated = [...prev, aiMessage];
-        // Don't set temporary title - let server generate proper title
-        return updated;
-      });
+      
+      // Try streaming first, fallback to regular request if it fails
+      try {
+        await handleStreamingResponse(originalPrompt);
+      } catch (streamingError) {
+        console.log('Streaming failed, falling back to regular request:', streamingError);
+        await handleRegularResponse(originalPrompt);
+      }
+      
       setUploadedParsedFileName('');
       
       // Refresh chat title if we have 4 or 8 messages (when server generates title)
@@ -309,6 +316,119 @@ export default function ChatWindow() {
     } finally {
       setIsTyping(false);
     }
+  };
+
+  const handleStreamingResponse = async (originalPrompt) => {
+    // Use fetch for POST request with streaming
+    const response = await fetch(`${import.meta.env.VITE_APP_BE_BASEURL}/api/gemini/stream`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        chatId,
+        prompt: originalPrompt,
+        parsedFileName: uploadedParsedFileName || ''
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let aiMessageContent = '';
+    let aiMessageIndex = -1;
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        
+        if (done) break;
+        
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n');
+        
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              
+              switch (data.type) {
+                case 'connected':
+                  console.log('Stream connected');
+                  break;
+                  
+                case 'typing':
+                  // Add placeholder AI message
+                  setMessages(prev => {
+                    const updated = [...prev, { sender: 'ai', content: '', isStreaming: true }];
+                    aiMessageIndex = updated.length - 1;
+                    return updated;
+                  });
+                  break;
+                  
+                case 'chunk':
+                  // Update AI message with new content
+                  aiMessageContent += data.content;
+                  setMessages(prev => {
+                    const updated = [...prev];
+                    if (updated[aiMessageIndex]) {
+                      updated[aiMessageIndex] = { 
+                        sender: 'ai', 
+                        content: aiMessageContent,
+                        isStreaming: true 
+                      };
+                    }
+                    return updated;
+                  });
+                  break;
+                  
+                case 'complete':
+                  // Mark streaming as complete
+                  setMessages(prev => {
+                    const updated = [...prev];
+                    if (updated[aiMessageIndex]) {
+                      updated[aiMessageIndex] = { 
+                        sender: 'ai', 
+                        content: aiMessageContent,
+                        isStreaming: false 
+                      };
+                    }
+                    return updated;
+                  });
+                  return;
+                  
+                case 'error':
+                  throw new Error(data.message);
+              }
+            } catch (parseError) {
+              console.error('Error parsing SSE data:', parseError);
+            }
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
+  };
+
+  const handleRegularResponse = async (originalPrompt) => {
+    const res = await axios.post(
+      `${import.meta.env.VITE_APP_BE_BASEURL}/api/gemini`,
+      { chatId, prompt: originalPrompt, parsedFileName: uploadedParsedFileName },
+      { withCredentials: true }
+    );
+    if (!res.data?.answer) throw new Error('No answer received from server');
+
+    const aiMessage = { sender: 'ai', content: res.data.answer };
+    setMessages(prev => {
+      const updated = [...prev, aiMessage];
+      // Don't set temporary title - let server generate proper title
+      return updated;
+    });
   };
 
   const handleKeyDown = (e) => {

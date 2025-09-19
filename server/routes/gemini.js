@@ -273,6 +273,54 @@ ${relevantPastMessages.map(msg => `- ${msg.sender === 'user' ? 'User' : 'AI'}: $
 const rawKeys = process.env.GEMINI_KEYS.split(',').map(k => k.trim());
 const apiKeys = rawKeys.map(key => ({ key, active: true }));
 
+// Streaming response generator
+async function* generateStreamingResponse(prompt) {
+  let lastUsedKeyIndex = -1;
+  
+  for (let attempt = 0; attempt < apiKeys.length; attempt++) {
+    const keyIndex = (lastUsedKeyIndex + 1) % apiKeys.length;
+    const currentKey = apiKeys[keyIndex];
+    
+    if (!currentKey.active) {
+      continue;
+    }
+    
+    try {
+      console.log(`Attempting streaming with key ${keyIndex + 1}/${apiKeys.length}`);
+      
+      const genAI = new GoogleGenerativeAI(currentKey.key);
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      
+      const result = await model.generateContentStream(prompt);
+      
+      for await (const chunk of result.stream) {
+        const chunkText = chunk.text();
+        if (chunkText) {
+          yield { text: chunkText };
+        }
+      }
+      
+      // Success - mark this key as used and return
+      lastUsedKeyIndex = keyIndex;
+      return;
+      
+    } catch (error) {
+      console.error(`Streaming failed with key ${keyIndex + 1}:`, error.message);
+      
+      // If it's a quota or rate limit error, deactivate this key
+      if (error.message.includes('quota') || error.message.includes('rate limit') || error.message.includes('429')) {
+        currentKey.active = false;
+        console.log(`Deactivated key ${keyIndex + 1} due to quota/rate limit`);
+      }
+      
+      // Continue to next key
+      continue;
+    }
+  }
+  
+  throw new Error("All API keys failed or exhausted for streaming");
+}
+
 // api rotation function
 async function generateWithFallback(prompt) {
   for (const apiKeyObj of apiKeys) {
@@ -347,7 +395,279 @@ Please provide a helpful, accurate, and well-structured response.`;
   throw new Error("All API keys failed or exhausted");
 }
 
-// gemini res request
+// gemini streaming request
+router.post('/stream', async (req, res) => {
+  try {
+    const { chatId, prompt, parsedFileName } = req.body;
+
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    // Set up Server-Sent Events
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Headers': 'Cache-Control'
+    });
+
+    // Send initial connection event
+    res.write('data: {"type":"connected","message":"Stream started"}\n\n');
+
+    const userMessage = await Message.create({
+      chat: chatId,
+      sender: 'user',
+      content: prompt,
+    });
+
+    // Add message to chat's messages array
+    await Chat.findByIdAndUpdate(chatId, {
+      $push: { messages: userMessage._id }
+    });
+
+    const userPref = await UserPreference.findOne({ user: req.user.userId });
+    const user = await User.findById(req.user.userId);
+
+    // Build comprehensive conversation context using RAG
+    const conversationContext = await buildConversationContext(req.user.userId, chatId, prompt);
+
+    let parseText = "";
+    let parsedFilePath = "";
+
+    const uploadDir = path.join(process.cwd(), 'uploads');
+
+    if (parsedFileName) {
+       parsedFilePath = path.join(uploadDir, parsedFileName);
+      if (fs.existsSync(parsedFilePath)) {
+        parseText = fs.readFileSync(parsedFilePath, 'utf-8');
+      } else {
+        res.write('data: {"type":"error","message":"File not found or unreadable"}\n\n');
+        res.end();
+        return;
+      }
+    }
+
+    // Enhanced user info extraction
+    const userName = user?.displayName || user?.name || userPref?.name || 'User';
+    const userEmail = user?.email || 'Not specified';
+    const userEducation = userPref?.educationStatus || 'Not specified';
+    const userStyle = userPref?.explanationStyle || 'Not specified';
+    const userLanguage = userPref?.comfortLanguage || 'Not specified';
+    const userGender = userPref?.gender || 'Not specified';
+
+    const userInfo = `USER PROFILE:
+- Name: ${userName}
+- Email: ${userEmail}
+- Education Level: ${userEducation}
+- Preferred Style: ${userStyle}
+- Comfortable Language: ${userLanguage}
+- Gender: ${userGender}
+
+`;
+
+    const systemInstructions = `
+You are **FastGen AI**, an intelligent, adaptive, and user-friendly assistant.  
+Your mission is to respond like ChatGPT: clear, helpful, structured, and friendly — while naturally adapting tone to the user.  
+
+---
+
+## 1. CONVERSATION FLOW
+- Do **not** start every message with "Hello User!".  
+- Use a greeting only:  
+  - ✅ At the **first interaction** (personalized if user details like name are known).  
+  - ✅ At a **new context shift** (e.g., starting a fresh topic).  
+  - ❌ Not on every reply in an ongoing chat.  
+- Avoid repetitive apologies. Instead, adapt behavior silently.  
+
+---
+
+## 2. TONE ADAPTATION
+- Mirror the **user's tone and style**:  
+  - If user is casual: *"hello bhai"* → reply casually: *"Arre hi Suraj bhai 👋😄 Kaise ho?"*  
+  - If user is formal: *"Explain binary search."* → reply professionally, with structure.  
+  - If user is emotional: respond empathetically and reassuringly.  
+- Use emojis **sparingly** in casual/warm responses, but avoid them in serious or technical contexts.  
+
+---
+
+## 3. ANSWERING BEHAVIOR
+- Always give **direct, accurate answers first**, then expand with details/examples if helpful.  
+- Do **not** over-clarify unless essential. Example:  
+  - ❌ "Since you didn't specify which president…"  
+  - ✅ "If you meant the U.S. President, it's Joe Biden. If you were asking about another country, let me know 👍."  
+- Keep responses **focused** — avoid filler sentences like "I understand you're asking about…"  
+- If unsure, admit limitations and suggest next steps.  
+
+---
+
+## 4. PERSONALIZATION
+- Reference user's **name or context** when available.  
+- Adapt explanations to **user's knowledge level** (simple for beginners, detailed for advanced).  
+- Make examples relatable and culturally sensitive.  
+
+---
+
+## 5. STYLE & FORMATTING
+- Use **markdown**:  
+  - Headings (##),  
+  - Lists (- or 1.),  
+  - Code blocks when explaining technical concepts.  
+- Highlight important terms with **bold** or *italics*.  
+- Provide **actionable insights or next steps** where relevant.  
+
+---
+
+## 6. EXAMPLES OF IDEAL RESPONSES
+- User: *"hello bhai"*  
+  Response: *"Arre hi Suraj bhai 👋😄 Kaise ho?"*  
+
+- User: *"who is pm of india"*  
+  Response: *"The current Prime Minister of India is **Narendra Modi**. He has been in office since May 26, 2014, representing the Bharatiya Janata Party (BJP)."*  
+
+- User: *"what is president work and who is currently president"*  
+  Response:  
+  *"The role of a President varies by country, but generally they are responsible for leading the government, representing the nation abroad, and ensuring laws are upheld.  
+  - In the **U.S.**, the President is head of state and commander-in-chief of the armed forces.  
+  - In **India**, the President serves as the ceremonial head of state with constitutional powers.  
+
+  Currently:  
+  - U.S. President → **Joe Biden**  
+  - Indian President → **Droupadi Murmu***  
+
+---
+
+## 7. IDENTITY
+You are not just answering questions — you are a **guide, mentor, and companion**.  
+Every response should feel **natural, human-like, and confidence-boosting**.  
+
+`;
+
+    // Use comprehensive conversation context from RAG
+    const conversationMemory = conversationContext;
+
+    let finalPrompt = `${systemInstructions}
+
+${userInfo}
+
+${conversationMemory}
+
+CURRENT USER QUERY: ${prompt}
+
+IMPORTANT: 
+- Address the user by name: ${userName}
+- Use your long-term memory and relevant past conversations for context
+- Reference previous discussions when relevant
+- Provide a helpful, accurate, and well-structured response
+- Maintain conversation continuity across sessions`;
+
+    if (parseText) {
+      finalPrompt += `\n text/file: ${parseText}`;
+    }
+
+    console.log('=== STREAMING DEBUG INFO ===');
+    console.log('User ID:', req.user.userId);
+    console.log('User Name:', userName);
+    console.log('User Email:', userEmail);
+    console.log('User Education:', userEducation);
+    console.log('User Style:', userStyle);
+    console.log('Conversation Context Length:', conversationContext.length);
+    console.log('Final Prompt Length:', finalPrompt.length);
+    console.log('=== END STREAMING DEBUG ===');
+
+    // Send typing indicator
+    res.write('data: {"type":"typing","message":"AI is thinking..."}\n\n');
+
+    // Generate streaming response
+    const streamingResponse = await generateStreamingResponse(finalPrompt);
+    
+    let fullResponse = '';
+    
+    for await (const chunk of streamingResponse) {
+      if (chunk.text) {
+        fullResponse += chunk.text;
+        res.write(`data: {"type":"chunk","content":"${JSON.stringify(chunk.text).slice(1, -1)}"}\n\n`);
+      }
+    }
+
+    // Send completion event
+    res.write('data: {"type":"complete","message":"Response complete"}\n\n');
+
+    // Clean up uploaded file
+    if (parsedFilePath && fs.existsSync(parsedFilePath)) {
+      fs.unlinkSync(parsedFilePath);
+    }
+
+    // Store both user message and AI response in long-term memory
+    addToMemory(req.user.userId, chatId, prompt, 'user');
+    addToMemory(req.user.userId, chatId, fullResponse, 'ai');
+
+    const aiMessage = await Message.create({
+      chat: chatId,
+      sender: 'ai',
+      content: fullResponse,
+    });
+
+    // Add AI message to chat's messages array
+    await Chat.findByIdAndUpdate(chatId, {
+      $push: { messages: aiMessage._id }
+    });
+
+    // Store vectors in Pinecone for semantic search
+    try {
+      // Store user message vector
+      await pineconeService.upsertMessage(
+        req.user.userId, 
+        chatId, 
+        userMessage._id, 
+        prompt, 
+        'user',
+        { chatTitle: await Chat.findById(chatId).select('title').then(c => c?.title) }
+      );
+      
+      // Store AI response vector
+      await pineconeService.upsertMessage(
+        req.user.userId, 
+        chatId, 
+        aiMessage._id, 
+        fullResponse, 
+        'ai',
+        { chatTitle: await Chat.findById(chatId).select('title').then(c => c?.title) }
+      );
+    } catch (pineconeError) {
+      console.error('Failed to store vectors in Pinecone:', pineconeError);
+      // Continue execution - Pinecone failure shouldn't break the chat
+    }
+
+    // Generate/update chat title more frequently for better UX
+    try {
+      const messageCount = await Message.countDocuments({ chat: chatId });
+      if (messageCount === 2 || messageCount === 4 || messageCount === 8) { // Generate title at 2nd, 4th, and 8th message
+        const chatMessages = await Message.find({ chat: chatId })
+          .sort({ createdAt: 1 })
+          .limit(Math.min(messageCount, 6)); // Use more messages for better title generation
+        
+        const newTitle = await generateChatTitle(chatMessages);
+        
+        // Update chat title
+        await Chat.findByIdAndUpdate(chatId, { title: newTitle });
+        console.log(`Updated chat title to: ${newTitle} (message count: ${messageCount})`);
+      }
+    } catch (error) {
+      console.error('Error updating chat title:', error);
+    }
+
+    res.end();
+
+  } catch (err) {
+    console.error('Streaming error:', err);
+    res.write(`data: {"type":"error","message":"${err.message}"}\n\n`);
+    res.end();
+  }
+});
+
+// gemini res request (non-streaming fallback)
 router.post('/', async (req, res) => {
   try {
     const { chatId, prompt, parsedFileName } = req.body;
