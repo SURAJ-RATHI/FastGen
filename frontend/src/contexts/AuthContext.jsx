@@ -6,6 +6,7 @@ const AuthContext = createContext();
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
+    return null;
   }
   return context;
 };
@@ -39,7 +40,7 @@ export const AuthProvider = ({ children }) => {
       const response = await axios.get(`${import.meta.env.VITE_APP_BE_BASEURL}/api/auth/me`);
       setUser(response.data);
       setIsSignedIn(true);
-    } catch (error) {
+    } catch {
       // Token is invalid, clear it
       localStorage.removeItem('authToken');
       setToken(null);
@@ -64,7 +65,7 @@ export const AuthProvider = ({ children }) => {
       setIsSignedIn(true);
       
       return { success: true };
-    } catch (error) {
+    } catch {
       
       if (error.code === 'ERR_NETWORK') {
         return { 
@@ -98,7 +99,7 @@ export const AuthProvider = ({ children }) => {
       setIsSignedIn(true);
       
       return { success: true };
-    } catch (error) {
+    } catch {
       return { success: false };
     }
   };
@@ -117,7 +118,7 @@ export const AuthProvider = ({ children }) => {
       }
       
       return { success: false };
-    } catch (error) {
+    } catch {
       return { success: false };
     }
   };
@@ -125,7 +126,8 @@ export const AuthProvider = ({ children }) => {
   const signOut = async () => {
     try {
       await axios.post(`${import.meta.env.VITE_APP_BE_BASEURL}/api/auth/logout`);
-    } catch (error) {
+    } catch {
+      // Silently handle error
     } finally {
       localStorage.removeItem('authToken');
       setToken(null);
@@ -138,8 +140,8 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await axios.get(`${import.meta.env.VITE_APP_BE_BASEURL}/api/user/me`);
       return response.data;
-    } catch (error) {
-      throw error;
+    } catch {
+      throw new Error();
     }
   };
 

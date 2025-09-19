@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { FiPlay, FiExternalLink, FiX } from 'react-icons/fi';
 
 export default function VideoSearch() {
@@ -89,40 +89,79 @@ export default function VideoSearch() {
   const [showVideoPlayer, setShowVideoPlayer] = useState(false);
   const [showVideoPreview, setShowVideoPreview] = useState(false);
 
-  const handleSearch = () => {
+  const handleSearch = useCallback(() => {
     // Implement actual search functionality here
-  };
+  }, []);
 
-  const handleVideoCardClick = (video) => {
-    
+  const handleVideoCardClick = useCallback((video) => {
     setSelectedVideo(video);
-    
     setShowVideoPlayer(true);
-    
-    // Log the updated state after a brief delay
-    setTimeout(() => {
-    }, 100);
-  };
+  }, []);
 
-  const handlePlayVideo = () => {
-    // This function is now called from the preview modal if needed
+  const handlePlayVideo = useCallback(() => {
     setShowVideoPreview(false);
     setShowVideoPlayer(true);
-  };
+  }, []);
 
-  const handlePlayOnYouTube = (videoId) => {
+  const handlePlayOnYouTube = useCallback((videoId) => {
     window.open(`https://www.youtube.com/watch?v=${videoId}`, '_blank');
-  };
+  }, []);
 
-  const handleClosePreview = () => {
+  const handleClosePreview = useCallback(() => {
     setShowVideoPreview(false);
     setSelectedVideo(null);
-  };
+  }, []);
 
-  const handleCloseVideo = () => {
+  const handleCloseVideo = useCallback(() => {
     setShowVideoPlayer(false);
     setSelectedVideo(null);
-  };
+  }, []);
+
+  // Memoize video grid for better performance
+  const videoGrid = useMemo(() => (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {videos.map((video, index) => (
+        <div
+          key={video.id}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleVideoCardClick(video);
+          }}
+          className="bg-gray-800 rounded-lg p-4 hover:bg-gray-700 hover:scale-105 transition-all duration-200 border border-gray-700 hover:border-blue-500 cursor-pointer select-none shadow-lg hover:shadow-xl"
+        >
+          <div className="relative">
+            <img
+              alt={video.title}
+              className="w-full h-32 object-cover rounded-lg mb-3"
+              src={video.thumbnail}
+            />
+            <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+              #{index + 1}
+            </div>
+            <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+              {video.duration}
+            </div>
+          </div>
+          </div>
+          </div>
+          <div>
+            <h3
+              className="text-gray-200 font-semibold text-sm mb-2 overflow-hidden"
+              style={{
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical'
+              }}
+            >
+              {video.title}
+            </h3>
+            <p className="text-gray-400 text-xs mb-3">{video.channel}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  ), [videos, handleVideoCardClick]);
 
   return (
     <div className="bg-[#113] bg-opacity-40 backdrop-blur-md rounded-lg shadow-lg border hover:shadow-[0_0_10px_rgba(90,175,255,0.4)] border-gray-700 p-4 max-w-xl mx-auto mt-1" style={{ height: '88vh' }}>
@@ -131,7 +170,8 @@ export default function VideoSearch() {
         <h2 className="text-xl font-semibold text-white">Video Search</h2>
         <div className="flex gap-2">
           <button
-            onClick={() => window.open('https://www.youtube.com', '_blank')}
+            onClick={() => window.open('https://www.youtube.com', '_blank');
+          }}
             className="bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded transition-colors flex items-center gap-2"
           >
             <FiExternalLink className="w-4 h-4" />
@@ -154,7 +194,7 @@ export default function VideoSearch() {
           <input
             id="topic"
             placeholder="e.g., Quadratic Equations"
-            className="flex-1 px-4 py-2 rounded bg-gray-800 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 px-4 py-2 rounded bg-gray-800 text-gray-200 focus:outline-none focus:ring-2 ring-blue-500"
             type="text"
             value={searchTopic}
             onChange={(e) => setSearchTopic(e.target.value)}
@@ -171,54 +211,14 @@ export default function VideoSearch() {
       {/* Results Count */}
       <div className="mb-4">
         <div className="text-gray-300 text-center">
-          <span className="bg-blue-600 px-3 py-1 rounded-full text-sm">{videos.length} videos found</span>
+          <span className="bg-blue-600 px-3 py-1 rounded-full text-sm">{videos.length} videos found
+          </span>
         </div>
       </div>
 
       {/* Video Grid */}
       <div className="overflow-y-auto" style={{ height: 'calc(88vh - 200px)' }}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {videos.map((video, index) => (
-            <div
-              key={video.id}
-              onClick={(e) => {
-                
-                e.preventDefault();
-                e.stopPropagation();
-                
-                handleVideoCardClick(video);
-              }}
-              className="bg-gray-800 rounded-lg p-4 hover:bg-gray-700 hover:scale-105 transition-all duration-200 border border-gray-700 hover:border-blue-500 cursor-pointer select-none shadow-lg hover:shadow-xl"
-            >
-              <div className="relative">
-                <img
-                  alt={video.title}
-                  className="w-full h-32 object-cover rounded-lg mb-3"
-                  src={video.thumbnail}
-                />
-                <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
-                  #{index + 1}
-                </div>
-                <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
-                  {video.duration}
-                </div>
-              </div>
-              <div>
-                <h3
-                  className="text-gray-200 font-semibold text-sm mb-2 overflow-hidden"
-                  style={{
-                    display: '-webkit-box',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical'
-                  }}
-                >
-                  {video.title}
-                </h3>
-                <p className="text-gray-400 text-xs mb-3">{video.channel}</p>
-              </div>
-            </div>
-          ))}
-        </div>
+        {videoGrid}
       </div>
 
       {/* Video Preview Modal */}
@@ -255,25 +255,23 @@ export default function VideoSearch() {
             <div className="mt-4 flex justify-between items-center">
               <div>
                 <p className="text-gray-300 text-sm">Channel: {selectedVideo.channel}</p>
-                <p className="text-gray-400 text-xs">Duration: {selectedVideo.duration}</p>
-              </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={handlePlayVideo}
-                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition-colors flex items-center gap-2"
-                >
-                  <FiPlay className="w-4 h-4" />
-                  Play Video
-                </button>
-                <button
-                  onClick={() => handlePlayOnYouTube(selectedVideo.videoId)}
-                  className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded transition-colors flex items-center gap-2"
-                >
-                  <FiExternalLink className="w-4 h-4" />
-                  Open on YouTube
-                </button>
-              </div>
+              <p className="text-gray-400 text-xs">Duration: {selectedVideo.duration}
             </div>
+            <div className="flex gap-3">
+              <button
+                onClick={handlePlayVideo}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition-colors flex items-center gap-2"
+              >
+                <FiPlay className="w-4 h-4" />
+                Play Video
+              </button>
+              <button
+                onClick={() => handlePlayOnYouTube(selectedVideo.videoId)}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition-colors flex items-center gap-2"
+              >
+                <FiExternalLink className="w-4 h-4" />
+                Open on YouTube
+            </button>
           </div>
         </div>
       )}

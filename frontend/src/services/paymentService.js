@@ -53,13 +53,12 @@ class PaymentService {
   }
 
   // Process payment with modern UI
-  async processPayment(amount, plan, onSuccess, onError) {
+  async processPayment(amount, plan) {
     try {
       // Create order
       const orderResponse = await this.createOrder(amount, plan);
       
-      if (!orderResponse.success) {
-      }
+      if (!orderResponse.success) return;
 
       const order = orderResponse.order;
 
@@ -87,13 +86,12 @@ class PaymentService {
   }
 
   // Legacy Razorpay popup method (kept for fallback)
-  async processPaymentLegacy(amount, plan, onSuccess, onError) {
+  async processPaymentLegacy(amount, plan, onSuccess) {
     try {
       // Create order
       const orderResponse = await this.createOrder(amount, plan);
       
-      if (!orderResponse.success) {
-      }
+      if (!orderResponse.success) return;
 
       const order = orderResponse.order;
 
@@ -117,9 +115,9 @@ class PaymentService {
 
             if (verifyResponse.success) {
               onSuccess(verifyResponse.subscription);
-            } else {
             }
           } catch (error) {
+            // Silently handle error
           }
         },
         prefill: {
@@ -131,6 +129,7 @@ class PaymentService {
         },
         modal: {
           ondismiss: () => {
+            // Silently handle dismissal
           }
         }
       };
@@ -140,6 +139,7 @@ class PaymentService {
       razorpay.open();
 
     } catch (error) {
+      // Silently handle error
     }
   }
 }

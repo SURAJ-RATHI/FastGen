@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import axios from 'axios';
 import { LuSendHorizontal } from 'react-icons/lu';
@@ -9,8 +9,49 @@ import ShareModal from './ShareModal.jsx';
 import TypingIndicator from './TypingIndicator.jsx';
 import UpgradeModal from './UpgradeModal.jsx';
 
+// Debounce utility function for performance optimization
+const debounce = (func, wait) => {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+};
+
 // Memoized Message Component for better performance
 const MessageItem = React.memo(({ msg, user, searchQuery, highlightSearchTerms }) => {
+  const userInitial = useMemo(() => {
+    return user?.displayName?.charAt(0) || user?.name?.charAt(0) || user?.email?.charAt(0) || 'U';
+  }, [user?.displayName, user?.name, user?.email]);
+
+  const messageContent = useMemo(() => {
+    if (msg.sender === 'ai') {
+      if (msg.isStreaming) {
+        return (
+          <div className="flex items-center space-x-2">
+            <ReactMarkdown>{msg.content}</ReactMarkdown>
+            <div className="flex space-x-1">
+              <div className="w-1 h-1 bg-gray-400 rounded-full animate-pulse"></div>
+              <div className="w-1 h-1 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+              <div className="w-1 h-1 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+            </div>
+          </div>
+        );
+      }
+      return searchQuery ? 
+        highlightSearchTerms(msg.content, searchQuery) : 
+        <ReactMarkdown>{msg.content}</ReactMarkdown>;
+    } else {
+      return searchQuery ? 
+        highlightSearchTerms(msg.content, searchQuery) : 
+        msg.content;
+    }
+  }, [msg.sender, msg.content, msg.isStreaming, searchQuery, highlightSearchTerms]);
+
   return (
     <div className="py-4 px-4">
       <div className={`max-w-3xl mx-auto flex gap-4 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -22,37 +63,30 @@ const MessageItem = React.memo(({ msg, user, searchQuery, highlightSearchTerms }
         <div className={`${msg.sender === 'user' ? 'max-w-[70%] text-right' : 'flex-1'} text-gray-100`}>
           {msg.sender === 'ai' ? (
             <div className="prose prose-invert max-w-none prose-sm">
-              {msg.isStreaming ? (
-                <div className="flex items-center space-x-2">
-                  <ReactMarkdown>{msg.content}</ReactMarkdown>
-                  <div className="flex space-x-1">
-                    <div className="w-1 h-1 bg-gray-400 rounded-full animate-pulse"></div>
-                    <div className="w-1 h-1 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                    <div className="w-1 h-1 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
-                  </div>
-                </div>
-              ) : (
-                searchQuery ? 
-                  highlightSearchTerms(msg.content, searchQuery) : 
-                  <ReactMarkdown>{msg.content}</ReactMarkdown>
-              )}
+              {messageContent}
             </div>
           ) : (
             <div className="whitespace-pre-wrap">
-              {searchQuery ? 
-                highlightSearchTerms(msg.content, searchQuery) : 
-                msg.content
-              }
+              {messageContent}
             </div>
           )}
         </div>
         {msg.sender === 'user' && (
           <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-medium text-white flex-shrink-0">
-            {user?.displayName?.charAt(0) || user?.name?.charAt(0) || user?.email?.charAt(0) || 'U'}
+            {userInitial}
           </div>
         )}
       </div>
     </div>
+  );
+}, (prevProps, nextProps) => {
+  // Custom comparison function for better performance
+  return (
+    prevProps.msg.content === nextProps.msg.content &&
+    prevProps.msg.sender === nextProps.msg.sender &&
+    prevProps.msg.isStreaming === nextProps.msg.isStreaming &&
+    prevProps.searchQuery === nextProps.searchQuery &&
+    prevProps.user?.id === nextProps.user?.id
   );
 });
 
@@ -61,16 +95,18 @@ export default function ChatWindow() {
   
   // User data loaded
 
-  // Hide scrollbars util
+  // Hide scrollbars util - memoized to prevent recreation
+  const scrollbarStyles = useMemo(() => `
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+  `, []);
+
   useEffect(() => {
     const style = document.createElement('style');
-    style.textContent = `
-      .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-      .scrollbar-hide::-webkit-scrollbar { display: none; }
-    `;
+    style.textContent = scrollbarStyles;
     document.head.appendChild(style);
     return () => document.head.removeChild(style);
-  }, []);
+  }, [scrollbarStyles]);
 
   const [messages, setMessages] = useState([]);
   const [prompt, setPrompt] = useState('');
@@ -124,7 +160,7 @@ export default function ChatWindow() {
       if (!Array.isArray(messages)) throw new Error('Invalid messages response: Expected an array');
       
       setMessages(messages);
-    } catch (err) {
+    } catch {
       if (err.response?.status === 500 && err.response?.data?.error?.includes('Cast to ObjectId failed')) {
         // New chat with no messages yet
         setMessages([]);
@@ -135,10 +171,10 @@ export default function ChatWindow() {
 
   const loadChatHistory = useCallback(async (limit = 20, forceRefresh = false) => {
     try {
-      // Check cache first (10 minute cache for better performance)
+      // Check cache first (5 minute cache for better performance)
       const now = Date.now();
       const cacheAge = now - (cacheTimestamp || 0);
-      const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
+      const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes - reduced for fresher data
       
       if (!forceRefresh && chatHistoryCache && cacheAge < CACHE_DURATION) {
         setChatHistory(chatHistoryCache);
@@ -147,11 +183,14 @@ export default function ChatWindow() {
       
       const res = await axios.get(`${import.meta.env.VITE_APP_BE_BASEURL}/api/chats/getChat`, {
         withCredentials: true,
-        params: { limit, sort: 'updatedAt' }
+        params: { limit, sort: 'updatedAt' },
+        timeout: 8000 // 8 second timeout for faster failure
       });
       
       const chats = Array.isArray(res.data) ? res.data : res.data?.chats || [];
       if (!Array.isArray(chats)) throw new Error('Invalid chats response: Expected an array');
+      
+      // Sort chats by updatedAt for better performance
       const sorted = chats.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
       
       // Update cache
@@ -159,7 +198,8 @@ export default function ChatWindow() {
       setCacheTimestamp(now);
       setChatHistory(sorted);
       return sorted; // important so callers can use immediately
-    } catch (err) {
+    } catch {
+      console.error('Failed to load chat history:', err);
       return [];
     }
   }, [chatHistoryCache, cacheTimestamp]);
@@ -215,7 +255,7 @@ export default function ChatWindow() {
           // Always create a new chat when no stored chatId (e.g., from "Explore Now" button)
           await createNewChat();
         }
-      } catch (err) {
+      } catch {
         if (!isMounted) return;
       } finally {
         if (isMounted) {
@@ -283,7 +323,7 @@ export default function ChatWindow() {
       // Try streaming first, fallback to regular request if it fails
       try {
         await handleStreamingResponse(originalPrompt);
-      } catch (streamingError) {
+      } catch {
         await handleRegularResponse(originalPrompt);
       }
       
@@ -295,7 +335,7 @@ export default function ChatWindow() {
           loadChatHistory(20, true); // Force refresh to get updated title
         }, 1000);
       }
-    } catch (err) {
+    } catch {
       
       // Check if it's a usage limit error (429) or if it's a 500 error that might be usage-related
       if (err.response?.status === 429 && err.response?.data?.upgradeRequired) {
@@ -316,8 +356,6 @@ export default function ChatWindow() {
           featureType: 'chatbotChats'
         });
         setShowUpgradeModal(true);
-        
-      } else {
       }
     } finally {
       setIsTyping(false);
@@ -422,7 +460,8 @@ export default function ChatWindow() {
                 case 'error':
                   throw new Error(data.message);
               }
-            } catch (parseError) {
+            } catch {
+              // Silently handle error
             }
           }
         }
@@ -492,7 +531,8 @@ export default function ChatWindow() {
       setUploadedParsedFileName(res.data.parsedFileName);
       if (fileInputRef.current) fileInputRef.current.value = '';
       
-    } catch (err) {
+    } catch {
+      // Silently handle error
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
@@ -536,7 +576,8 @@ export default function ChatWindow() {
       setChatHistoryCache(prev => prev ? [newChat, ...prev] : [newChat]);
       setCacheTimestamp(Date.now());
       
-    } catch (err) {
+    } catch {
+      // Silently handle error
     } finally {
       setLoading(false);
     }
@@ -565,7 +606,8 @@ export default function ChatWindow() {
       loadMessages(id).catch(() => {
         // Silently handle error
       });
-    } catch (err) {
+    } catch {
+      // Silently handle error
     }
   };
 
@@ -592,7 +634,8 @@ export default function ChatWindow() {
       }
       setShowDeleteModal(false);
       setChatToDelete(null);
-    } catch (err) {
+    } catch {
+      // Silently handle error
     }
   };
 
@@ -601,29 +644,37 @@ export default function ChatWindow() {
     setChatToDelete(null);
   };
 
+  // Debounced search functionality for better performance
+  const debouncedSearch = useCallback(
+    debounce((query, chats) => {
+      if (!query.trim()) {
+        setFilteredChats(chats);
+        return;
+      }
+
+      const filtered = chats.filter(chat => {
+        // Search in chat title
+        const titleMatch = chat.title?.toLowerCase().includes(query.toLowerCase());
+        
+        // Search in chat messages
+        const messageMatch = chat.messages?.some(message => 
+          message.content?.toLowerCase().includes(query.toLowerCase())
+        );
+
+        return titleMatch || messageMatch;
+      });
+
+      setFilteredChats(filtered);
+    }, 300), // 300ms debounce
+    []
+  );
+
   // Search functionality - OPTIMIZED with useCallback
   const searchChats = useCallback((query) => {
-    if (!query.trim()) {
-      setFilteredChats(chatHistory);
-      return;
-    }
+    debouncedSearch(query, chatHistory);
+  }, [chatHistory, debouncedSearch]);
 
-    const filtered = chatHistory.filter(chat => {
-      // Search in chat title
-      const titleMatch = chat.title?.toLowerCase().includes(query.toLowerCase());
-      
-      // Search in chat messages
-      const messageMatch = chat.messages?.some(message => 
-        message.content?.toLowerCase().includes(query.toLowerCase())
-      );
-
-      return titleMatch || messageMatch;
-    });
-
-    setFilteredChats(filtered);
-  }, [chatHistory]);
-
-  // Highlight search terms in text - OPTIMIZED with useCallback
+  // Highlight search terms in text - OPTIMIZED with useCallback and memoization
   const highlightSearchTerms = useCallback((text, searchQuery) => {
     if (!searchQuery.trim() || !text) return text;
     
@@ -642,7 +693,7 @@ export default function ChatWindow() {
   // Update filtered chats when search query changes
   useEffect(() => {
     searchChats(searchQuery);
-  }, [searchQuery]); // Removed chatHistory from dependencies to prevent excessive re-renders
+  }, [searchQuery, searchChats]);
 
   const shareChat = async (chatIdToShare) => {
     try {
@@ -661,7 +712,8 @@ export default function ChatWindow() {
         setShowShareModal(true);
         setOpenMenuId(null);
       }
-    } catch (err) {
+    } catch {
+      // Silently handle error
     }
   };
 
@@ -680,7 +732,8 @@ export default function ChatWindow() {
         setOpenMenuId(null);
       } else {
       }
-    } catch (err) {
+    } catch {
+      // Silently handle error
     }
   };
 
