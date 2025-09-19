@@ -39,7 +39,7 @@ const Contact = () => {
 
     try {
       await axios.post(
-        `${import.meta.env.VITE_APP_BE_BASEURL}/api/email`,
+        `${import.meta.env.VITE_APP_BE_BASEURL}/api/email/send-email`,
         {
           to: 'kodr.test@gmail.com',
           subject: `FastGen Contact Form - ${formData.name}`,
