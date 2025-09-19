@@ -63,8 +63,44 @@ class PaymentService {
     }
   }
 
-  // Process payment with Razorpay
+  // Process payment with modern UI
   async processPayment(amount, plan, onSuccess, onError) {
+    try {
+      // Create order
+      const orderResponse = await this.createOrder(amount, plan);
+      
+      if (!orderResponse.success) {
+        throw new Error('Failed to create payment order');
+      }
+
+      const order = orderResponse.order;
+
+      // Return order data for modern modal
+      return {
+        success: true,
+        order: order,
+        amount: amount,
+        plan: plan
+      };
+
+    } catch (error) {
+      onError(error.message || 'Payment processing failed');
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Verify payment after modern modal completion
+  async verifyModernPayment(orderId, paymentId, signature, plan) {
+    try {
+      const verifyResponse = await this.verifyPayment(orderId, paymentId, signature, plan);
+      return verifyResponse;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Legacy Razorpay popup method (kept for fallback)
+  async processPaymentLegacy(amount, plan, onSuccess, onError) {
     try {
       // Create order
       const orderResponse = await this.createOrder(amount, plan);
