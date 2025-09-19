@@ -20,9 +20,6 @@ const Pricing = () => {
 
     // Check if user is logged in before allowing subscription
     if (!isSignedIn) {
-      if (window.showToast) {
-        window.showToast('Please sign in first to subscribe to a plan', 'warning');
-      }
       navigate('/signUp');
       return;
     }
@@ -33,25 +30,16 @@ const Pricing = () => {
         await paymentService.processPaymentLegacy(
           999, 
           'pro',
-          (subscription) => {
+          () => {
             // Payment success
-            if (window.showToast) {
-              window.showToast(`Welcome to ${subscription.plan.charAt(0).toUpperCase() + subscription.plan.slice(1)} plan!`, 'success');
-            }
             navigate('/main');
           },
-          (error) => {
-            // Payment error
-            if (window.showToast) {
-              window.showToast(`Payment failed: ${error}`, 'error');
-            }
+          () => {
+            // Payment error - silently handle
           }
         );
       } catch (error) {
         console.error('Failed to initiate payment:', error);
-        if (window.showToast) {
-          window.showToast('Payment processing failed', 'error');
-        }
       }
     }
   };

@@ -78,9 +78,6 @@ const handleSend = async () => {
       });
       setShowUpgradeModal(true);
       
-      if (window.showToast) {
-        window.showToast('Monthly limit reached! Upgrade to Pro for unlimited content generation.', 'warning');
-      }
     } else if (err.response?.status === 500) {
       // For 500 errors, check if it might be a usage limit issue
       console.log('500 error details:', err.response?.data);
@@ -92,9 +89,6 @@ const handleSend = async () => {
       });
       setShowUpgradeModal(true);
       
-      if (window.showToast) {
-        window.showToast('Service temporarily unavailable. Please try upgrading to Pro.', 'warning');
-      }
     }
   } finally {
     setIsGenerating(false);

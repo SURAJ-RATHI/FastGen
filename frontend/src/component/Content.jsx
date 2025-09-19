@@ -88,9 +88,6 @@ const Content = () => {
         });
         setShowUpgradeModal(true);
         
-        if (window.showToast) {
-          window.showToast('Monthly limit reached! Upgrade to Pro for unlimited video recommendations.', 'warning');
-        }
       } else if (err.response?.status === 500) {
         // For 500 errors, check if it might be a usage limit issue
         console.log('500 error details:', err.response?.data);
@@ -102,9 +99,6 @@ const Content = () => {
         });
         setShowUpgradeModal(true);
         
-        if (window.showToast) {
-          window.showToast('Service temporarily unavailable. Please try upgrading to Pro.', 'warning');
-        }
       } else if (err.response?.status === 500 && err.response?.data?.error?.includes('YouTube API key not set')) {
         setError('YouTube API not configured. Please contact support.');
       } else {

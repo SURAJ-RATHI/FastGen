@@ -7,7 +7,6 @@ import { useNavigate, Link } from "react-router-dom";
 
 import axios from "axios";
 import { Library } from 'lucide-react';
-import paymentService from '../services/paymentService.js';
 import useModernPayment from '../hooks/useModernPayment';
 import ModernPaymentModal from './ModernPaymentModal';
 import { useAuth } from '../contexts/AuthContext';
@@ -25,7 +24,6 @@ const LandingPage = () => {
   const {
     isModalOpen,
     paymentData,
-    isLoading,
     initiatePayment,
     handlePaymentSuccess,
     handlePaymentError,
@@ -47,42 +45,29 @@ const LandingPage = () => {
     
     // Check if user is logged in before allowing subscription
     if (!isSignedIn) {
-      if (window.showToast) {
-        window.showToast('Please sign in first to subscribe to a plan', 'warning');
-      }
       navigate('/signUp');
       return;
     }
     
     try {
       await initiatePayment(amount, plan);
-    } catch (err) {
-      if (window.showToast) {
-        window.showToast('Payment processing failed', 'error');
-      }
+    } catch {
+      // Silently handle error
     }
   };
 
   // Handle payment success
   const onPaymentSuccess = async (paymentDetails) => {
     try {
-      const result = await handlePaymentSuccess(paymentDetails);
-      if (window.showToast) {
-        window.showToast(`Welcome to ${result.subscription.plan.charAt(0).toUpperCase() + result.subscription.plan.slice(1)} plan!`, 'success');
-      }
+      await handlePaymentSuccess(paymentDetails);
       navigate('/main');
-    } catch (error) {
-      if (window.showToast) {
-        window.showToast(`Payment verification failed: ${error.message}`, 'error');
-      }
+    } catch {
+      // Silently handle error
     }
   };
 
   // Handle payment error
   const onPaymentError = (error) => {
-    if (window.showToast) {
-      window.showToast(`Payment failed: ${error}`, 'error');
-    }
     handlePaymentError(error);
   };
 

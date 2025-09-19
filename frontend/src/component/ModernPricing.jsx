@@ -90,9 +90,6 @@ const ModernPricing = () => {
 
     // Check if user is logged in before allowing subscription
     if (!isSignedIn) {
-      if (window.showToast) {
-        window.showToast('Please sign in first to subscribe to a plan', 'warning');
-      }
       navigate('/signUp');
       return;
     }

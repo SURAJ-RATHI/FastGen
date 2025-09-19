@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext.jsx';
-import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { LuSendHorizontal } from 'react-icons/lu';
 import { IoMdAttach } from 'react-icons/io';
@@ -330,9 +329,6 @@ export default function ChatWindow() {
         });
         setShowUpgradeModal(true);
         
-        if (window.showToast) {
-          window.showToast('Monthly limit reached! Upgrade to Pro for unlimited access.', 'warning');
-        }
       } else if (err.response?.status === 500) {
         // For 500 errors, check if it might be a usage limit issue
         // This is a fallback in case the middleware isn't working properly
@@ -345,15 +341,9 @@ export default function ChatWindow() {
         });
         setShowUpgradeModal(true);
         
-        if (window.showToast) {
-          window.showToast('Service temporarily unavailable. Please try upgrading to Pro.', 'warning');
-        }
       } else {
         setMessages(prev => [...prev, { sender: 'ai', content: 'Sorry, I encountered an error. Please try again.' }]);
         setError(`Failed to send message: ${err.message}`);
-        if (window.showToast) {
-          window.showToast(`Failed to send message: ${err.message}`, 'error');
-        }
       }
     } finally {
       setIsTyping(false);
@@ -504,17 +494,11 @@ export default function ChatWindow() {
     
     // Validate file type
     if (!selected.type.includes('pdf')) {
-      if (window.showToast) {
-        window.showToast('Please upload a PDF file only', 'error');
-      }
       return;
     }
     
     // Validate file size (10MB limit)
     if (selected.size > 10 * 1024 * 1024) {
-      if (window.showToast) {
-        window.showToast('File size must be less than 10MB', 'error');
-      }
       return;
     }
     
@@ -541,15 +525,9 @@ export default function ChatWindow() {
       setUploadedParsedFileName(res.data.parsedFileName);
       if (fileInputRef.current) fileInputRef.current.value = '';
       
-      if (window.showToast) {
-        window.showToast(`File "${selected.name}" uploaded successfully!`, 'success');
-      }
     } catch (err) {
       console.error('Error uploading file:', err);
       setError(`Failed to upload file: ${err.message}`);
-      if (window.showToast) {
-        window.showToast(`Failed to upload file: ${err.message}`, 'error');
-      }
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
@@ -593,15 +571,9 @@ export default function ChatWindow() {
       setChatHistoryCache(prev => prev ? [newChat, ...prev] : [newChat]);
       setCacheTimestamp(Date.now());
       
-      if (window.showToast) {
-        window.showToast('New chat created successfully', 'success');
-      }
     } catch (err) {
       console.error('Error creating new chat:', err);
       setError('Failed to create new chat');
-      if (window.showToast) {
-        window.showToast('Failed to create new chat', 'error');
-      }
     } finally {
       setLoading(false);
     }
@@ -660,14 +632,8 @@ export default function ChatWindow() {
       }
       setShowDeleteModal(false);
       setChatToDelete(null);
-      if (window.showToast) {
-        window.showToast('Chat deleted successfully', 'success');
-      }
     } catch (err) {
       console.error('Error deleting chat:', err);
-      if (window.showToast) {
-        window.showToast('Failed to delete chat. Please try again.', 'error');
-      }
     }
   };
 
@@ -738,9 +704,6 @@ export default function ChatWindow() {
       }
     } catch (err) {
       console.error('Error sharing chat:', err);
-      if (window.showToast) {
-        window.showToast('Failed to share chat. Please try again.', 'error');
-      }
     }
   };
 
@@ -760,21 +723,12 @@ export default function ChatWindow() {
         setEditingTitle('');
         setOpenMenuId(null);
         console.log('Chat renamed successfully'); // Debug log
-        if (window.showToast) {
-          window.showToast('Chat renamed successfully', 'success');
-        }
       } else {
         console.log('Rename failed - no success flag:', response.data); // Debug log
-        if (window.showToast) {
-          window.showToast('Failed to rename chat. Server response indicates failure.', 'error');
-        }
       }
     } catch (err) {
       console.error('Error renaming chat:', err);
       console.error('Error details:', err.response?.data); // Debug log
-      if (window.showToast) {
-        window.showToast(`Failed to rename chat: ${err.response?.data?.error || err.message}`, 'error');
-      }
     }
   };
 
