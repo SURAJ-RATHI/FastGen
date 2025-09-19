@@ -226,10 +226,25 @@ export default function ChatWindow() {
               { headers: { 'Content-Type': 'application/json' }, withCredentials: true }
             );
             if (!newChatRes.data?._id) throw new Error('Failed to create new chat: No ID returned');
-            setChatId(newChatRes.data._id);
+            
+            const newChatId = newChatRes.data._id;
+            const newChat = {
+              _id: newChatId,
+              title: 'New Chat',
+              startedAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              messages: []
+            };
+            
+            setChatId(newChatId);
             setCurrentChatTitle('New Chat');
-            localStorage.setItem('chatId', newChatRes.data._id);
+            localStorage.setItem('chatId', newChatId);
             setMessages([]);
+            
+            // Update chat history optimistically
+            setChatHistory([newChat]);
+            setChatHistoryCache([newChat]);
+            setCacheTimestamp(Date.now());
           }
         }
       } catch (err) {
@@ -332,17 +347,34 @@ export default function ChatWindow() {
       setMessages([]);
       setPrompt('');
       setUploadedParsedFileName('');
+      
       const newChatRes = await axios.post(
         `${import.meta.env.VITE_APP_BE_BASEURL}/api/chats`,
         {},
         { headers: { 'Content-Type': 'application/json' }, withCredentials: true }
       );
+      
       if (!newChatRes.data?._id) throw new Error('Failed to create new chat: No ID returned');
+      
       const newChatId = newChatRes.data._id;
+      const newChat = {
+        _id: newChatId,
+        title: 'New Chat',
+        startedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        messages: []
+      };
+      
+      // Update UI immediately
       setChatId(newChatId);
       setCurrentChatTitle('New Chat');
       localStorage.setItem('chatId', newChatId);
-      await loadChatHistory(20, true); // Force refresh cache
+      
+      // Update chat history optimistically (add new chat to top of list)
+      setChatHistory(prev => [newChat, ...prev]);
+      setChatHistoryCache(prev => prev ? [newChat, ...prev] : [newChat]);
+      setCacheTimestamp(Date.now());
+      
       if (window.showToast) {
         window.showToast('New chat created successfully', 'success');
       }
@@ -362,10 +394,17 @@ export default function ChatWindow() {
       setChatId(id);
       localStorage.setItem('chatId', id);
       
-      // Refresh chat history to get latest titles
-      const updatedHistory = await loadChatHistory(20, true);
-      const found = updatedHistory.find(c => c._id === id);
-      setCurrentChatTitle(found?.title || `Chat ${new Date(found?.startedAt || Date.now()).toLocaleDateString()}`);
+      // Use cached chat history first, then refresh if needed
+      const found = chatHistory.find(c => c._id === id);
+      if (found) {
+        setCurrentChatTitle(found.title || `Chat ${new Date(found.startedAt || Date.now()).toLocaleDateString()}`);
+      } else {
+        // Only refresh if chat not found in cache
+        const updatedHistory = await loadChatHistory(20, true);
+        const foundChat = updatedHistory.find(c => c._id === id);
+        setCurrentChatTitle(foundChat?.title || `Chat ${new Date(foundChat?.startedAt || Date.now()).toLocaleDateString()}`);
+      }
+      
       setPrompt('');
       setUploadedParsedFileName('');
       

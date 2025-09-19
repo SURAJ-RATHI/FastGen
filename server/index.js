@@ -3,11 +3,29 @@ import express, { urlencoded } from 'express';
 import cors from 'cors';
 import connectDB from './config/database.js';
 import { requireAuth } from './middleware/authMiddleware.js';
+import pineconeService from './services/pineconeService.js';
 
 const app = express();
 
 // Connect to MongoDB
 connectDB();
+
+// Initialize Pinecone
+const initializePinecone = async () => {
+  try {
+    if (process.env.PINECONE_API_KEY && process.env.OPENAI_API_KEY) {
+      await pineconeService.initialize();
+      console.log('Pinecone initialized successfully');
+    } else {
+      console.log('Pinecone not configured - skipping initialization');
+    }
+  } catch (error) {
+    console.error('Failed to initialize Pinecone:', error);
+    console.log('Continuing without Pinecone - using fallback context retrieval');
+  }
+};
+
+initializePinecone();
 
 const PORT = process.env.PORT || 3000;
 

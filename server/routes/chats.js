@@ -1,6 +1,7 @@
 import express from 'express';
 import Chat from '../models/Chat.js';
 import Message from '../models/Message.js';
+import pineconeService from '../services/pineconeService.js';
 
 const router = express.Router();
 
@@ -61,20 +62,13 @@ router.get('/getChat', async (req, res) => {
     // Calculate pagination
     const skip = (parseInt(page) - 1) * parseInt(limit);
     
-    // Optimized query - only get essential fields and limit messages
+    // Optimized query - get chats without populating messages for better performance
     const chats = await Chat.find(query)
       .select('title startedAt updatedAt messages')
-      .populate({
-        path: 'messages',
-        select: 'content sender sentAt',
-        options: { 
-          sort: { sentAt: 1 },
-          limit: 1 // Only get first message for preview
-        }
-      })
       .sort({ [sort]: -1 })
       .limit(parseInt(limit))
-      .skip(skip);
+      .skip(skip)
+      .lean(); // Use lean() for better performance
 
     console.log('Chats found:', chats.length);
     res.json(chats);
@@ -188,6 +182,14 @@ router.delete('/:chatId', async (req, res) => {
     // Delete all messages associated with this chat
     await Message.deleteMany({ chat: chatId });
     
+    // Delete vectors from Pinecone
+    try {
+      await pineconeService.deleteChatVectors(req.user.userId, chatId);
+    } catch (error) {
+      console.error('Failed to delete chat vectors from Pinecone:', error);
+      // Continue with chat deletion even if Pinecone fails
+    }
+    
     // Delete the chat
     await Chat.findByIdAndDelete(chatId);
     
@@ -297,6 +299,16 @@ router.delete('/bulk/delete', async (req, res) => {
 
     // Delete all messages associated with these chats
     await Message.deleteMany({ chat: { $in: chatIds } });
+    
+    // Delete vectors from Pinecone for all chats
+    try {
+      for (const chatId of chatIds) {
+        await pineconeService.deleteChatVectors(req.user.userId, chatId);
+      }
+    } catch (error) {
+      console.error('Failed to delete chat vectors from Pinecone:', error);
+      // Continue with chat deletion even if Pinecone fails
+    }
     
     // Delete the chats
     await Chat.deleteMany({ _id: { $in: chatIds } });

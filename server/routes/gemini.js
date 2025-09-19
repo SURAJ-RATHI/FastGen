@@ -4,6 +4,7 @@ import User from "../models/User.js"
 import UserPreference from "../models/UserPreference.js"
 import Message from "../models/Message.js"
 import Chat from "../models/Chat.js"
+import pineconeService from "../services/pineconeService.js"
 import dotenv from "dotenv" 
 import fs from 'fs'
 import path from "path"
@@ -221,20 +222,14 @@ Title:`;
   }
 }
 
-// Function to build comprehensive conversation context - ENHANCED
+// Function to build comprehensive conversation context - PINECONE ENHANCED
 async function buildConversationContext(userId, chatId, currentQuery) {
   try {
     // Get recent messages for immediate context
     const recentMessages = await Message.find({ chat: chatId })
       .select('content sender createdAt')
       .sort({ createdAt: -1 })
-      .limit(5); // Increased for better context
-    
-    // Get relevant messages from other chats using database queries
-    const relevantPastMessages = await retrieveRelevantPastMessages(userId, chatId, currentQuery, 6);
-    
-    // Get relevant long-term memory (in-memory)
-    const relevantMemory = retrieveRelevantContext(userId, currentQuery, 4);
+      .limit(5);
     
     let context = "";
     
@@ -244,16 +239,28 @@ async function buildConversationContext(userId, chatId, currentQuery) {
 ${recentMessages.reverse().map(msg => `- ${msg.sender === 'user' ? 'User' : 'AI'}: ${msg.content.substring(0, 100)}${msg.content.length > 100 ? '...' : ''}`).join('\n')}`;
     }
     
-    // Add relevant past conversations from database
-    if (relevantPastMessages.length > 0) {
-      context += `\n\nRELEVANT PAST CONVERSATIONS (from other chats):
+    // Get relevant messages using Pinecone semantic search
+    try {
+      const relevantMessages = await pineconeService.searchSimilarMessages(
+        userId, 
+        currentQuery, 
+        8, // Get more relevant messages
+        chatId // Exclude current chat
+      );
+      
+      if (relevantMessages.length > 0) {
+        context += `\n\nRELEVANT PAST CONVERSATIONS (semantic search):
+${relevantMessages.map(msg => `- ${msg.sender === 'user' ? 'User' : 'AI'}: ${msg.content.substring(0, 80)}${msg.content.length > 80 ? '...' : ''} (relevance: ${(msg.score * 100).toFixed(1)}%)`).join('\n')}`;
+      }
+    } catch (pineconeError) {
+      console.error('Pinecone search failed, falling back to database search:', pineconeError);
+      
+      // Fallback to database search if Pinecone fails
+      const relevantPastMessages = await retrieveRelevantPastMessages(userId, chatId, currentQuery, 6);
+      if (relevantPastMessages.length > 0) {
+        context += `\n\nRELEVANT PAST CONVERSATIONS (database fallback):
 ${relevantPastMessages.map(msg => `- ${msg.sender === 'user' ? 'User' : 'AI'}: ${msg.content.substring(0, 80)}${msg.content.length > 80 ? '...' : ''}`).join('\n')}`;
-    }
-    
-    // Add relevant long-term memory (in-memory)
-    if (relevantMemory.length > 0) {
-      context += `\n\nRELEVANT MEMORY:
-${relevantMemory.map(mem => `- ${mem.metadata.sender === 'user' ? 'User' : 'AI'}: ${mem.content.substring(0, 80)}${mem.content.length > 80 ? '...' : ''}`).join('\n')}`;
+      }
     }
     
     return context;
@@ -536,6 +543,32 @@ IMPORTANT:
     await Chat.findByIdAndUpdate(chatId, {
       $push: { messages: aiMessage._id }
     });
+
+    // Store vectors in Pinecone for semantic search
+    try {
+      // Store user message vector
+      await pineconeService.upsertMessage(
+        req.user.userId, 
+        chatId, 
+        userMessage._id, 
+        prompt, 
+        'user',
+        { chatTitle: await Chat.findById(chatId).select('title').then(c => c?.title) }
+      );
+      
+      // Store AI response vector
+      await pineconeService.upsertMessage(
+        req.user.userId, 
+        chatId, 
+        aiMessage._id, 
+        ans, 
+        'ai',
+        { chatTitle: await Chat.findById(chatId).select('title').then(c => c?.title) }
+      );
+    } catch (pineconeError) {
+      console.error('Failed to store vectors in Pinecone:', pineconeError);
+      // Continue execution - Pinecone failure shouldn't break the chat
+    }
 
     // Generate/update chat title more frequently for better UX
     try {
