@@ -37,7 +37,7 @@ const SignInPage = () => {
         
         window.google.accounts.id.renderButton(
           document.getElementById('google-signin-button'),
-          { theme: 'outline', size: 'large', width: 400 }
+          { theme: 'outline', size: 'large', width: '100%' }
         );
       }
     };
@@ -108,16 +108,16 @@ const SignInPage = () => {
 
   return (
     <div className="bg-[url('/bg2.svg')] bg-no-repeat bg-cover">
-      <div className="min-h-screen flex items-center justify-center bg-transparent text-white px-4">
-        <div className="w-full max-w-md bg-black/40 backdrop-blur-lg p-8 rounded-2xl shadow-lg">
-          <h2 className="text-2xl font-bold mb-1">Welcome Back 👋</h2>
-          <p className="text-gray-300 mb-6">Sign in to continue to FastGen</p>
+      <div className="min-h-screen flex items-center justify-center bg-transparent text-white px-4 py-8">
+        <div className="w-full max-w-md bg-black/40 backdrop-blur-lg p-6 sm:p-8 rounded-2xl shadow-lg">
+          <h2 className="text-xl sm:text-2xl font-bold mb-1">Welcome Back 👋</h2>
+          <p className="text-gray-300 mb-4 sm:mb-6 text-sm sm:text-base">Sign in to continue to FastGen</p>
 
           {!showManualForm ? (
             <>
               <div id="google-signin-button" className="w-full mt-4"></div>
 
-              <div className="relative my-6">
+              <div className="relative my-4 sm:my-6">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-600"></div>
                 </div>
@@ -128,13 +128,13 @@ const SignInPage = () => {
 
               <button
                 onClick={() => setShowManualForm(true)}
-                className="w-full bg-gray-800 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+                className="w-full bg-gray-800 hover:bg-gray-700 text-white font-semibold py-2.5 sm:py-3 px-4 rounded-lg transition-colors text-sm sm:text-base"
               >
                 Sign in with Email
               </button>
             </>
           ) : (
-            <form onSubmit={handleManualSignIn} className="space-y-4">
+            <form onSubmit={handleManualSignIn} className="space-y-3 sm:space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1">
                   Email address <span className="text-red-400">*</span>
@@ -174,7 +174,7 @@ const SignInPage = () => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full mt-4 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-lg transition-colors"
+                className="w-full mt-3 sm:mt-4 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold py-2.5 sm:py-3 rounded-lg transition-colors text-sm sm:text-base"
               >
                 {isSubmitting ? "Signing In..." : "Sign In"}
               </button>
@@ -182,14 +182,14 @@ const SignInPage = () => {
               <button
                 type="button"
                 onClick={() => setShowManualForm(false)}
-                className="w-full bg-gray-800 hover:bg-gray-700 text-white font-semibold py-2 rounded-lg transition-colors"
+                className="w-full bg-gray-800 hover:bg-gray-700 text-white font-semibold py-2 rounded-lg transition-colors text-sm sm:text-base"
               >
                 Back to Google Sign In
               </button>
             </form>
           )}
 
-          <div className="mt-6 text-center text-sm text-gray-400">
+          <div className="mt-4 sm:mt-6 text-center text-xs sm:text-sm text-gray-400">
             Don't have an account?{' '}
             <button 
               onClick={handleSignUp} 
