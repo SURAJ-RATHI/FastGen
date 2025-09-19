@@ -13,10 +13,16 @@ if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
   console.error('Please set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in your .env file');
 }
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
+// Initialize Razorpay with error handling
+let razorpay;
+try {
+  razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET,
+  });
+} catch (error) {
+  console.error('Failed to initialize Razorpay:', error);
+}
 
 // Create payment order
 router.post('/create-order', async (req, res) => {
@@ -26,11 +32,13 @@ router.post('/create-order', async (req, res) => {
     console.log('User:', req.user);
     console.log('Session Secret:', process.env.SESSION_SECRET ? 'Present' : 'Missing');
     
+    // Check if user is authenticated
     if (!req.user) {
       console.log('No user found in request');
       return res.status(401).json({ error: 'Unauthorized' });
     }
     
+    // Validate request body
     const { amount, currency = 'INR', plan } = req.body;
     const userId = req.user.userId;
 
@@ -39,9 +47,22 @@ router.post('/create-order', async (req, res) => {
       return res.status(400).json({ error: 'Amount and plan are required' });
     }
 
+    // Validate amount
+    if (typeof amount !== 'number' || amount <= 0) {
+      console.log('Invalid amount:', amount);
+      return res.status(400).json({ error: 'Invalid amount provided' });
+    }
+
+    // Check Razorpay configuration
     if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
       console.error('Razorpay environment variables are missing!');
       return res.status(500).json({ error: 'Payment service not configured' });
+    }
+
+    // Check if Razorpay is properly initialized
+    if (!razorpay) {
+      console.error('Razorpay not properly initialized!');
+      return res.status(500).json({ error: 'Payment service initialization failed' });
     }
 
     // Create Razorpay order
