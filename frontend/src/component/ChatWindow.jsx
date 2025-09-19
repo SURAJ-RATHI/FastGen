@@ -330,11 +330,15 @@ export default function ChatWindow() {
   };
 
   const handleStreamingResponse = async (originalPrompt) => {
+    // Get the auth token from localStorage
+    const token = localStorage.getItem('authToken');
+    
     // Use fetch for POST request with streaming
     const response = await fetch(`${import.meta.env.VITE_APP_BE_BASEURL}/api/gemini/stream`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : '',
       },
       credentials: 'include',
       body: JSON.stringify({

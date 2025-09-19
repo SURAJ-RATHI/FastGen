@@ -266,7 +266,7 @@ const LandingPage = () => {
                 onClick={() => navigate(feature.route)}
                 className={`group bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-8 shadow-2xl text-white hover:scale-105 transition-all duration-500 cursor-pointer hover:border-white/20 hover:shadow-3xl hover:shadow-blue-500/10 animate-fade-in delay-${(index + 1) * 200}`}
               >
-                <div className={`text-5xl mb-6 group-hover:scale-110 transition-transform duration-300 bg-gradient-to-r ${feature.gradient} bg-clip-text text-transparent`}>
+                <div className="text-5xl mb-6 group-hover:scale-110 transition-transform duration-300">
                   {feature.icon}
                 </div>
                 <h3 className="text-xl font-bold mb-4 group-hover:text-white transition-colors">{feature.title}</h3>
