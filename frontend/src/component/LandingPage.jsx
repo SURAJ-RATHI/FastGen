@@ -195,9 +195,6 @@ const LandingPage = () => {
       {/* Hero Section - Compact Layout */}
       <div className="relative z-10 flex flex-col items-center py-12 px-4 pt-20">
         {/* Top Title with Gradient */}
-        <div className="text-4xl md:text-6xl symbol font-bold mb-4 bg-gradient-to-r from-blue-400 via-purple-500 to-cyan-400 bg-clip-text text-transparent animate-fade-in hover:scale-105 transition-transform duration-300">
-          FastGen
-        </div>
 
         {/* Explore Button/Tag with Modern Design */}
         <div 

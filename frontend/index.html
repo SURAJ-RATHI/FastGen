@@ -1,37 +1,51 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
-    <!-- Favicon and app icons -->
-    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="apple-touch-icon" href="/logo.svg" />
-    <link rel="manifest" href="/manifest.json" />
-    
-    <!-- Meta tags for better SEO and social sharing -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Primary title & description -->
+    <title>FastGen - AI</title>
     <meta name="description" content="FastGen - AI-powered content generation platform for chatbots, quizzes, notes, and more" />
-    <meta name="keywords" content="AI, chatbot, content generation, FastGen, artificial intelligence" />
     <meta name="author" content="FastGen Team" />
-    
-    <!-- Open Graph tags for social media -->
+    <meta name="keywords" content="AI, chatbot, content generation, FastGen, artificial intelligence" />
+
+    <!-- Theme color (optional) -->
+    <meta name="theme-color" content="#ffffff" />
+
+    <!-- Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Favicons: .ico first (most reliable), SVG for modern browsers, PNG fallbacks for others -->
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- Open Graph / Social -->
     <meta property="og:title" content="FastGen - AI Content Generation Platform" />
     <meta property="og:description" content="Create AI-powered chatbots, quizzes, notes, and content with FastGen" />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="/logo.svg" />
-    
-    <!-- Twitter Card tags -->
+
+    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="FastGen - AI Content Generation Platform" />
     <meta name="twitter:description" content="Create AI-powered chatbots, quizzes, notes, and content with FastGen" />
     <meta name="twitter:image" content="/logo.svg" />
-    
-    <title>FastGen - AI</title>
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <!-- Razorpay checkout (keeps original usage) -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js" defer></script>
+
+    <!-- Add any preconnects if you use external resources a lot -->
+    <!-- <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> -->
   </head>
+
   <body>
     <div id="root"></div>
+
+    <!-- Vite entry -->
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
