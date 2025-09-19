@@ -5,6 +5,25 @@
   "installCommand": "npm install",
   "devCommand": "npm run dev",
   "regions": ["iad1"],
+  "headers": [
+    {
+      "source": "/sw.js",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/javascript"
+        },
+        {
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "same-origin-allow-popups"
+        },
+        {
+          "key": "Cross-Origin-Embedder-Policy",
+          "value": "unsafe-none"
+        }
+      ]
+    }
+  ],
   "rewrites": [
     {
       "source": "/(.*)",
