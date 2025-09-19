@@ -187,7 +187,7 @@ const LandingPage = () => {
       <HomeHeader />
       
       {/* Hero Section - Compact Layout */}
-      <div className="relative z-10 flex flex-col items-center py-12 px-10 pt-20">
+      <div className="relative z-10 flex flex-col items-center py-12 px-10 pt-25 min-h-screen md:min-h-[120vh] lg:min-h-[140vh] pb-32 md:pb-48 lg:pb-64">
         {/* Top Title with Gradient */}
 
         {/* Explore Button/Tag with Modern Design */}
