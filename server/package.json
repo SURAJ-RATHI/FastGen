@@ -8,7 +8,8 @@
     "dev": "nodemon index.js",
     "start": "node index.js",
     "build": "echo 'No build step required'",
-    "migrate-pinecone": "node scripts/migrateToPinecone.js"
+    "migrate-pinecone": "node scripts/migrateToPinecone.js",
+    "test-pinecone": "node scripts/testPinecone.js"
   },
   "engines": {
     "node": ">=18.0.0"

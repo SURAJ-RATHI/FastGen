@@ -18,13 +18,22 @@ class PineconeService {
 
   async initialize() {
     try {
+      console.log('Initializing Pinecone service...');
+      console.log(`Index name: ${this.indexName}`);
+      console.log(`API Key present: ${!!process.env.PINECONE_API_KEY}`);
+      console.log(`OpenAI Key present: ${!!process.env.OPENAI_API_KEY}`);
+      
       // Get or create index
+      console.log('Listing existing indexes...');
       const indexList = await this.pinecone.listIndexes();
+      console.log('Available indexes:', indexList.indexes?.map(i => i.name) || 'None');
+      
       const indexExists = indexList.indexes?.some(index => index.name === this.indexName);
+      console.log(`Index ${this.indexName} exists: ${indexExists}`);
 
       if (!indexExists) {
         console.log(`Creating Pinecone index: ${this.indexName}`);
-        await this.pinecone.createIndex({
+        const createResult = await this.pinecone.createIndex({
           name: this.indexName,
           dimension: 1536, // OpenAI embedding dimension
           metric: 'cosine',
@@ -35,41 +44,60 @@ class PineconeService {
             }
           }
         });
+        console.log('Index creation result:', createResult);
         
         // Wait for index to be ready
+        console.log('Waiting for index to be ready...');
         await this.waitForIndexReady();
+        console.log('Index is ready!');
       }
 
       this.index = this.pinecone.index(this.indexName);
       console.log('Pinecone service initialized successfully');
+      
+      // Test the index
+      console.log('Testing index connection...');
+      const stats = await this.index.describeIndexStats();
+      console.log('Index stats:', stats);
+      
     } catch (error) {
       console.error('Failed to initialize Pinecone:', error);
+      console.error('Error details:', {
+        message: error.message,
+        status: error.status,
+        statusText: error.statusText
+      });
       throw error;
     }
   }
 
   async waitForIndexReady() {
-    const maxRetries = 30;
+    const maxRetries = 60; // Increased timeout for serverless indexes
     let retries = 0;
+    
+    console.log('Waiting for Pinecone index to be ready...');
     
     while (retries < maxRetries) {
       try {
         const indexDescription = await this.pinecone.describeIndex(this.indexName);
+        console.log(`Index status: ${indexDescription.status?.state || 'unknown'}`);
+        
         if (indexDescription.status?.ready) {
-          console.log('Pinecone index is ready');
+          console.log('✅ Pinecone index is ready!');
           return;
         }
-        console.log(`Waiting for index to be ready... (${retries + 1}/${maxRetries})`);
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        console.log(`⏳ Waiting for index to be ready... (${retries + 1}/${maxRetries})`);
+        await new Promise(resolve => setTimeout(resolve, 3000)); // Increased wait time
         retries++;
       } catch (error) {
-        console.error('Error checking index status:', error);
+        console.error(`❌ Error checking index status (attempt ${retries + 1}):`, error.message);
         retries++;
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise(resolve => setTimeout(resolve, 3000));
       }
     }
     
-    throw new Error('Pinecone index failed to become ready within timeout');
+    throw new Error(`Index creation timeout after ${maxRetries} attempts`);
   }
 
   async generateEmbedding(text) {
