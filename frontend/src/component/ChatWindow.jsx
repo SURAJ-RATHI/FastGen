@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -10,7 +10,7 @@ import ShareModal from './ShareModal.jsx';
 import TypingIndicator from './TypingIndicator.jsx';
 
 // Memoized Message Component for better performance
-const MessageItem = React.memo(({ msg, idx, user, searchQuery, highlightSearchTerms }) => {
+const MessageItem = React.memo(({ msg, user, searchQuery, highlightSearchTerms }) => {
   return (
     <div className="py-4 px-4">
       <div className={`max-w-3xl mx-auto flex gap-4 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -58,7 +58,6 @@ const MessageItem = React.memo(({ msg, idx, user, searchQuery, highlightSearchTe
 
 export default function ChatWindow() {
   const { user, isSignedIn } = useAuth();
-  const navigate = useNavigate();
   
   // Debug: Log user data to see what's available
   useEffect(() => {
@@ -92,7 +91,7 @@ export default function ChatWindow() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [chatHistory, setChatHistory] = useState([]);
-  const [currentChatTitle, setCurrentChatTitle] = useState('');
+  const [, setCurrentChatTitle] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [editingChatId, setEditingChatId] = useState(null);
@@ -292,7 +291,6 @@ export default function ChatWindow() {
     if (!prompt.trim() || !chatId) return;
 
     const originalPrompt = prompt; // capture before clearing
-    const prevLen = messages.length;
     const userMessage = { sender: 'user', content: originalPrompt };
 
     setMessages(prev => [...prev, userMessage]);
@@ -333,7 +331,13 @@ export default function ChatWindow() {
     // Get the auth token from localStorage
     const token = localStorage.getItem('authToken');
     
-    // Use fetch for POST request with streaming
+    console.log('Starting streaming request to:', `${import.meta.env.VITE_APP_BE_BASEURL}/api/gemini/stream`);
+    console.log('Request payload:', { chatId, prompt: originalPrompt, parsedFileName: uploadedParsedFileName || '' });
+    
+    // Use fetch for POST request with streaming and timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+    
     const response = await fetch(`${import.meta.env.VITE_APP_BE_BASEURL}/api/gemini/stream`, {
       method: 'POST',
       headers: {
@@ -341,15 +345,23 @@ export default function ChatWindow() {
         'Authorization': token ? `Bearer ${token}` : '',
       },
       credentials: 'include',
+      signal: controller.signal,
       body: JSON.stringify({
         chatId,
         prompt: originalPrompt,
         parsedFileName: uploadedParsedFileName || ''
       })
     });
+    
+    clearTimeout(timeoutId);
+
+    console.log('Streaming response status:', response.status);
+    console.log('Streaming response headers:', response.headers);
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorText = await response.text();
+      console.error('Streaming response error:', errorText);
+      throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
     }
 
     const reader = response.body.getReader();

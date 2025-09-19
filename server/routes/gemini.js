@@ -241,11 +241,12 @@ async function buildConversationContext(userId, chatId, currentQuery) {
   try {
     console.log(`Building context for user ${userId}, chat ${chatId}, query: "${currentQuery}"`);
     
-    // Get recent messages for immediate context
+    // Get recent messages for immediate context (optimized query)
     const recentMessages = await Message.find({ chat: chatId })
       .select('content sender createdAt')
       .sort({ createdAt: -1 })
-      .limit(5);
+      .limit(3) // Reduced from 5 to 3 for faster processing
+      .lean(); // Use lean() for better performance
     
     console.log(`Found ${recentMessages.length} recent messages`);
     
@@ -254,41 +255,37 @@ async function buildConversationContext(userId, chatId, currentQuery) {
     // Add recent conversation context
     if (recentMessages.length > 0) {
       context += `\nRECENT CONTEXT (Last ${recentMessages.length} messages):
-${recentMessages.reverse().map(msg => `- ${msg.sender === 'user' ? 'User' : 'AI'}: ${msg.content.substring(0, 100)}${msg.content.length > 100 ? '...' : ''}`).join('\n')}`;
+${recentMessages.reverse().map(msg => `- ${msg.sender === 'user' ? 'User' : 'AI'}: ${msg.content.substring(0, 80)}${msg.content.length > 80 ? '...' : ''}`).join('\n')}`;
     }
     
-    // Get relevant messages using Pinecone semantic search
+    // Try Pinecone search with timeout to prevent hanging
     try {
       console.log('Attempting Pinecone search...');
-      const relevantMessages = await pineconeService.searchSimilarMessages(
+      const pineconePromise = pineconeService.searchSimilarMessages(
         userId, 
         currentQuery, 
-        8, // Get more relevant messages
+        5, // Reduced from 8 to 5 for faster processing
         chatId // Exclude current chat
       );
+      
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Pinecone timeout')), 3000)
+      );
+      
+      const relevantMessages = await Promise.race([pineconePromise, timeoutPromise]);
       
       console.log(`Pinecone search returned ${relevantMessages.length} relevant messages`);
       
       if (relevantMessages.length > 0) {
         context += `\n\nRELEVANT PAST CONVERSATIONS (semantic search):
-${relevantMessages.map(msg => `- ${msg.sender === 'user' ? 'User' : 'AI'}: ${msg.content.substring(0, 80)}${msg.content.length > 80 ? '...' : ''} (relevance: ${(msg.score * 100).toFixed(1)}%)`).join('\n')}`;
+${relevantMessages.map(msg => `- ${msg.sender === 'user' ? 'User' : 'AI'}: ${msg.content.substring(0, 60)}${msg.content.length > 60 ? '...' : ''} (relevance: ${(msg.score * 100).toFixed(1)}%)`).join('\n')}`;
       } else {
         console.log('No relevant messages found via Pinecone');
       }
     } catch (pineconeError) {
-      console.error('Pinecone search failed, falling back to database search:', pineconeError);
-      
-      // Fallback to database search if Pinecone fails
-      console.log('Attempting database fallback search...');
-      const relevantPastMessages = await retrieveRelevantPastMessages(userId, chatId, currentQuery, 6);
-      console.log(`Database fallback returned ${relevantPastMessages.length} relevant messages`);
-      
-      if (relevantPastMessages.length > 0) {
-        context += `\n\nRELEVANT PAST CONVERSATIONS (database fallback):
-${relevantPastMessages.map(msg => `- ${msg.sender === 'user' ? 'User' : 'AI'}: ${msg.content.substring(0, 80)}${msg.content.length > 80 ? '...' : ''}`).join('\n')}`;
-      } else {
-        console.log('No relevant messages found via database fallback');
-      }
+      console.error('Pinecone search failed or timed out, skipping fallback for speed:', pineconeError.message);
+      // Skip database fallback for speed - just use recent context
     }
     
     console.log(`Final context length: ${context.length} characters`);
@@ -427,10 +424,20 @@ Please provide a helpful, accurate, and well-structured response.`;
 // gemini streaming request
 router.post('/stream', async (req, res) => {
   try {
+    console.log('=== STREAMING REQUEST START ===');
+    console.log('Request body:', req.body);
+    console.log('User:', req.user);
+    
     const { chatId, prompt, parsedFileName } = req.body;
 
     if (!req.user) {
+      console.log('No user found, returning 401');
       return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    if (!chatId || !prompt) {
+      console.log('Missing required fields:', { chatId: !!chatId, prompt: !!prompt });
+      return res.status(400).json({ error: "chatId and prompt are required" });
     }
 
     // Set up Server-Sent Events
@@ -445,37 +452,41 @@ router.post('/stream', async (req, res) => {
     // Send initial connection event
     res.write('data: {"type":"connected","message":"Stream started"}\n\n');
 
-    const userMessage = await Message.create({
-      chat: chatId,
-      sender: 'user',
-      content: prompt,
-    });
+    // Start processing in parallel for better performance
+    const [userMessage, userPref, user] = await Promise.all([
+      Message.create({
+        chat: chatId,
+        sender: 'user',
+        content: prompt,
+      }),
+      UserPreference.findOne({ user: req.user.userId }),
+      User.findById(req.user.userId)
+    ]);
 
-    // Add message to chat's messages array
-    await Chat.findByIdAndUpdate(chatId, {
+    // Add message to chat's messages array (non-blocking)
+    Chat.findByIdAndUpdate(chatId, {
       $push: { messages: userMessage._id }
-    });
+    }).catch(err => console.error('Error updating chat messages:', err));
 
-    const userPref = await UserPreference.findOne({ user: req.user.userId });
-    const user = await User.findById(req.user.userId);
+    // Build conversation context in parallel with file processing
+    const [conversationContext, parseText, parsedFilePath] = await Promise.all([
+      buildConversationContext(req.user.userId, chatId, prompt),
+      parsedFileName ? (async () => {
+        const uploadDir = path.join(process.cwd(), 'uploads');
+        const filePath = path.join(uploadDir, parsedFileName);
+        if (fs.existsSync(filePath)) {
+          return fs.readFileSync(filePath, 'utf-8');
+        }
+        return "";
+      })() : Promise.resolve(""),
+      Promise.resolve(parsedFileName ? path.join(process.cwd(), 'uploads', parsedFileName) : "")
+    ]);
 
-    // Build comprehensive conversation context using RAG
-    const conversationContext = await buildConversationContext(req.user.userId, chatId, prompt);
-
-    let parseText = "";
-    let parsedFilePath = "";
-
-    const uploadDir = path.join(process.cwd(), 'uploads');
-
-    if (parsedFileName) {
-       parsedFilePath = path.join(uploadDir, parsedFileName);
-      if (fs.existsSync(parsedFilePath)) {
-        parseText = fs.readFileSync(parsedFilePath, 'utf-8');
-      } else {
-        res.write('data: {"type":"error","message":"File not found or unreadable"}\n\n');
-        res.end();
-        return;
-      }
+    // Check if file was found and readable
+    if (parsedFileName && !parseText) {
+      res.write('data: {"type":"error","message":"File not found or unreadable"}\n\n');
+      res.end();
+      return;
     }
 
     // Enhanced user info extraction
@@ -693,9 +704,17 @@ IMPORTANT:
     res.end();
 
   } catch (err) {
-    console.error('Streaming error:', err);
-    res.write(`data: {"type":"error","message":"${err.message}"}\n\n`);
-    res.end();
+    console.error('=== STREAMING ERROR ===');
+    console.error('Error details:', err);
+    console.error('Error stack:', err.stack);
+    console.error('=== END STREAMING ERROR ===');
+    
+    try {
+      res.write(`data: {"type":"error","message":"${err.message}"}\n\n`);
+      res.end();
+    } catch (writeError) {
+      console.error('Error writing error response:', writeError);
+    }
   }
 });
 
