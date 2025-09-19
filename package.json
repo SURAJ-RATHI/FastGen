@@ -1,0 +1,13 @@
+{
+  "name": "fastgen",
+  "version": "1.0.0",
+  "description": "FastGen - AI-powered content generation platform",
+  "scripts": {
+    "build": "cd frontend && npm run build",
+    "dev": "cd frontend && npm run dev",
+    "start": "cd frontend && npm run preview"
+  },
+  "keywords": ["ai", "content-generation", "react", "vite"],
+  "author": "FastGen Team",
+  "license": "MIT"
+}

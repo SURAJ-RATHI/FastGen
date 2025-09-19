@@ -159,6 +159,7 @@ const blogPost = await fastgen.content.generate({
   temperature: 0.7
 });
 
+console.log(blogPost.content);`
     },
     {
       title: 'Use Template',
