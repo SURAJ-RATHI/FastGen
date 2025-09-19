@@ -53,7 +53,10 @@ export const AuthProvider = ({ children }) => {
 
   const signInWithGoogle = async (credential) => {
     try {
-      console.log('Attempting Google sign in to:', `${import.meta.env.VITE_APP_BE_BASEURL}/api/auth/google`);
+      // Only log in development
+      if (import.meta.env.DEV) {
+        console.log('Attempting Google sign in to:', `${import.meta.env.VITE_APP_BE_BASEURL}/api/auth/google`);
+      }
       
       const response = await axios.post(`${import.meta.env.VITE_APP_BE_BASEURL}/api/auth/google`, {
         credential
@@ -67,7 +70,10 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true };
     } catch (error) {
-      console.error('Google sign in error:', error);
+      // Only log errors in development
+      if (import.meta.env.DEV) {
+        console.error('Google sign in error:', error);
+      }
       
       if (error.code === 'ERR_NETWORK') {
         return { 

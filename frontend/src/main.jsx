@@ -4,8 +4,8 @@ import { AuthProvider } from './contexts/AuthContext.jsx'
 import './index.css'
 import App from './App.jsx'
 
-// Register Service Worker for offline caching
-if ('serviceWorker' in navigator) {
+// Register Service Worker for offline caching (only in production)
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js')
       .then((registration) => {
@@ -13,6 +13,7 @@ if ('serviceWorker' in navigator) {
       })
       .catch((registrationError) => {
         console.log('SW registration failed: ', registrationError);
+        // Silently fail - don't show errors to users
       });
   });
 }

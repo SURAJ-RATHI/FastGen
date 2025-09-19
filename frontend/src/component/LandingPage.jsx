@@ -132,12 +132,6 @@ const LandingPage = () => {
       ease: 'power2.out'  // makes it smoother!
     });
 
-    gsap.from('.symbol', {
-      y: 30,
-      opacity: 0,
-      duration: 2,
-      ease: 'power2.out'  // makes it smoother!
-    });
 
     
 
