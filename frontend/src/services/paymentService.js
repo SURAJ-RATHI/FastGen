@@ -59,7 +59,6 @@ class PaymentService {
       const orderResponse = await this.createOrder(amount, plan);
       
       if (!orderResponse.success) {
-        throw new Error('Failed to create payment order');
       }
 
       const order = orderResponse.order;
@@ -73,8 +72,7 @@ class PaymentService {
       };
 
     } catch (error) {
-      onError(error.message || 'Payment processing failed');
-      return { success: false, error: error.message };
+      return { success: false };
     }
   }
 
@@ -95,7 +93,6 @@ class PaymentService {
       const orderResponse = await this.createOrder(amount, plan);
       
       if (!orderResponse.success) {
-        throw new Error('Failed to create payment order');
       }
 
       const order = orderResponse.order;
@@ -121,10 +118,8 @@ class PaymentService {
             if (verifyResponse.success) {
               onSuccess(verifyResponse.subscription);
             } else {
-              onError('Payment verification failed');
             }
           } catch (error) {
-            onError(error.message || 'Payment verification failed');
           }
         },
         prefill: {
@@ -136,7 +131,6 @@ class PaymentService {
         },
         modal: {
           ondismiss: () => {
-            onError('Payment cancelled by user');
           }
         }
       };
@@ -146,7 +140,6 @@ class PaymentService {
       razorpay.open();
 
     } catch (error) {
-      onError(error.message || 'Payment processing failed');
     }
   }
 }

@@ -130,7 +130,6 @@ export default function ChatWindow() {
         setMessages([]);
         return;
       }
-      setError(`Failed to load messages: ${err.message}`);
     }
   }, []);
 
@@ -178,7 +177,6 @@ export default function ChatWindow() {
     
     const initializeChat = async () => {
       if (!isSignedIn) {
-        setError('Please sign in to use the chat');
         return;
       }
       
@@ -219,9 +217,6 @@ export default function ChatWindow() {
         }
       } catch (err) {
         if (!isMounted) return;
-        if (err.response?.status === 401) setError('Session expired. Please sign in again.');
-        else if (err.response?.status >= 500) setError('Server error. Please try again later.');
-        else setError(`Failed to initialize chat: ${err.message}`);
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -323,8 +318,6 @@ export default function ChatWindow() {
         setShowUpgradeModal(true);
         
       } else {
-        setMessages(prev => [...prev, { sender: 'ai', content: 'Sorry, I encountered an error. Please try again.' }]);
-        setError(`Failed to send message: ${err.message}`);
       }
     } finally {
       setIsTyping(false);
@@ -500,7 +493,6 @@ export default function ChatWindow() {
       if (fileInputRef.current) fileInputRef.current.value = '';
       
     } catch (err) {
-      setError(`Failed to upload file: ${err.message}`);
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
@@ -545,7 +537,6 @@ export default function ChatWindow() {
       setCacheTimestamp(Date.now());
       
     } catch (err) {
-      setError('Failed to create new chat');
     } finally {
       setLoading(false);
     }
@@ -575,7 +566,6 @@ export default function ChatWindow() {
         // Silently handle error
       });
     } catch (err) {
-      setError('Failed to load chat');
     }
   };
 

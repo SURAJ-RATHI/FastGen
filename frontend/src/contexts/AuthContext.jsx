@@ -6,7 +6,6 @@ const AuthContext = createContext();
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };
@@ -70,20 +69,17 @@ export const AuthProvider = ({ children }) => {
       if (error.code === 'ERR_NETWORK') {
         return { 
           success: false, 
-          error: 'Network error - please check your connection or try again later' 
         };
       }
       
       if (error.response?.status === 403) {
         return { 
           success: false, 
-          error: 'CORS error - please contact support' 
         };
       }
       
       return { 
         success: false, 
-        error: error.response?.data?.message || 'Google authentication failed' 
       };
     }
   };
@@ -103,7 +99,7 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true };
     } catch (error) {
-      return { success: false, error: error.response?.data?.error || 'Login failed' };
+      return { success: false };
     }
   };
 
@@ -120,9 +116,9 @@ export const AuthProvider = ({ children }) => {
         return await signInWithEmail(email, password);
       }
       
-      return { success: false, error: 'Signup failed' };
+      return { success: false };
     } catch (error) {
-      return { success: false, error: error.response?.data?.error || 'Signup failed' };
+      return { success: false };
     }
   };
 

@@ -60,7 +60,6 @@ app.use((req, res, next) => {
 // Test CORS endpoint
 app.get('/test-cors', (req, res) => {
     res.json({ 
-        message: 'CORS test successful',
         origin: req.headers.origin,
         timestamp: new Date().toISOString()
     });
@@ -132,7 +131,6 @@ app.use((err, req, res, next) => {
   
   if (err.message === 'Not allowed by CORS') {
     return res.status(403).json({ 
-      error: 'CORS blocked', 
       origin: req.headers.origin,
       allowedOrigins: [
         process.env.VITE_FE_URL,
@@ -145,12 +143,11 @@ app.use((err, req, res, next) => {
   // Handle route parsing errors
   if (err.message && err.message.includes('pathToRegexpError')) {
     return res.status(500).json({ 
-      error: 'Route configuration error',
       details: 'Invalid route pattern detected'
     });
   }
   
-  res.status(500).json({ error: 'Internal server error' });
+  res.status(500).json({});
 });
 
 app.listen(PORT, () => {

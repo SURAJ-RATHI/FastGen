@@ -114,7 +114,7 @@ const LandingPage = () => {
       
       setContactFormData({ name: '', email: '', message: '' });
     } catch {
-      setContactSubmitStatus('Failed to send message. Please try again.');
+      setContactSubmitStatus('');
     } finally {
       setIsSubmittingContact(false);
     }

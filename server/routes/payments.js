@@ -25,7 +25,7 @@ router.post('/create-order', async (req, res) => {
     
     // Check if user is authenticated
     if (!req.user) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({});
     }
     
     // Validate request body
@@ -33,22 +33,22 @@ router.post('/create-order', async (req, res) => {
     const userId = req.user.userId;
 
     if (!amount || !plan) {
-      return res.status(400).json({ error: 'Amount and plan are required' });
+      return res.status(400).json({});
     }
 
     // Validate amount
     if (typeof amount !== 'number' || amount <= 0) {
-      return res.status(400).json({ error: 'Invalid amount provided' });
+      return res.status(400).json({});
     }
 
     // Check Razorpay configuration
     if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
-      return res.status(500).json({ error: 'Payment service not configured' });
+      return res.status(500).json({});
     }
 
     // Check if Razorpay is properly initialized
     if (!razorpay) {
-      return res.status(500).json({ error: 'Payment service initialization failed' });
+      return res.status(500).json({});
     }
 
     // Create Razorpay order
@@ -80,18 +80,18 @@ router.post('/create-order', async (req, res) => {
     // Handle Razorpay specific errors
     if (error.statusCode === 400 && error.error?.code === 'BAD_REQUEST_ERROR') {
       if (error.error.description?.includes('receipt')) {
-        res.status(400).json({ error: 'Invalid receipt format' });
+        res.status(400).json({});
       } else if (error.error.description?.includes('amount')) {
-        res.status(400).json({ error: 'Invalid amount provided' });
+        res.status(400).json({});
       } else {
-        res.status(400).json({ error: error.error.description || 'Invalid request' });
+        res.status(400).json({});
       }
     } else if (error.message && error.message.includes('key_id')) {
-      res.status(500).json({ error: 'Invalid Razorpay configuration' });
+      res.status(500).json({});
     } else if (error.message && error.message.includes('amount')) {
-      res.status(400).json({ error: 'Invalid amount provided' });
+      res.status(400).json({});
     } else {
-      res.status(500).json({ error: 'Failed to create payment order' });
+      res.status(500).json({});
     }
   }
 });
@@ -103,7 +103,7 @@ router.post('/verify-payment', async (req, res) => {
     const userId = req.user.userId;
 
     if (!orderId || !paymentId || !signature || !plan) {
-      return res.status(400).json({ error: 'Missing required payment details' });
+      return res.status(400).json({});
     }
 
     // Verify payment signature
@@ -114,7 +114,7 @@ router.post('/verify-payment', async (req, res) => {
       .digest('hex');
 
     if (expectedSignature !== signature) {
-      return res.status(400).json({ error: 'Invalid payment signature' });
+      return res.status(400).json({});
     }
 
     // Update user subscription
@@ -138,7 +138,7 @@ router.post('/verify-payment', async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({ error: 'Failed to verify payment' });
+    res.status(500).json({});
   }
 });
 
@@ -149,7 +149,7 @@ router.get('/subscription-status', async (req, res) => {
     const user = await User.findById(userId).select('subscription');
 
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({});
     }
 
     const subscription = user.subscription || { status: 'free', plan: 'free' };
@@ -166,7 +166,7 @@ router.get('/subscription-status', async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({ error: 'Failed to get subscription status' });
+    res.status(500).json({});
   }
 });
 
