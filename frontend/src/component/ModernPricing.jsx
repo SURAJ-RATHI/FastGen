@@ -2,8 +2,12 @@ import React from 'react';
 import { Check, Zap, Crown, Building } from 'lucide-react';
 import ModernPaymentModal from './ModernPaymentModal';
 import useModernPayment from '../hooks/useModernPayment';
+import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const ModernPricing = () => {
+  const { isSignedIn } = useAuth();
+  const navigate = useNavigate();
   const {
     isModalOpen,
     paymentData,
@@ -81,6 +85,15 @@ const ModernPricing = () => {
     if (plan.id === 'enterprise') {
       // Handle enterprise contact
       window.open('mailto:sales@fastgen.ai?subject=Enterprise Plan Inquiry', '_blank');
+      return;
+    }
+
+    // Check if user is logged in before allowing subscription
+    if (!isSignedIn) {
+      if (window.showToast) {
+        window.showToast('Please sign in first to subscribe to a plan', 'warning');
+      }
+      navigate('/signUp');
       return;
     }
 

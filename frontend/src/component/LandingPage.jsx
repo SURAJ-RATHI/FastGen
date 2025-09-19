@@ -10,6 +10,7 @@ import { Library } from 'lucide-react';
 import paymentService from '../services/paymentService.js';
 import useModernPayment from '../hooks/useModernPayment';
 import ModernPaymentModal from './ModernPaymentModal';
+import { useAuth } from '../contexts/AuthContext';
 
 gsap.registerPlugin();
 
@@ -18,6 +19,7 @@ const LandingPage = () => {
 
   const words = ["Faster", " Smarter", " Effortlessly","24*7"];
   const navigate = useNavigate();
+  const { isSignedIn } = useAuth();
   
   // Modern payment hook
   const {
@@ -40,6 +42,15 @@ const LandingPage = () => {
     if (plan === 'enterprise') {
       // For enterprise, redirect to contact or show contact form
       navigate('/main?tab=contact');
+      return;
+    }
+    
+    // Check if user is logged in before allowing subscription
+    if (!isSignedIn) {
+      if (window.showToast) {
+        window.showToast('Please sign in first to subscribe to a plan', 'warning');
+      }
+      navigate('/signUp');
       return;
     }
     
