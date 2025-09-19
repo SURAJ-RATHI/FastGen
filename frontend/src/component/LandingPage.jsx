@@ -138,112 +138,84 @@ const LandingPage = () => {
       
       <HomeHeader />
       
-      {/* Hero Section */}
-      <div className="relative z-10 min-h-screen flex items-center">
-        <div className="max-w-7xl mx-auto px-4 py-20 w-full">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            
-            {/* Left Side - Main Content */}
-            <div className="space-y-8 animate-slide-in-left">
-              {/* Top Title with Gradient */}
-              <div className="text-5xl md:text-7xl symbol font-bold bg-gradient-to-r from-blue-400 via-purple-500 to-cyan-400 bg-clip-text text-transparent animate-fade-in">
-                FastGen
-              </div>
+      {/* Hero Section - Compact Layout */}
+      <div className="relative z-10 flex flex-col items-center py-12 px-4 pt-20">
+        {/* Top Title with Gradient */}
+        <div className="text-4xl md:text-6xl symbol font-bold mb-4 bg-gradient-to-r from-blue-400 via-purple-500 to-cyan-400 bg-clip-text text-transparent animate-fade-in">
+          FastGen
+        </div>
 
-              {/* Main Title with Enhanced Typography */}
-              <div className="text-4xl md:text-6xl font-bold text-white leading-tight">
-                <div className="tagline mb-4">Our AI Features that Works </div>
-                <div className="tagline">
-                  <span className="relative inline-block align-middle">
-                    <span ref={wordRef} className="inline-block mb-3 bg-gradient-to-r from-blue-400 via-purple-500 to-cyan-400 bg-clip-text text-transparent font-bold">
-                      {words[0]}
-                    </span>
-                  </span>
-                </div>
-              </div>
-              
-              {/* Enhanced Description */}
-              <div className="max-w-2xl">
-                <p className="tagline text-gray-300 text-lg md:text-xl leading-relaxed">
-                  An AI-driven platform that makes life effortless using cutting-edge AI tools to 
-                  <span className="text-white font-semibold"> maximize productivity</span> and 
-                  <span className="text-white font-semibold"> accelerate learning</span>
-                </p>
-              </div>
-              
-              {/* Get Started Button */}
-              <div className="tagline pt-4">
-                <Button />
-              </div>
-              
-              {/* Trust Indicators */}
-              <div className="flex flex-wrap items-center gap-6 text-gray-400 pt-8">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium">24/7 Available</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium">AI-Powered</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium">Secure & Private</span>
-                </div>
-              </div>
+        {/* Explore Button/Tag with Modern Design */}
+        <div 
+          onClick={() => navigate('/main')}
+          className="group text-sm text-white px-6 py-3 rounded-full border border-white/20 shadow-lg bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-lg transition-all duration-300 cursor-pointer mb-6 hover:bg-gradient-to-r hover:from-white/20 hover:to-white/10 hover:border-white/30 hover:shadow-xl hover:scale-105"
+        >
+          <span className="flex items-center gap-2">
+            explore FastGen 
+            <span className="text-lg group-hover:animate-spin">✨</span>
+          </span>
+        </div>
+
+        {/* Main Title with Enhanced Typography */}
+        <div className="text-4xl md:text-6xl font-bold text-center text-white mb-4 leading-tight">
+          <div className="tagline mb-2">Our AI Features that Works </div>
+          <div className="tagline">
+            <span className="relative inline-block align-middle">
+              <span ref={wordRef} className="inline-block mb-3 bg-gradient-to-r from-blue-400 via-purple-500 to-cyan-400 bg-clip-text text-transparent font-bold">
+                {words[0]}
+              </span>
+            </span>
+          </div>
+        </div>
+        
+        {/* Enhanced Description */}
+        <div className="text-center mb-8 max-w-3xl">
+          <p className="tagline text-gray-300 text-lg md:text-xl leading-relaxed">
+            An AI-driven platform that makes life effortless using cutting-edge AI tools to 
+            <span className="text-white font-semibold"> maximize productivity</span> and 
+            <span className="text-white font-semibold"> accelerate learning</span>
+          </p>
+        </div>
+        
+        {/* Get Started Button */}
+        <div className="tagline mb-8">
+          <Button />
+        </div>
+        
+        {/* Trust Indicators */}
+        <div className="flex flex-wrap justify-center items-center gap-6 text-gray-400 mb-8">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-sm">24/7 Available</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+            <span className="text-sm">AI-Powered</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+            <span className="text-sm">Secure & Private</span>
+          </div>
+        </div>
+        
+        {/* Floating AI Visual Element */}
+        <div className="relative mt-8">
+          <div className="flex items-center justify-center space-x-4 text-gray-500">
+            <div className="w-8 h-8 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full flex items-center justify-center animate-float">
+              <span className="text-lg">🤖</span>
             </div>
-
-            {/* Right Side - Explore Button and Visual Elements */}
-            <div className="relative flex flex-col items-center justify-center space-y-8 animate-slide-in-right">
-              {/* Explore Button/Tag with Enhanced Design */}
-              <div 
-                onClick={() => navigate('/main')}
-                className="group relative text-base text-white px-8 py-4 rounded-2xl border border-white/20 shadow-2xl bg-gradient-to-r from-white/15 to-white/10 backdrop-blur-xl transition-all duration-500 cursor-pointer hover:bg-gradient-to-r hover:from-white/25 hover:to-white/15 hover:border-white/40 hover:shadow-3xl hover:scale-110 hover:-rotate-2"
-              >
-                <span className="flex items-center gap-3 font-semibold">
-                  explore FastGen 
-                  <span className="text-xl group-hover:animate-spin">✨</span>
-                </span>
-                
-                {/* Glow Effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              </div>
-
-              {/* Floating Visual Elements */}
-              <div className="relative w-80 h-80">
-                {/* Central Orb */}
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-gradient-to-r from-blue-500/30 to-purple-500/30 rounded-full blur-xl animate-float"></div>
-                
-                {/* Orbiting Elements */}
-                <div className="absolute top-8 left-8 w-16 h-16 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-full blur-lg animate-pulse"></div>
-                <div className="absolute top-8 right-8 w-20 h-20 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-full blur-lg animate-pulse delay-1000"></div>
-                <div className="absolute bottom-8 left-12 w-14 h-14 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-full blur-lg animate-pulse delay-2000"></div>
-                <div className="absolute bottom-8 right-12 w-18 h-18 bg-gradient-to-r from-orange-500/20 to-red-500/20 rounded-full blur-lg animate-pulse delay-500"></div>
-                
-                {/* Central Icon */}
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-6xl opacity-60">
-                  🤖
-                </div>
-              </div>
-
-              {/* Stats Cards */}
-              <div className="grid grid-cols-2 gap-4 w-full max-w-sm">
-                <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-xl border border-gray-700/50 rounded-xl p-4 text-center">
-                  <div className="text-2xl font-bold text-white">10K+</div>
-                  <div className="text-xs text-gray-400">Active Users</div>
-                </div>
-                <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-xl border border-gray-700/50 rounded-xl p-4 text-center">
-                  <div className="text-2xl font-bold text-white">99.9%</div>
-                  <div className="text-xs text-gray-400">Uptime</div>
-                </div>
-              </div>
+            <div className="w-8 h-8 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-full flex items-center justify-center animate-float delay-1000">
+              <span className="text-lg">⚡</span>
+            </div>
+            <div className="w-8 h-8 bg-gradient-to-r from-pink-500/20 to-cyan-500/20 rounded-full flex items-center justify-center animate-float delay-2000">
+              <span className="text-lg">🚀</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Features Section */}
-      <div id="features-section" className="py-24 px-4 relative">
+      <div id="features-section" className="py-16 px-4 relative">
         {/* Background Elements */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"></div>
@@ -254,7 +226,7 @@ const LandingPage = () => {
           <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent">
             Our AI Features
           </h2>
-          <p className="text-xl md:text-2xl text-gray-300 mb-20 max-w-4xl mx-auto leading-relaxed">
+          <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-4xl mx-auto leading-relaxed">
             FastGen adapts to your learning style and pace for 
             <span className="text-white font-semibold"> maximum results</span>
           </p>
@@ -324,7 +296,7 @@ const LandingPage = () => {
       </div>
 
       {/* Pricing Section */}
-      <div id="pricing-section" className="py-24 px-4 relative">
+      <div id="pricing-section" className="py-16 px-4 relative">
         {/* Background Elements */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-0 right-1/3 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl"></div>
@@ -335,7 +307,7 @@ const LandingPage = () => {
           <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white via-purple-100 to-blue-100 bg-clip-text text-transparent">
             Simple, Transparent Pricing
           </h2>
-          <p className="text-xl md:text-2xl text-gray-300 mb-20 max-w-4xl mx-auto leading-relaxed">
+          <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-4xl mx-auto leading-relaxed">
             Choose the plan that fits your learning needs. All plans include our 
             <span className="text-white font-semibold"> core AI features</span> with 
             <span className="text-white font-semibold"> no hidden fees</span>.
@@ -452,7 +424,7 @@ const LandingPage = () => {
       </div>
 
       {/* Contact Section */}
-      <div id="contact-section" className="py-20 px-4 bg-gray-900/50">
+      <div id="contact-section" className="py-16 px-4 bg-gray-900/50">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl md:text-5xl font-bold text-white mb-8">
             Get in Touch
