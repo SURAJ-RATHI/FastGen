@@ -1,9 +1,9 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState } from 'react';
 import { FiPlay, FiExternalLink, FiX } from 'react-icons/fi';
 
 export default function VideoSearch() {
   const [searchTopic, setSearchTopic] = useState('book');
-  const [videos] = useState([
+  const [videos, setVideos] = useState([
     {
       id: 1,
       title: "romance only bookstore in NYC 🍎💌",
@@ -89,77 +89,49 @@ export default function VideoSearch() {
   const [showVideoPlayer, setShowVideoPlayer] = useState(false);
   const [showVideoPreview, setShowVideoPreview] = useState(false);
 
-  const handleSearch = useCallback(() => {
+  const handleSearch = () => {
     // Implement actual search functionality here
-  }, []);
+    console.log('Searching for:', searchTopic);
+  };
 
-  const handleVideoCardClick = useCallback((video) => {
+  const handleVideoCardClick = (video) => {
+    console.log('🎬 Video card clicked!');
+    console.log('📹 Video details:', video);
+    console.log('🔍 Current state - selectedVideo:', selectedVideo);
+    console.log('🔍 Current state - showVideoPlayer:', showVideoPlayer);
+    
     setSelectedVideo(video);
+    console.log('✅ selectedVideo set to:', video.title);
+    
     setShowVideoPlayer(true);
-  }, []);
+    console.log('✅ showVideoPlayer set to: true');
+    
+    // Log the updated state after a brief delay
+    setTimeout(() => {
+      console.log('🔄 State after update - selectedVideo:', selectedVideo);
+      console.log('🔄 State after update - showVideoPlayer:', showVideoPlayer);
+    }, 100);
+  };
 
-  const handlePlayVideo = useCallback(() => {
+  const handlePlayVideo = () => {
+    // This function is now called from the preview modal if needed
     setShowVideoPreview(false);
     setShowVideoPlayer(true);
-  }, []);
+  };
 
-  const handlePlayOnYouTube = useCallback((videoId) => {
+  const handlePlayOnYouTube = (videoId) => {
     window.open(`https://www.youtube.com/watch?v=${videoId}`, '_blank');
-  }, []);
+  };
 
-  const handleClosePreview = useCallback(() => {
+  const handleClosePreview = () => {
     setShowVideoPreview(false);
     setSelectedVideo(null);
-  }, []);
+  };
 
-  const handleCloseVideo = useCallback(() => {
+  const handleCloseVideo = () => {
     setShowVideoPlayer(false);
     setSelectedVideo(null);
-  }, []);
-
-  // Memoize video grid for better performance
-  const videoGrid = useMemo(() => (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {videos.map((video, index) => (
-        <div
-          key={video.id}
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            handleVideoCardClick(video);
-          }}
-          className="bg-gray-800 rounded-lg p-4 hover:bg-gray-700 hover:scale-105 transition-all duration-200 border border-gray-700 hover:border-blue-500 cursor-pointer select-none shadow-lg hover:shadow-xl"
-        >
-          <div className="relative">
-            <img
-              alt={video.title}
-              className="w-full h-32 object-cover rounded-lg mb-3"
-              src={video.thumbnail}
-            />
-            <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
-              #{index + 1}
-            </div>
-            <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
-              {video.duration}
-            </div>
-          </div>
-          <div>
-            <h3
-              className="text-gray-200 font-semibold text-sm mb-2 overflow-hidden"
-              style={{
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical'
-              }}
-            >
-              {video.title}
-            </h3>
-            <p className="text-gray-400 text-xs mb-3">{video.channel}</p>
-          </div>
-        </div>
-      ))}
-    </div>
-  ), [videos, handleVideoCardClick]);
+  };
 
   return (
     <div className="bg-[#113] bg-opacity-40 backdrop-blur-md rounded-lg shadow-lg border hover:shadow-[0_0_10px_rgba(90,175,255,0.4)] border-gray-700 p-4 max-w-xl mx-auto mt-1" style={{ height: '88vh' }}>
@@ -214,7 +186,53 @@ export default function VideoSearch() {
 
       {/* Video Grid */}
       <div className="overflow-y-auto" style={{ height: 'calc(88vh - 200px)' }}>
-        {videoGrid}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {videos.map((video, index) => (
+            <div
+              key={video.id}
+              onClick={(e) => {
+                console.log('🖱️ Click event triggered!');
+                console.log('🎯 Video being clicked:', video.title);
+                console.log('📍 Event target:', e.target);
+                console.log('📍 Current target:', e.currentTarget);
+                
+                e.preventDefault();
+                e.stopPropagation();
+                
+                console.log('🔒 Event prevented and stopped');
+                handleVideoCardClick(video);
+              }}
+              className="bg-gray-800 rounded-lg p-4 hover:bg-gray-700 hover:scale-105 transition-all duration-200 border border-gray-700 hover:border-blue-500 cursor-pointer select-none shadow-lg hover:shadow-xl"
+            >
+              <div className="relative">
+                <img
+                  alt={video.title}
+                  className="w-full h-32 object-cover rounded-lg mb-3"
+                  src={video.thumbnail}
+                />
+                <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+                  #{index + 1}
+                </div>
+                <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+                  {video.duration}
+                </div>
+              </div>
+              <div>
+                <h3
+                  className="text-gray-200 font-semibold text-sm mb-2 overflow-hidden"
+                  style={{
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical'
+                  }}
+                >
+                  {video.title}
+                </h3>
+                <p className="text-gray-400 text-xs mb-3">{video.channel}</p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Video Preview Modal */}

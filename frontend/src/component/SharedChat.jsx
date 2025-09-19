@@ -14,10 +14,15 @@ export default function SharedChat() {
       try {
         setLoading(true);
         const apiUrl = `${import.meta.env.VITE_APP_BE_BASEURL}/api/shared-chat/public/${chatId}`;
+        console.log('🔍 Fetching shared chat from:', apiUrl);
+        console.log('🔍 Environment variable:', import.meta.env.VITE_APP_BE_BASEURL);
         
         const response = await axios.get(apiUrl);
+        console.log('✅ API Response:', response.data);
         setChat(response.data);
       } catch (err) {
+        console.error('❌ Error fetching shared chat:', err);
+        console.error('❌ Error response:', err.response);
         if (err.response?.status === 410) {
           setError('This shared chat has expired.');
         } else if (err.response?.status === 404) {

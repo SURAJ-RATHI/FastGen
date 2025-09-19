@@ -38,8 +38,8 @@ const Pricing = () => {
             // Payment error - silently handle
           }
         );
-      } catch {
-        // Silently handle error
+      } catch (error) {
+        console.error('Failed to initiate payment:', error);
       }
     }
   };

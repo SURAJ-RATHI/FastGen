@@ -49,6 +49,7 @@ export const checkUsageLimit = (actionType) => {
       
       next();
     } catch (error) {
+      console.error('Usage middleware error:', error);
       res.status(500).json({ error: 'Failed to check usage limits' });
     }
   };
@@ -60,9 +61,11 @@ export const incrementUsage = (actionType) => {
     try {
       if (req.usage && req.canPerform) {
         await req.usage.incrementUsage(actionType);
+        console.log(`Incremented ${actionType} usage for user ${req.user.userId}`);
       }
       next();
     } catch (error) {
+      console.error('Usage increment error:', error);
       // Don't fail the request if usage increment fails
       next();
     }

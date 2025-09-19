@@ -15,9 +15,13 @@ const initializePinecone = async () => {
   try {
     if (process.env.PINECONE_API_KEY && process.env.OPENAI_API_KEY) {
       await pineconeService.initialize();
+      console.log('Pinecone initialized successfully');
     } else {
+      console.log('Pinecone not configured - skipping initialization');
     }
   } catch (error) {
+    console.error('Failed to initialize Pinecone:', error);
+    console.log('Continuing without Pinecone - using fallback context retrieval');
   }
 };
 
@@ -27,6 +31,7 @@ const PORT = process.env.PORT || 3000;
 
 // Validate required environment variables
 if (!process.env.SESSION_SECRET) {
+  console.error('SESSION_SECRET environment variable is required!');
   process.exit(1);
 }
 
@@ -54,12 +59,16 @@ app.use(urlencoded({extended:true}));
 
 // Add logging middleware to see incoming requests
 app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url} - Origin: ${req.headers.origin || 'No origin'}`);
+  console.log('Headers:', req.headers);
   next();
 });
 
 // Test CORS endpoint
 app.get('/test-cors', (req, res) => {
+    console.log('CORS test endpoint hit - Origin:', req.headers.origin);
     res.json({ 
+        message: 'CORS test successful',
         origin: req.headers.origin,
         timestamp: new Date().toISOString()
     });
@@ -128,9 +137,13 @@ app.get('/', (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
+  console.error('Error:', err.message);
+  console.error('Stack:', err.stack);
   
   if (err.message === 'Not allowed by CORS') {
+    console.log('CORS blocked request from:', req.headers.origin);
     return res.status(403).json({ 
+      error: 'CORS blocked', 
       origin: req.headers.origin,
       allowedOrigins: [
         process.env.VITE_FE_URL,
@@ -142,13 +155,17 @@ app.use((err, req, res, next) => {
   
   // Handle route parsing errors
   if (err.message && err.message.includes('pathToRegexpError')) {
+    console.error('Route parsing error detected');
     return res.status(500).json({ 
+      error: 'Route configuration error',
       details: 'Invalid route pattern detected'
     });
   }
   
-  res.status(500).json({});
+  res.status(500).json({ error: 'Internal server error' });
 });
 
 app.listen(PORT, () => {
+  console.log(`Server is running on PORT:${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });

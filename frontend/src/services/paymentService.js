@@ -2,109 +2,76 @@ import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_APP_BE_BASEURL || 'https://fastgen-5i9n.onrender.com';
 
-// Create axios instance with optimized configuration
-const apiClient = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 10000, // 10 second timeout
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// Request interceptor for caching
-const requestCache = new Map();
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-
-apiClient.interceptors.request.use((config) => {
-  // Add cache key for GET requests
-  if (config.method === 'get') {
-    const cacheKey = `${config.url}${JSON.stringify(config.params || {})}`;
-    const cached = requestCache.get(cacheKey);
-    
-    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-      return Promise.reject({
-        isCached: true,
-        data: cached.data,
-        config
-      });
-    }
-  }
-  
-  return config;
-});
-
-// Response interceptor for caching
-apiClient.interceptors.response.use(
-  (response) => {
-    // Cache GET responses
-    if (response.config.method === 'get') {
-      const cacheKey = `${response.config.url}${JSON.stringify(response.config.params || {})}`;
-      requestCache.set(cacheKey, {
-        data: response.data,
-        timestamp: Date.now()
-      });
-    }
-    return response;
-  },
-  (error) => {
-    // Handle cached responses
-    if (error.isCached) {
-      return Promise.resolve({
-        data: error.data,
-        status: 200,
-        statusText: 'OK',
-        headers: {},
-        config: error.config
-      });
-    }
-    return Promise.reject(error);
-  }
-);
-
+// Debug logging
+console.log('🔍 PaymentService Debug:');
+console.log('VITE_APP_BE_BASEURL:', import.meta.env.VITE_APP_BE_BASEURL);
+console.log('API_BASE_URL:', API_BASE_URL);
+console.log('Environment:', import.meta.env.MODE);
 
 class PaymentService {
   // Create payment order
   async createOrder(amount, plan) {
-    const response = await apiClient.post('/api/payments/create-order', {
-      amount,
-      plan
-    }, {
-      withCredentials: true
-    });
-    
-    return response.data;
+    try {
+      console.log('🚀 Creating payment order...');
+      console.log('Request URL:', `${API_BASE_URL}/api/payments/create-order`);
+      console.log('Request data:', { amount, plan });
+      
+      const response = await axios.post(`${API_BASE_URL}/api/payments/create-order`, {
+        amount,
+        plan
+      }, {
+        withCredentials: true
+      });
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error creating payment order:', error);
+      throw error;
+    }
   }
 
   // Verify payment
   async verifyPayment(orderId, paymentId, signature, plan) {
-    const response = await apiClient.post('/api/payments/verify-payment', {
-      orderId,
-      paymentId,
-      signature,
-      plan
-    }, {
-      withCredentials: true
-    });
-    
-    return response.data;
+    try {
+      const response = await axios.post(`${API_BASE_URL}/api/payments/verify-payment`, {
+        orderId,
+        paymentId,
+        signature,
+        plan
+      }, {
+        withCredentials: true
+      });
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error verifying payment:', error);
+      throw error;
+    }
   }
 
   // Get subscription status
   async getSubscriptionStatus() {
-    const response = await apiClient.get('/api/payments/subscription-status', {
-      withCredentials: true
-    });
-    
-    return response.data;
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/payments/subscription-status`, {
+        withCredentials: true
+      });
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error getting subscription status:', error);
+      throw error;
+    }
   }
 
   // Process payment with modern UI
-  async processPayment(amount, plan) {
+  async processPayment(amount, plan, onSuccess, onError) {
     try {
       // Create order
       const orderResponse = await this.createOrder(amount, plan);
       
-      if (!orderResponse.success) return;
+      if (!orderResponse.success) {
+        throw new Error('Failed to create payment order');
+      }
 
       const order = orderResponse.order;
 
@@ -116,24 +83,31 @@ class PaymentService {
         plan: plan
       };
 
-    } catch {
-      return { success: false };
+    } catch (error) {
+      onError(error.message || 'Payment processing failed');
+      return { success: false, error: error.message };
     }
   }
 
   // Verify payment after modern modal completion
   async verifyModernPayment(orderId, paymentId, signature, plan) {
-    const verifyResponse = await this.verifyPayment(orderId, paymentId, signature, plan);
-    return verifyResponse;
+    try {
+      const verifyResponse = await this.verifyPayment(orderId, paymentId, signature, plan);
+      return verifyResponse;
+    } catch (error) {
+      throw error;
+    }
   }
 
   // Legacy Razorpay popup method (kept for fallback)
-  async processPaymentLegacy(amount, plan, onSuccess) {
+  async processPaymentLegacy(amount, plan, onSuccess, onError) {
     try {
       // Create order
       const orderResponse = await this.createOrder(amount, plan);
       
-      if (!orderResponse.success) return;
+      if (!orderResponse.success) {
+        throw new Error('Failed to create payment order');
+      }
 
       const order = orderResponse.order;
 
@@ -157,9 +131,11 @@ class PaymentService {
 
             if (verifyResponse.success) {
               onSuccess(verifyResponse.subscription);
+            } else {
+              onError('Payment verification failed');
             }
-          } catch {
-            // Silently handle error
+          } catch (error) {
+            onError(error.message || 'Payment verification failed');
           }
         },
         prefill: {
@@ -171,7 +147,7 @@ class PaymentService {
         },
         modal: {
           ondismiss: () => {
-            // Silently handle dismissal
+            onError('Payment cancelled by user');
           }
         }
       };
@@ -180,8 +156,8 @@ class PaymentService {
       const razorpay = new window.Razorpay(options);
       razorpay.open();
 
-    } catch {
-      // Silently handle error
+    } catch (error) {
+      onError(error.message || 'Payment processing failed');
     }
   }
 }

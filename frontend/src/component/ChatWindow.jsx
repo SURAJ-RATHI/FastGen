@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import axios from 'axios';
 import { LuSendHorizontal } from 'react-icons/lu';
@@ -9,49 +9,8 @@ import ShareModal from './ShareModal.jsx';
 import TypingIndicator from './TypingIndicator.jsx';
 import UpgradeModal from './UpgradeModal.jsx';
 
-// Debounce utility function for performance optimization
-const debounce = (func, wait) => {
-  let timeout;
-  return function executedFunction(...args) {
-    const later = () => {
-      clearTimeout(timeout);
-      func(...args);
-    };
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
-};
-
 // Memoized Message Component for better performance
 const MessageItem = React.memo(({ msg, user, searchQuery, highlightSearchTerms }) => {
-  const userInitial = useMemo(() => {
-    return user?.displayName?.charAt(0) || user?.name?.charAt(0) || user?.email?.charAt(0) || 'U';
-  }, [user?.displayName, user?.name, user?.email]);
-
-  const messageContent = useMemo(() => {
-    if (msg.sender === 'ai') {
-      if (msg.isStreaming) {
-        return (
-          <div className="flex items-center space-x-2">
-            <ReactMarkdown>{msg.content}</ReactMarkdown>
-            <div className="flex space-x-1">
-              <div className="w-1 h-1 bg-gray-400 rounded-full animate-pulse"></div>
-              <div className="w-1 h-1 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-              <div className="w-1 h-1 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
-            </div>
-          </div>
-        );
-      }
-      return searchQuery ? 
-        highlightSearchTerms(msg.content, searchQuery) : 
-        <ReactMarkdown>{msg.content}</ReactMarkdown>;
-    } else {
-      return searchQuery ? 
-        highlightSearchTerms(msg.content, searchQuery) : 
-        msg.content;
-    }
-  }, [msg.sender, msg.content, msg.isStreaming, searchQuery, highlightSearchTerms]);
-
   return (
     <div className="py-4 px-4">
       <div className={`max-w-3xl mx-auto flex gap-4 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -63,50 +22,64 @@ const MessageItem = React.memo(({ msg, user, searchQuery, highlightSearchTerms }
         <div className={`${msg.sender === 'user' ? 'max-w-[70%] text-right' : 'flex-1'} text-gray-100`}>
           {msg.sender === 'ai' ? (
             <div className="prose prose-invert max-w-none prose-sm">
-              {messageContent}
+              {msg.isStreaming ? (
+                <div className="flex items-center space-x-2">
+                  <ReactMarkdown>{msg.content}</ReactMarkdown>
+                  <div className="flex space-x-1">
+                    <div className="w-1 h-1 bg-gray-400 rounded-full animate-pulse"></div>
+                    <div className="w-1 h-1 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                    <div className="w-1 h-1 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                  </div>
+                </div>
+              ) : (
+                searchQuery ? 
+                  highlightSearchTerms(msg.content, searchQuery) : 
+                  <ReactMarkdown>{msg.content}</ReactMarkdown>
+              )}
             </div>
           ) : (
             <div className="whitespace-pre-wrap">
-              {messageContent}
+              {searchQuery ? 
+                highlightSearchTerms(msg.content, searchQuery) : 
+                msg.content
+              }
             </div>
           )}
         </div>
         {msg.sender === 'user' && (
           <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-medium text-white flex-shrink-0">
-            {userInitial}
+            {user?.displayName?.charAt(0) || user?.name?.charAt(0) || user?.email?.charAt(0) || 'U'}
           </div>
         )}
       </div>
     </div>
-  );
-}, (prevProps, nextProps) => {
-  // Custom comparison function for better performance
-  return (
-    prevProps.msg.content === nextProps.msg.content &&
-    prevProps.msg.sender === nextProps.msg.sender &&
-    prevProps.msg.isStreaming === nextProps.msg.isStreaming &&
-    prevProps.searchQuery === nextProps.searchQuery &&
-    prevProps.user?.id === nextProps.user?.id
   );
 });
 
 export default function ChatWindow() {
   const { user, isSignedIn } = useAuth();
   
-  // User data loaded
+  // Debug: Log user data to see what's available
+  useEffect(() => {
+    console.log('ChatWindow - User data:', user);
+    console.log('ChatWindow - User fields:', {
+      displayName: user?.displayName,
+      name: user?.name,
+      email: user?.email,
+      id: user?.id
+    });
+  }, [user]);
 
-  // Hide scrollbars util - memoized to prevent recreation
-  const scrollbarStyles = useMemo(() => `
-    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-    .scrollbar-hide::-webkit-scrollbar { display: none; }
-  `, []);
-
+  // Hide scrollbars util
   useEffect(() => {
     const style = document.createElement('style');
-    style.textContent = scrollbarStyles;
+    style.textContent = `
+      .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+      .scrollbar-hide::-webkit-scrollbar { display: none; }
+    `;
     document.head.appendChild(style);
     return () => document.head.removeChild(style);
-  }, [scrollbarStyles]);
+  }, []);
 
   const [messages, setMessages] = useState([]);
   const [prompt, setPrompt] = useState('');
@@ -160,46 +133,48 @@ export default function ChatWindow() {
       if (!Array.isArray(messages)) throw new Error('Invalid messages response: Expected an array');
       
       setMessages(messages);
-    } catch (error) {
-      if (error.response?.status === 500 && error.response?.data?.error?.includes('Cast to ObjectId failed')) {
+    } catch (err) {
+      if (err.response?.status === 500 && err.response?.data?.error?.includes('Cast to ObjectId failed')) {
         // New chat with no messages yet
         setMessages([]);
         return;
       }
+      console.error('Failed to load messages:', err);
+      setError(`Failed to load messages: ${err.message}`);
     }
   }, []);
 
   const loadChatHistory = useCallback(async (limit = 20, forceRefresh = false) => {
     try {
-      // Check cache first (5 minute cache for better performance)
+      // Check cache first (10 minute cache for better performance)
       const now = Date.now();
       const cacheAge = now - (cacheTimestamp || 0);
-      const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes - reduced for fresher data
+      const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
       
       if (!forceRefresh && chatHistoryCache && cacheAge < CACHE_DURATION) {
+        console.log('Using cached chat history');
         setChatHistory(chatHistoryCache);
         return chatHistoryCache;
       }
       
+      console.log('Loading chat history...'); // Debug log
       const res = await axios.get(`${import.meta.env.VITE_APP_BE_BASEURL}/api/chats/getChat`, {
         withCredentials: true,
-        params: { limit, sort: 'updatedAt' },
-        timeout: 8000 // 8 second timeout for faster failure
+        params: { limit, sort: 'updatedAt' }
       });
       
       const chats = Array.isArray(res.data) ? res.data : res.data?.chats || [];
       if (!Array.isArray(chats)) throw new Error('Invalid chats response: Expected an array');
-      
-      // Sort chats by updatedAt for better performance
       const sorted = chats.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+      console.log('Chat history loaded:', sorted.length, 'chats'); // Debug log
       
       // Update cache
       setChatHistoryCache(sorted);
       setCacheTimestamp(now);
       setChatHistory(sorted);
       return sorted; // important so callers can use immediately
-    } catch (error) {
-      console.error('Failed to load chat history:', error);
+    } catch (err) {
+      console.error('Error loading chat history:', err);
       return [];
     }
   }, [chatHistoryCache, cacheTimestamp]);
@@ -207,14 +182,10 @@ export default function ChatWindow() {
   // Load chat history immediately when user signs in
   useEffect(() => {
     if (isSignedIn) {
-      loadChatHistory().catch(error => {
-        console.error('Failed to load chat history:', error);
-        if (window.showToast) {
-          window.showToast('Failed to load chat history. Please refresh the page.', 'error');
-        }
-      });
+      console.log('User signed in, loading chat history...'); // Debug log
+      loadChatHistory();
     }
-  }, [isSignedIn, loadChatHistory]);
+  }, [isSignedIn]); // Removed loadChatHistory and user from dependencies
 
   // Initialize chat once on sign-in - ULTRA OPTIMIZED
   useEffect(() => {
@@ -222,6 +193,7 @@ export default function ChatWindow() {
     
     const initializeChat = async () => {
       if (!isSignedIn) {
+        setError('Please sign in to use the chat');
         return;
       }
       
@@ -247,9 +219,9 @@ export default function ChatWindow() {
           if (thisChat) {
             setCurrentChatTitle(thisChat.title || 'New Chat');
             // Load messages in background without blocking UI
-            loadMessages(storedChatId).catch(() => {
-              // Silently handle error
-            });
+            loadMessages(storedChatId).catch(err => 
+              console.error('Background message loading failed:', err)
+            );
           } else {
             // Chat not found, create new one
             await createNewChat();
@@ -260,12 +232,12 @@ export default function ChatWindow() {
           // Always create a new chat when no stored chatId (e.g., from "Explore Now" button)
           await createNewChat();
         }
-      } catch (error) {
+      } catch (err) {
         if (!isMounted) return;
-        console.error('Failed to initialize chat:', error);
-        if (window.showToast) {
-          window.showToast('Failed to initialize chat. Please try again.', 'error');
-        }
+        console.error('Error initializing chat:', err);
+        if (err.response?.status === 401) setError('Session expired. Please sign in again.');
+        else if (err.response?.status >= 500) setError('Server error. Please try again later.');
+        else setError(`Failed to initialize chat: ${err.message}`);
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -332,7 +304,8 @@ export default function ChatWindow() {
       // Try streaming first, fallback to regular request if it fails
       try {
         await handleStreamingResponse(originalPrompt);
-      } catch {
+      } catch (streamingError) {
+        console.log('Streaming failed, falling back to regular request:', streamingError);
         await handleRegularResponse(originalPrompt);
       }
       
@@ -344,20 +317,22 @@ export default function ChatWindow() {
           loadChatHistory(20, true); // Force refresh to get updated title
         }, 1000);
       }
-    } catch (error) {
+    } catch (err) {
+      console.error('Failed to send message:', err);
       
       // Check if it's a usage limit error (429) or if it's a 500 error that might be usage-related
-      if (error.response?.status === 429 && error.response?.data?.upgradeRequired) {
-        const usageData = error.response.data.usage;
+      if (err.response?.status === 429 && err.response?.data?.upgradeRequired) {
+        const usageData = err.response.data.usage;
         setUpgradeModalData({
           usage: usageData,
           featureType: 'chatbotChats'
         });
         setShowUpgradeModal(true);
         
-      } else if (error.response?.status === 500) {
+      } else if (err.response?.status === 500) {
         // For 500 errors, check if it might be a usage limit issue
         // This is a fallback in case the middleware isn't working properly
+        console.log('500 error details:', err.response?.data);
         
         // Show upgrade modal for any 500 error as a fallback
         setUpgradeModalData({
@@ -365,11 +340,10 @@ export default function ChatWindow() {
           featureType: 'chatbotChats'
         });
         setShowUpgradeModal(true);
+        
       } else {
-        // Show generic error message
-        if (window.showToast) {
-          window.showToast('Failed to send message. Please try again.', 'error');
-        }
+        setMessages(prev => [...prev, { sender: 'ai', content: 'Sorry, I encountered an error. Please try again.' }]);
+        setError(`Failed to send message: ${err.message}`);
       }
     } finally {
       setIsTyping(false);
@@ -380,6 +354,8 @@ export default function ChatWindow() {
     // Get the auth token from localStorage
     const token = localStorage.getItem('authToken');
     
+    console.log('Starting streaming request to:', `${import.meta.env.VITE_APP_BE_BASEURL}/api/gemini/stream`);
+    console.log('Request payload:', { chatId, prompt: originalPrompt, parsedFileName: uploadedParsedFileName || '' });
     
     // Use fetch for POST request with streaming and timeout
     const controller = new AbortController();
@@ -402,9 +378,12 @@ export default function ChatWindow() {
     
     clearTimeout(timeoutId);
 
+    console.log('Streaming response status:', response.status);
+    console.log('Streaming response headers:', response.headers);
 
     if (!response.ok) {
       const errorText = await response.text();
+      console.error('Streaming response error:', errorText);
       throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
     }
 
@@ -429,6 +408,7 @@ export default function ChatWindow() {
               
               switch (data.type) {
                 case 'connected':
+                  console.log('Stream connected');
                   break;
                   
                 case 'typing':
@@ -474,8 +454,8 @@ export default function ChatWindow() {
                 case 'error':
                   throw new Error(data.message);
               }
-            } catch {
-              // Silently handle error
+            } catch (parseError) {
+              console.error('Error parsing SSE data:', parseError);
             }
           }
         }
@@ -545,11 +525,9 @@ export default function ChatWindow() {
       setUploadedParsedFileName(res.data.parsedFileName);
       if (fileInputRef.current) fileInputRef.current.value = '';
       
-    } catch (error) {
-      console.error('Failed to upload file:', error);
-      if (window.showToast) {
-        window.showToast('Failed to upload file. Please try again.', 'error');
-      }
+    } catch (err) {
+      console.error('Error uploading file:', err);
+      setError(`Failed to upload file: ${err.message}`);
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
@@ -593,8 +571,9 @@ export default function ChatWindow() {
       setChatHistoryCache(prev => prev ? [newChat, ...prev] : [newChat]);
       setCacheTimestamp(Date.now());
       
-    } catch {
-      // Silently handle error
+    } catch (err) {
+      console.error('Error creating new chat:', err);
+      setError('Failed to create new chat');
     } finally {
       setLoading(false);
     }
@@ -620,11 +599,12 @@ export default function ChatWindow() {
       setUploadedParsedFileName('');
       
       // Preload messages in background for better UX
-      loadMessages(id).catch(() => {
-        // Silently handle error
-      });
-    } catch {
-      // Silently handle error
+      loadMessages(id).catch(err => 
+        console.error('Background message loading failed:', err)
+      );
+    } catch (err) {
+      console.error('Error switching to chat:', err);
+      setError('Failed to load chat');
     }
   };
 
@@ -638,6 +618,7 @@ export default function ChatWindow() {
   const confirmDeleteChat = async () => {
     if (!chatToDelete) return;
     try {
+      console.log('Deleting chat:', chatToDelete._id); // Debug log
       await axios.delete(`${import.meta.env.VITE_APP_BE_BASEURL}/api/chats/${chatToDelete._id}`, { withCredentials: true });
       const updated = chatHistory.filter(c => c._id !== chatToDelete._id);
       setChatHistory(updated);
@@ -651,8 +632,8 @@ export default function ChatWindow() {
       }
       setShowDeleteModal(false);
       setChatToDelete(null);
-    } catch {
-      // Silently handle error
+    } catch (err) {
+      console.error('Error deleting chat:', err);
     }
   };
 
@@ -661,37 +642,29 @@ export default function ChatWindow() {
     setChatToDelete(null);
   };
 
-  // Debounced search functionality for better performance
-  const debouncedSearch = useCallback(
-    debounce((query, chats) => {
-      if (!query.trim()) {
-        setFilteredChats(chats);
-        return;
-      }
-
-      const filtered = chats.filter(chat => {
-        // Search in chat title
-        const titleMatch = chat.title?.toLowerCase().includes(query.toLowerCase());
-        
-        // Search in chat messages
-        const messageMatch = chat.messages?.some(message => 
-          message.content?.toLowerCase().includes(query.toLowerCase())
-        );
-
-        return titleMatch || messageMatch;
-      });
-
-      setFilteredChats(filtered);
-    }, 300), // 300ms debounce
-    []
-  );
-
   // Search functionality - OPTIMIZED with useCallback
   const searchChats = useCallback((query) => {
-    debouncedSearch(query, chatHistory);
-  }, [chatHistory, debouncedSearch]);
+    if (!query.trim()) {
+      setFilteredChats(chatHistory);
+      return;
+    }
 
-  // Highlight search terms in text - OPTIMIZED with useCallback and memoization
+    const filtered = chatHistory.filter(chat => {
+      // Search in chat title
+      const titleMatch = chat.title?.toLowerCase().includes(query.toLowerCase());
+      
+      // Search in chat messages
+      const messageMatch = chat.messages?.some(message => 
+        message.content?.toLowerCase().includes(query.toLowerCase())
+      );
+
+      return titleMatch || messageMatch;
+    });
+
+    setFilteredChats(filtered);
+  }, [chatHistory]);
+
+  // Highlight search terms in text - OPTIMIZED with useCallback
   const highlightSearchTerms = useCallback((text, searchQuery) => {
     if (!searchQuery.trim() || !text) return text;
     
@@ -710,7 +683,7 @@ export default function ChatWindow() {
   // Update filtered chats when search query changes
   useEffect(() => {
     searchChats(searchQuery);
-  }, [searchQuery, searchChats]);
+  }, [searchQuery]); // Removed chatHistory from dependencies to prevent excessive re-renders
 
   const shareChat = async (chatIdToShare) => {
     try {
@@ -729,34 +702,42 @@ export default function ChatWindow() {
         setShowShareModal(true);
         setOpenMenuId(null);
       }
-    } catch {
-      // Silently handle error
+    } catch (err) {
+      console.error('Error sharing chat:', err);
     }
   };
 
   const renameChat = async (chatIdToRename, newTitle) => {
     try {
+      console.log('Renaming chat:', chatIdToRename, 'to:', newTitle); // Debug log
       const response = await axios.put(
         `${import.meta.env.VITE_APP_BE_BASEURL}/api/gemini/chat-title/${chatIdToRename}`,
         { title: newTitle },
         { withCredentials: true }
       );
+      console.log('Rename response:', response.data); // Debug log
       if (response.data?.success) {
         setChatHistory(prev => prev.map(c => (c._id === chatIdToRename ? { ...c, title: newTitle } : c)));
         if (chatId === chatIdToRename) setCurrentChatTitle(newTitle);
         setEditingChatId(null);
         setEditingTitle('');
         setOpenMenuId(null);
+        console.log('Chat renamed successfully'); // Debug log
+      } else {
+        console.log('Rename failed - no success flag:', response.data); // Debug log
       }
-    } catch {
-      // Silently handle error
+    } catch (err) {
+      console.error('Error renaming chat:', err);
+      console.error('Error details:', err.response?.data); // Debug log
     }
   };
 
   const startEditingTitle = (id, currentTitle) => {
+    console.log('Starting to edit title for chat:', id, 'current title:', currentTitle); // Debug log
     setEditingChatId(id);
     setEditingTitle(currentTitle || '');
     setOpenMenuId(null);
+    console.log('Edit state set - editingChatId:', id, 'editingTitle:', currentTitle || ''); // Debug log
   };
 
   const toggleMenu = (id, event) => {

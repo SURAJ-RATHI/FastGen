@@ -22,6 +22,7 @@ const useModernPayment = () => {
         throw new Error(result.error || 'Failed to initiate payment');
       }
     } catch (error) {
+      console.error('Payment initiation failed:', error);
       throw error;
     } finally {
       setIsLoading(false);
@@ -40,6 +41,7 @@ const useModernPayment = () => {
 
       if (verifyResponse.success) {
         // Payment successful
+        console.log('Payment successful:', verifyResponse.subscription);
         setIsModalOpen(false);
         setPaymentData(null);
         return { success: true, subscription: verifyResponse.subscription };
@@ -47,11 +49,13 @@ const useModernPayment = () => {
         throw new Error('Payment verification failed');
       }
     } catch (error) {
+      console.error('Payment verification failed:', error);
       throw error;
     }
   };
 
   const handlePaymentError = (error) => {
+    console.error('Payment error:', error);
     setIsModalOpen(false);
     setPaymentData(null);
   };
