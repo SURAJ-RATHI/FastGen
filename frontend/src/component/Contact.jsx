@@ -27,7 +27,6 @@ const Contact = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    console.log('Form submitted with data:', formData); // Debug log
     
     if (!formData.name || !formData.email || !formData.message) {
       setSubmitStatus('Please fill in all fields');
@@ -51,7 +50,6 @@ const Contact = () => {
       setSubmitStatus('Message sent successfully!');
       setFormData({ name: '', email: '', message: '' });
     } catch (error) {
-      console.error('Failed to send message:', error);
       setSubmitStatus('Failed to send message. Please try again.');
     } finally {
       setIsSubmitting(false);

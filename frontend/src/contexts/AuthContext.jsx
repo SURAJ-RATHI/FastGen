@@ -53,7 +53,6 @@ export const AuthProvider = ({ children }) => {
 
   const signInWithGoogle = async (credential) => {
     try {
-      console.log('Attempting Google sign in to:', `${import.meta.env.VITE_APP_BE_BASEURL}/api/auth/google`);
       
       const response = await axios.post(`${import.meta.env.VITE_APP_BE_BASEURL}/api/auth/google`, {
         credential
@@ -67,7 +66,6 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true };
     } catch (error) {
-      console.error('Google sign in error:', error);
       
       if (error.code === 'ERR_NETWORK') {
         return { 
@@ -105,7 +103,6 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true };
     } catch (error) {
-      console.error('Email sign in error:', error);
       return { success: false, error: error.response?.data?.error || 'Login failed' };
     }
   };
@@ -125,7 +122,6 @@ export const AuthProvider = ({ children }) => {
       
       return { success: false, error: 'Signup failed' };
     } catch (error) {
-      console.error('Email signup error:', error);
       return { success: false, error: error.response?.data?.error || 'Signup failed' };
     }
   };
@@ -134,7 +130,6 @@ export const AuthProvider = ({ children }) => {
     try {
       await axios.post(`${import.meta.env.VITE_APP_BE_BASEURL}/api/auth/logout`);
     } catch (error) {
-      console.error('Logout error:', error);
     } finally {
       localStorage.removeItem('authToken');
       setToken(null);
@@ -148,7 +143,6 @@ export const AuthProvider = ({ children }) => {
       const response = await axios.get(`${import.meta.env.VITE_APP_BE_BASEURL}/api/user/me`);
       return response.data;
     } catch (error) {
-      console.error('Failed to fetch user data:', error);
       throw error;
     }
   };

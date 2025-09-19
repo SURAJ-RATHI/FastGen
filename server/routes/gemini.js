@@ -40,7 +40,6 @@ function addToMemory(userId, chatId, message, sender) {
       userMemory.get(userIdStr).splice(0, 100);
     }
   } catch (error) {
-    console.error('Error adding to memory:', error);
   }
 }
 
@@ -91,7 +90,6 @@ function retrieveRelevantContext(userId, currentQuery, limit = 8) {
         metadata: msg.metadata
       }));
   } catch (error) {
-    console.error('Error retrieving context:', error);
     return [];
   }
 }
@@ -174,7 +172,6 @@ async function retrieveRelevantPastMessages(userId, currentChatId, currentQuery,
       .slice(0, limit);
       
   } catch (error) {
-    console.error('Error retrieving past messages:', error);
     return [];
   }
 }
@@ -232,7 +229,6 @@ Title:`;
     
     return cleanTitle;
   } catch (error) {
-    console.error('Error generating chat title:', error);
     return 'New Chat';
   }
 }
@@ -240,7 +236,6 @@ Title:`;
 // Function to build comprehensive conversation context - PINECONE ENHANCED
 async function buildConversationContext(userId, chatId, currentQuery) {
   try {
-    console.log(`Building context for user ${userId}, chat ${chatId}, query: "${currentQuery}"`);
     
     // Get recent messages for immediate context (optimized query)
     const recentMessages = await Message.find({ chat: chatId })
@@ -249,7 +244,6 @@ async function buildConversationContext(userId, chatId, currentQuery) {
       .limit(3) // Reduced from 5 to 3 for faster processing
       .lean(); // Use lean() for better performance
     
-    console.log(`Found ${recentMessages.length} recent messages`);
     
     let context = "";
     
@@ -261,7 +255,6 @@ ${recentMessages.reverse().map(msg => `- ${msg.sender === 'user' ? 'User' : 'AI'
     
     // Try Pinecone search with timeout to prevent hanging
     try {
-      console.log('Attempting Pinecone search...');
       const pineconePromise = pineconeService.searchSimilarMessages(
         userId, 
         currentQuery, 
@@ -276,23 +269,18 @@ ${recentMessages.reverse().map(msg => `- ${msg.sender === 'user' ? 'User' : 'AI'
       
       const relevantMessages = await Promise.race([pineconePromise, timeoutPromise]);
       
-      console.log(`Pinecone search returned ${relevantMessages.length} relevant messages`);
       
       if (relevantMessages.length > 0) {
         context += `\n\nRELEVANT PAST CONVERSATIONS (semantic search):
 ${relevantMessages.map(msg => `- ${msg.sender === 'user' ? 'User' : 'AI'}: ${msg.content.substring(0, 60)}${msg.content.length > 60 ? '...' : ''} (relevance: ${(msg.score * 100).toFixed(1)}%)`).join('\n')}`;
       } else {
-        console.log('No relevant messages found via Pinecone');
       }
     } catch (pineconeError) {
-      console.error('Pinecone search failed or timed out, skipping fallback for speed:', pineconeError.message);
       // Skip database fallback for speed - just use recent context
     }
     
-    console.log(`Final context length: ${context.length} characters`);
     return context;
   } catch (error) {
-    console.error('Error building context:', error);
     return "";
   }
 }
@@ -313,7 +301,6 @@ async function* generateStreamingResponse(prompt) {
     }
     
     try {
-      console.log(`Attempting streaming with key ${keyIndex + 1}/${apiKeys.length}`);
       
       const genAI = new GoogleGenerativeAI(currentKey.key);
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
@@ -332,12 +319,10 @@ async function* generateStreamingResponse(prompt) {
       return;
       
     } catch (error) {
-      console.error(`Streaming failed with key ${keyIndex + 1}:`, error.message);
       
       // If it's a quota or rate limit error, deactivate this key
       if (error.message.includes('quota') || error.message.includes('rate limit') || error.message.includes('429')) {
         currentKey.active = false;
-        console.log(`Deactivated key ${keyIndex + 1} due to quota/rate limit`);
       }
       
       // Continue to next key
@@ -403,7 +388,6 @@ Please provide a helpful, accurate, and well-structured response.`;
 
       return ans; // return if success
     } catch (err) {
-      console.error(`Api_Key failed:`, err.message);
 
       // Check if it's a quota or usage error
       if (
@@ -425,19 +409,14 @@ Please provide a helpful, accurate, and well-structured response.`;
 // gemini streaming request
 router.post('/stream', checkUsageLimit('chatbotChats'), async (req, res) => {
   try {
-    console.log('=== STREAMING REQUEST START ===');
-    console.log('Request body:', req.body);
-    console.log('User:', req.user);
     
     const { chatId, prompt, parsedFileName } = req.body;
 
     if (!req.user) {
-      console.log('No user found, returning 401');
       return res.status(401).json({ error: "Unauthorized" });
     }
 
     if (!chatId || !prompt) {
-      console.log('Missing required fields:', { chatId: !!chatId, prompt: !!prompt });
       return res.status(400).json({ error: "chatId and prompt are required" });
     }
 
@@ -467,7 +446,6 @@ router.post('/stream', checkUsageLimit('chatbotChats'), async (req, res) => {
     // Add message to chat's messages array (non-blocking)
     Chat.findByIdAndUpdate(chatId, {
       $push: { messages: userMessage._id }
-    }).catch(err => console.error('Error updating chat messages:', err));
 
     // Build conversation context in parallel with file processing
     const [conversationContext, parseText, parsedFilePath] = await Promise.all([
@@ -610,15 +588,6 @@ IMPORTANT:
       finalPrompt += `\n text/file: ${parseText}`;
     }
 
-    console.log('=== STREAMING DEBUG INFO ===');
-    console.log('User ID:', req.user.userId);
-    console.log('User Name:', userName);
-    console.log('User Email:', userEmail);
-    console.log('User Education:', userEducation);
-    console.log('User Style:', userStyle);
-    console.log('Conversation Context Length:', conversationContext.length);
-    console.log('Final Prompt Length:', finalPrompt.length);
-    console.log('=== END STREAMING DEBUG ===');
 
     // Send typing indicator
     res.write('data: {"type":"typing","message":"AI is thinking..."}\n\n');
@@ -680,7 +649,6 @@ IMPORTANT:
         { chatTitle: await Chat.findById(chatId).select('title').then(c => c?.title) }
       );
     } catch (pineconeError) {
-      console.error('Failed to store vectors in Pinecone:', pineconeError);
       // Continue execution - Pinecone failure shouldn't break the chat
     }
 
@@ -696,35 +664,26 @@ IMPORTANT:
         
         // Update chat title
         await Chat.findByIdAndUpdate(chatId, { title: newTitle });
-        console.log(`Updated chat title to: ${newTitle} (message count: ${messageCount})`);
       }
     } catch (error) {
-      console.error('Error updating chat title:', error);
     }
 
     // Increment usage for successful chat
     try {
       if (req.usage) {
         await req.usage.incrementUsage('chatbotChats');
-        console.log(`Incremented chatbot usage for user ${req.user.userId}`);
       }
     } catch (error) {
-      console.error('Error incrementing usage:', error);
     }
 
     res.end();
 
   } catch (err) {
-    console.error('=== STREAMING ERROR ===');
-    console.error('Error details:', err);
-    console.error('Error stack:', err.stack);
-    console.error('=== END STREAMING ERROR ===');
     
     try {
       res.write(`data: {"type":"error","message":"${err.message}"}\n\n`);
       res.end();
     } catch (writeError) {
-      console.error('Error writing error response:', writeError);
     }
   }
 });
@@ -889,19 +848,9 @@ IMPORTANT:
       finalPrompt += `\n text/file: ${parseText}`;
     }
 
-    console.log('=== DEBUG INFO ===');
-    console.log('User ID:', req.user.userId);
-    console.log('User Name:', userName);
-    console.log('User Email:', userEmail);
-    console.log('User Education:', userEducation);
-    console.log('User Style:', userStyle);
-    console.log('Conversation Context Length:', conversationContext.length);
-    console.log('Final Prompt Length:', finalPrompt.length);
-    console.log('=== END DEBUG ===');
 
     const ans = await generateWithFallback(finalPrompt)
 
-    console.log('Gemini answer:', ans);
 
     // Validate response quality
     if (!ans || ans.trim().length < 10) {
@@ -916,10 +865,8 @@ IMPORTANT:
     try {
       if (req.usage) {
         await req.usage.incrementUsage('chatbotChats');
-        console.log(`Incremented chatbot usage for user ${req.user.userId}`);
       }
     } catch (error) {
-      console.error('Error incrementing usage:', error);
     }
 
     res.json({ answer: ans });
@@ -961,7 +908,6 @@ IMPORTANT:
         { chatTitle: await Chat.findById(chatId).select('title').then(c => c?.title) }
       );
     } catch (pineconeError) {
-      console.error('Failed to store vectors in Pinecone:', pineconeError);
       // Continue execution - Pinecone failure shouldn't break the chat
     }
 
@@ -977,14 +923,11 @@ IMPORTANT:
         
         // Update chat title
         await Chat.findByIdAndUpdate(chatId, { title: newTitle });
-        console.log(`Updated chat title to: ${newTitle} (message count: ${messageCount})`);
       }
     } catch (error) {
-      console.error('Error updating chat title:', error);
     }
 
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: 'Failed to process Gemini request' });
   }
 });
@@ -1014,7 +957,6 @@ router.put('/chat-title/:chatId', async (req, res) => {
 
     res.json({ success: true, title: title.trim() });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: 'Failed to update chat title' });
   }
 });

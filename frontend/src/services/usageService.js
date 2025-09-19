@@ -12,7 +12,6 @@ class UsageService {
       
       return response.data;
     } catch (error) {
-      console.error('Error getting usage status:', error);
       throw error;
     }
   }

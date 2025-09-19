@@ -18,7 +18,6 @@ const UsageDisplay = ({ onUpgradeClick }) => {
       const formattedData = usageService.formatUsageForDisplay(data);
       setUsageData(formattedData);
     } catch (err) {
-      console.error('Failed to fetch usage data:', err);
       setError('Failed to load usage data');
     } finally {
       setLoading(false);

@@ -97,7 +97,6 @@ const ModernPricing = () => {
     try {
       await initiatePayment(plan.price, plan.id);
     } catch (error) {
-      console.error('Failed to initiate payment:', error);
     }
   };
 

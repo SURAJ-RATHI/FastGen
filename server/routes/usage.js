@@ -69,7 +69,6 @@ router.get('/status', requireAuth, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error getting usage status:', error);
     res.status(500).json({ error: 'Failed to get usage status' });
   }
 });

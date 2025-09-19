@@ -91,25 +91,16 @@ export default function VideoSearch() {
 
   const handleSearch = () => {
     // Implement actual search functionality here
-    console.log('Searching for:', searchTopic);
   };
 
   const handleVideoCardClick = (video) => {
-    console.log('🎬 Video card clicked!');
-    console.log('📹 Video details:', video);
-    console.log('🔍 Current state - selectedVideo:', selectedVideo);
-    console.log('🔍 Current state - showVideoPlayer:', showVideoPlayer);
     
     setSelectedVideo(video);
-    console.log('✅ selectedVideo set to:', video.title);
     
     setShowVideoPlayer(true);
-    console.log('✅ showVideoPlayer set to: true');
     
     // Log the updated state after a brief delay
     setTimeout(() => {
-      console.log('🔄 State after update - selectedVideo:', selectedVideo);
-      console.log('🔄 State after update - showVideoPlayer:', showVideoPlayer);
     }, 100);
   };
 
@@ -191,15 +182,10 @@ export default function VideoSearch() {
             <div
               key={video.id}
               onClick={(e) => {
-                console.log('🖱️ Click event triggered!');
-                console.log('🎯 Video being clicked:', video.title);
-                console.log('📍 Event target:', e.target);
-                console.log('📍 Current target:', e.currentTarget);
                 
                 e.preventDefault();
                 e.stopPropagation();
                 
-                console.log('🔒 Event prevented and stopped');
                 handleVideoCardClick(video);
               }}
               className="bg-gray-800 rounded-lg p-4 hover:bg-gray-700 hover:scale-105 transition-all duration-200 border border-gray-700 hover:border-blue-500 cursor-pointer select-none shadow-lg hover:shadow-xl"

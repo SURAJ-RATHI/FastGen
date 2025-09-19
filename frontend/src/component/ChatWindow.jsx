@@ -59,16 +59,7 @@ const MessageItem = React.memo(({ msg, user, searchQuery, highlightSearchTerms }
 export default function ChatWindow() {
   const { user, isSignedIn } = useAuth();
   
-  // Debug: Log user data to see what's available
-  useEffect(() => {
-    console.log('ChatWindow - User data:', user);
-    console.log('ChatWindow - User fields:', {
-      displayName: user?.displayName,
-      name: user?.name,
-      email: user?.email,
-      id: user?.id
-    });
-  }, [user]);
+  // User data loaded
 
   // Hide scrollbars util
   useEffect(() => {
@@ -139,7 +130,6 @@ export default function ChatWindow() {
         setMessages([]);
         return;
       }
-      console.error('Failed to load messages:', err);
       setError(`Failed to load messages: ${err.message}`);
     }
   }, []);
@@ -152,12 +142,10 @@ export default function ChatWindow() {
       const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
       
       if (!forceRefresh && chatHistoryCache && cacheAge < CACHE_DURATION) {
-        console.log('Using cached chat history');
         setChatHistory(chatHistoryCache);
         return chatHistoryCache;
       }
       
-      console.log('Loading chat history...'); // Debug log
       const res = await axios.get(`${import.meta.env.VITE_APP_BE_BASEURL}/api/chats/getChat`, {
         withCredentials: true,
         params: { limit, sort: 'updatedAt' }
@@ -166,7 +154,6 @@ export default function ChatWindow() {
       const chats = Array.isArray(res.data) ? res.data : res.data?.chats || [];
       if (!Array.isArray(chats)) throw new Error('Invalid chats response: Expected an array');
       const sorted = chats.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
-      console.log('Chat history loaded:', sorted.length, 'chats'); // Debug log
       
       // Update cache
       setChatHistoryCache(sorted);
@@ -174,7 +161,6 @@ export default function ChatWindow() {
       setChatHistory(sorted);
       return sorted; // important so callers can use immediately
     } catch (err) {
-      console.error('Error loading chat history:', err);
       return [];
     }
   }, [chatHistoryCache, cacheTimestamp]);
@@ -182,7 +168,6 @@ export default function ChatWindow() {
   // Load chat history immediately when user signs in
   useEffect(() => {
     if (isSignedIn) {
-      console.log('User signed in, loading chat history...'); // Debug log
       loadChatHistory();
     }
   }, [isSignedIn]); // Removed loadChatHistory and user from dependencies
@@ -219,9 +204,9 @@ export default function ChatWindow() {
           if (thisChat) {
             setCurrentChatTitle(thisChat.title || 'New Chat');
             // Load messages in background without blocking UI
-            loadMessages(storedChatId).catch(err => 
-              console.error('Background message loading failed:', err)
-            );
+            loadMessages(storedChatId).catch(() => {
+              // Silently handle error
+            });
           } else {
             // Chat not found, create new one
             await createNewChat();
@@ -234,7 +219,6 @@ export default function ChatWindow() {
         }
       } catch (err) {
         if (!isMounted) return;
-        console.error('Error initializing chat:', err);
         if (err.response?.status === 401) setError('Session expired. Please sign in again.');
         else if (err.response?.status >= 500) setError('Server error. Please try again later.');
         else setError(`Failed to initialize chat: ${err.message}`);
@@ -305,7 +289,6 @@ export default function ChatWindow() {
       try {
         await handleStreamingResponse(originalPrompt);
       } catch (streamingError) {
-        console.log('Streaming failed, falling back to regular request:', streamingError);
         await handleRegularResponse(originalPrompt);
       }
       
@@ -318,7 +301,6 @@ export default function ChatWindow() {
         }, 1000);
       }
     } catch (err) {
-      console.error('Failed to send message:', err);
       
       // Check if it's a usage limit error (429) or if it's a 500 error that might be usage-related
       if (err.response?.status === 429 && err.response?.data?.upgradeRequired) {
@@ -332,7 +314,6 @@ export default function ChatWindow() {
       } else if (err.response?.status === 500) {
         // For 500 errors, check if it might be a usage limit issue
         // This is a fallback in case the middleware isn't working properly
-        console.log('500 error details:', err.response?.data);
         
         // Show upgrade modal for any 500 error as a fallback
         setUpgradeModalData({
@@ -354,8 +335,6 @@ export default function ChatWindow() {
     // Get the auth token from localStorage
     const token = localStorage.getItem('authToken');
     
-    console.log('Starting streaming request to:', `${import.meta.env.VITE_APP_BE_BASEURL}/api/gemini/stream`);
-    console.log('Request payload:', { chatId, prompt: originalPrompt, parsedFileName: uploadedParsedFileName || '' });
     
     // Use fetch for POST request with streaming and timeout
     const controller = new AbortController();
@@ -378,12 +357,9 @@ export default function ChatWindow() {
     
     clearTimeout(timeoutId);
 
-    console.log('Streaming response status:', response.status);
-    console.log('Streaming response headers:', response.headers);
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Streaming response error:', errorText);
       throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
     }
 
@@ -408,7 +384,6 @@ export default function ChatWindow() {
               
               switch (data.type) {
                 case 'connected':
-                  console.log('Stream connected');
                   break;
                   
                 case 'typing':
@@ -455,7 +430,6 @@ export default function ChatWindow() {
                   throw new Error(data.message);
               }
             } catch (parseError) {
-              console.error('Error parsing SSE data:', parseError);
             }
           }
         }
@@ -526,7 +500,6 @@ export default function ChatWindow() {
       if (fileInputRef.current) fileInputRef.current.value = '';
       
     } catch (err) {
-      console.error('Error uploading file:', err);
       setError(`Failed to upload file: ${err.message}`);
     } finally {
       setIsUploading(false);
@@ -572,7 +545,6 @@ export default function ChatWindow() {
       setCacheTimestamp(Date.now());
       
     } catch (err) {
-      console.error('Error creating new chat:', err);
       setError('Failed to create new chat');
     } finally {
       setLoading(false);
@@ -599,11 +571,10 @@ export default function ChatWindow() {
       setUploadedParsedFileName('');
       
       // Preload messages in background for better UX
-      loadMessages(id).catch(err => 
-        console.error('Background message loading failed:', err)
-      );
+      loadMessages(id).catch(() => {
+        // Silently handle error
+      });
     } catch (err) {
-      console.error('Error switching to chat:', err);
       setError('Failed to load chat');
     }
   };
@@ -618,7 +589,6 @@ export default function ChatWindow() {
   const confirmDeleteChat = async () => {
     if (!chatToDelete) return;
     try {
-      console.log('Deleting chat:', chatToDelete._id); // Debug log
       await axios.delete(`${import.meta.env.VITE_APP_BE_BASEURL}/api/chats/${chatToDelete._id}`, { withCredentials: true });
       const updated = chatHistory.filter(c => c._id !== chatToDelete._id);
       setChatHistory(updated);
@@ -633,7 +603,6 @@ export default function ChatWindow() {
       setShowDeleteModal(false);
       setChatToDelete(null);
     } catch (err) {
-      console.error('Error deleting chat:', err);
     }
   };
 
@@ -703,41 +672,32 @@ export default function ChatWindow() {
         setOpenMenuId(null);
       }
     } catch (err) {
-      console.error('Error sharing chat:', err);
     }
   };
 
   const renameChat = async (chatIdToRename, newTitle) => {
     try {
-      console.log('Renaming chat:', chatIdToRename, 'to:', newTitle); // Debug log
       const response = await axios.put(
         `${import.meta.env.VITE_APP_BE_BASEURL}/api/gemini/chat-title/${chatIdToRename}`,
         { title: newTitle },
         { withCredentials: true }
       );
-      console.log('Rename response:', response.data); // Debug log
       if (response.data?.success) {
         setChatHistory(prev => prev.map(c => (c._id === chatIdToRename ? { ...c, title: newTitle } : c)));
         if (chatId === chatIdToRename) setCurrentChatTitle(newTitle);
         setEditingChatId(null);
         setEditingTitle('');
         setOpenMenuId(null);
-        console.log('Chat renamed successfully'); // Debug log
       } else {
-        console.log('Rename failed - no success flag:', response.data); // Debug log
       }
     } catch (err) {
-      console.error('Error renaming chat:', err);
-      console.error('Error details:', err.response?.data); // Debug log
     }
   };
 
   const startEditingTitle = (id, currentTitle) => {
-    console.log('Starting to edit title for chat:', id, 'current title:', currentTitle); // Debug log
     setEditingChatId(id);
     setEditingTitle(currentTitle || '');
     setOpenMenuId(null);
-    console.log('Edit state set - editingChatId:', id, 'editingTitle:', currentTitle || ''); // Debug log
   };
 
   const toggleMenu = (id, event) => {

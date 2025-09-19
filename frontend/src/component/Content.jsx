@@ -68,8 +68,6 @@ const Content = () => {
         throw new Error(`Request failed: ${res.status}`);
       }
 
-      console.log('Response:', res.data);
-      console.log('Videos count:', res.data.videos?.length || 0);
       const newVideos = res.data.videos || [];
       setVideoData(newVideos);
 
@@ -77,7 +75,6 @@ const Content = () => {
       localStorage.setItem('searchTopic', topic);
       localStorage.setItem('videoData', JSON.stringify(newVideos));
     } catch (err) {
-      console.error(err);
       
       // Check if it's a usage limit error (429) or if it's a 500 error that might be usage-related
       if (err.response?.status === 429 && err.response?.data?.upgradeRequired) {
@@ -90,7 +87,6 @@ const Content = () => {
         
       } else if (err.response?.status === 500) {
         // For 500 errors, check if it might be a usage limit issue
-        console.log('500 error details:', err.response?.data);
         
         // Show upgrade modal for any 500 error as a fallback
         setUpgradeModalData({

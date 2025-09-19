@@ -52,7 +52,6 @@ const handleSend = async () => {
     setIsGenerating(true);
     // Ensure questionCount is a valid number
     const validQuestionCount = questionCount === '' || isNaN(Number(questionCount)) ? 5 : Number(questionCount);
-    console.log('Sending questionCount:', validQuestionCount); // Debug log
     const res = await axios.post(`${import.meta.env.VITE_APP_BE_BASEURL}/api/GQuizzes`, {
       parsedFileName: uploadedParsedFileName,
       questionCount: validQuestionCount,
@@ -60,14 +59,12 @@ const handleSend = async () => {
       withCredentials: true,
     });
 
-    console.log('Gemini response:', res.data);
 
   
     const parsed = JSON.parse(res.data.answer);
     setQuizzes(parsed);
     localStorage.setItem('quizzes', JSON.stringify(parsed));
   } catch (err) {
-    console.error("Failed to generate quizzes:", err);
     
     // Check if it's a usage limit error (429) or if it's a 500 error that might be usage-related
     if (err.response?.status === 429 && err.response?.data?.upgradeRequired) {
@@ -80,7 +77,6 @@ const handleSend = async () => {
       
     } else if (err.response?.status === 500) {
       // For 500 errors, check if it might be a usage limit issue
-      console.log('500 error details:', err.response?.data);
       
       // Show upgrade modal for any 500 error as a fallback
       setUpgradeModalData({
@@ -121,12 +117,10 @@ const handleFileChange = async (e) => {
     });
 
     setIsUploading(false);
-    console.log('File uploaded:', res.data);
     setUploadedParsedFileName(res.data.parsedFileName);
     localStorage.setItem('uploadedParsedFileName', res.data.parsedFileName);
 
   } catch (err) {
-    console.error("Upload failed:", err);
     setIsUploading(false);
   }
 };

@@ -159,7 +159,6 @@ const blogPost = await fastgen.content.generate({
   temperature: 0.7
 });
 
-console.log(blogPost.content);`
     },
     {
       title: 'Use Template',
@@ -186,7 +185,6 @@ print(response.content)`
   const { event, data } = req.body;
   
   if (event === 'content.completed') {
-    console.log('Content generation completed:', data.id);
     // Process the generated content
   }
   
