@@ -1,11 +1,21 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_APP_BE_BASEURL;
+const API_BASE_URL = import.meta.env.VITE_APP_BE_BASEURL || 'https://fastgen-5i9n.onrender.com';
+
+// Debug logging
+console.log('🔍 PaymentService Debug:');
+console.log('VITE_APP_BE_BASEURL:', import.meta.env.VITE_APP_BE_BASEURL);
+console.log('API_BASE_URL:', API_BASE_URL);
+console.log('Environment:', import.meta.env.MODE);
 
 class PaymentService {
   // Create payment order
   async createOrder(amount, plan) {
     try {
+      console.log('🚀 Creating payment order...');
+      console.log('Request URL:', `${API_BASE_URL}/api/payments/create-order`);
+      console.log('Request data:', { amount, plan });
+      
       const response = await axios.post(`${API_BASE_URL}/api/payments/create-order`, {
         amount,
         plan
