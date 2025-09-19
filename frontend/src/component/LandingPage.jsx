@@ -8,6 +8,8 @@ import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { Library } from 'lucide-react';
 import paymentService from '../services/paymentService.js';
+import useModernPayment from '../hooks/useModernPayment';
+import ModernPaymentModal from './ModernPaymentModal';
 
 gsap.registerPlugin();
 
@@ -16,6 +18,17 @@ const LandingPage = () => {
 
   const words = ["Faster", " Smarter", " Effortlessly","24*7"];
   const navigate = useNavigate();
+  
+  // Modern payment hook
+  const {
+    isModalOpen,
+    paymentData,
+    isLoading,
+    initiatePayment,
+    handlePaymentSuccess,
+    handlePaymentError,
+    closeModal
+  } = useModernPayment();
   
   // Payment handling functions
   const handlePayment = async (plan, amount) => {
@@ -31,28 +44,35 @@ const LandingPage = () => {
     }
     
     try {
-      await paymentService.processPayment(
-        amount,
-        plan,
-        () => {
-          // Payment successful
-          if (window.showToast) {
-            window.showToast(`Welcome to ${plan.charAt(0).toUpperCase() + plan.slice(1)} plan!`, 'success');
-          }
-          navigate('/main');
-        },
-        (error) => {
-          // Payment failed
-          if (window.showToast) {
-            window.showToast(`Payment failed: ${error}`, 'error');
-          }
-        }
-      );
+      await initiatePayment(amount, plan);
     } catch (err) {
       if (window.showToast) {
         window.showToast('Payment processing failed', 'error');
       }
     }
+  };
+
+  // Handle payment success
+  const onPaymentSuccess = async (paymentDetails) => {
+    try {
+      const result = await handlePaymentSuccess(paymentDetails);
+      if (window.showToast) {
+        window.showToast(`Welcome to ${result.subscription.plan.charAt(0).toUpperCase() + result.subscription.plan.slice(1)} plan!`, 'success');
+      }
+      navigate('/main');
+    } catch (error) {
+      if (window.showToast) {
+        window.showToast(`Payment verification failed: ${error.message}`, 'error');
+      }
+    }
+  };
+
+  // Handle payment error
+  const onPaymentError = (error) => {
+    if (window.showToast) {
+      window.showToast(`Payment failed: ${error}`, 'error');
+    }
+    handlePaymentError(error);
   };
 
 
@@ -673,6 +693,17 @@ const LandingPage = () => {
           </div>
         </div>
       </footer>
+
+      {/* Modern Payment Modal */}
+      <ModernPaymentModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        amount={paymentData?.amount}
+        plan={paymentData?.plan}
+        orderId={paymentData?.order?.id}
+        onPaymentSuccess={onPaymentSuccess}
+        onPaymentError={onPaymentError}
+      />
     </div>
   );
 };
