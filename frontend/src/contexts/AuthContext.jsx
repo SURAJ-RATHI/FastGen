@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
 const AuthContext = createContext();
@@ -17,7 +17,7 @@ export const AuthProvider = ({ children }) => {
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [token, setToken] = useState(localStorage.getItem('authToken'));
 
-  // Configure axios defaults - memoized to prevent unnecessary re-runs
+  // Configure axios defaults
   useEffect(() => {
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -26,13 +26,21 @@ export const AuthProvider = ({ children }) => {
     }
   }, [token]);
 
-  // Check if user is authenticated on app load - optimized with useCallback
-  const checkAuthStatus = useCallback(async () => {
+  // Check if user is authenticated on app load
+  useEffect(() => {
+    if (token) {
+      checkAuthStatus();
+    } else {
+      setIsLoading(false);
+    }
+  }, [token]);
+
+  const checkAuthStatus = async () => {
     try {
       const response = await axios.get(`${import.meta.env.VITE_APP_BE_BASEURL}/api/auth/me`);
       setUser(response.data);
       setIsSignedIn(true);
-    } catch {
+    } catch (error) {
       // Token is invalid, clear it
       localStorage.removeItem('authToken');
       setToken(null);
@@ -41,18 +49,9 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  };
 
-  useEffect(() => {
-    if (token) {
-      checkAuthStatus();
-    } else {
-      setIsLoading(false);
-    }
-  }, [token, checkAuthStatus]);
-
-
-  const signInWithGoogle = useCallback(async (credential) => {
+  const signInWithGoogle = async (credential) => {
     try {
       console.log('Attempting Google sign in to:', `${import.meta.env.VITE_APP_BE_BASEURL}/api/auth/google`);
       
@@ -89,9 +88,9 @@ export const AuthProvider = ({ children }) => {
         error: error.response?.data?.message || 'Google authentication failed' 
       };
     }
-  }, []);
+  };
 
-  const signInWithEmail = useCallback(async (email, password) => {
+  const signInWithEmail = async (email, password) => {
     try {
       const response = await axios.post(`${import.meta.env.VITE_APP_BE_BASEURL}/api/auth/signin`, {
         email,
@@ -109,9 +108,9 @@ export const AuthProvider = ({ children }) => {
       console.error('Email sign in error:', error);
       return { success: false, error: error.response?.data?.error || 'Login failed' };
     }
-  }, []);
+  };
 
-  const signUpWithEmail = useCallback(async (name, email, password) => {
+  const signUpWithEmail = async (name, email, password) => {
     try {
       const response = await axios.post(`${import.meta.env.VITE_APP_BE_BASEURL}/api/auth/signup`, {
         name,
@@ -129,9 +128,9 @@ export const AuthProvider = ({ children }) => {
       console.error('Email signup error:', error);
       return { success: false, error: error.response?.data?.error || 'Signup failed' };
     }
-  }, [signInWithEmail]);
+  };
 
-  const signOut = useCallback(async () => {
+  const signOut = async () => {
     try {
       await axios.post(`${import.meta.env.VITE_APP_BE_BASEURL}/api/auth/logout`);
     } catch (error) {
@@ -142,9 +141,9 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
       setIsSignedIn(false);
     }
-  }, []);
+  };
 
-  const getUserData = useCallback(async () => {
+  const getUserData = async () => {
     try {
       const response = await axios.get(`${import.meta.env.VITE_APP_BE_BASEURL}/api/user/me`);
       return response.data;
@@ -152,9 +151,9 @@ export const AuthProvider = ({ children }) => {
       console.error('Failed to fetch user data:', error);
       throw error;
     }
-  }, []);
+  };
 
-  const value = useMemo(() => ({
+  const value = {
     user,
     isLoading,
     isSignedIn,
@@ -166,7 +165,7 @@ export const AuthProvider = ({ children }) => {
     signOut,
     getUserData,
     checkAuthStatus
-  }), [user, isLoading, isSignedIn, token, signInWithGoogle, signInWithEmail, signUpWithEmail, signOut, getUserData, checkAuthStatus]);
+  };
 
   return (
     <AuthContext.Provider value={value}>
