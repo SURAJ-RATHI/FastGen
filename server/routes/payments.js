@@ -48,7 +48,7 @@ router.post('/create-order', async (req, res) => {
     const options = {
       amount: amount * 100, // Convert to paise
       currency,
-      receipt: `receipt_${userId}_${Date.now()}`,
+      receipt: `rcpt_${userId.slice(-8)}_${Date.now().toString().slice(-8)}`, // Max 40 chars
       notes: {
         userId: userId,
         plan: plan,
@@ -76,9 +76,18 @@ router.post('/create-order', async (req, res) => {
     console.error('Error message:', error.message);
     console.error('Error stack:', error.stack);
     
-    if (error.message.includes('key_id')) {
+    // Handle Razorpay specific errors
+    if (error.statusCode === 400 && error.error?.code === 'BAD_REQUEST_ERROR') {
+      if (error.error.description?.includes('receipt')) {
+        res.status(400).json({ error: 'Invalid receipt format' });
+      } else if (error.error.description?.includes('amount')) {
+        res.status(400).json({ error: 'Invalid amount provided' });
+      } else {
+        res.status(400).json({ error: error.error.description || 'Invalid request' });
+      }
+    } else if (error.message && error.message.includes('key_id')) {
       res.status(500).json({ error: 'Invalid Razorpay configuration' });
-    } else if (error.message.includes('amount')) {
+    } else if (error.message && error.message.includes('amount')) {
       res.status(400).json({ error: 'Invalid amount provided' });
     } else {
       res.status(500).json({ error: 'Failed to create payment order' });
