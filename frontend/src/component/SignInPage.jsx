@@ -111,7 +111,7 @@ const SignInPage = () => {
 
           {!showManualForm ? (
             <>
-              <div id="google-signin-button" className="w-full mt-4"></div>
+              <div id="google-signin-button" className="w-full mt-4 google-button-container"></div>
 
               <div className="relative my-4 sm:my-6">
                 <div className="absolute inset-0 flex items-center">

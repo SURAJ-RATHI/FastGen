@@ -278,3 +278,26 @@ html, body {
     content: '';
   }
 }
+
+/* Google Sign-in Button Full Width Styles */
+.google-button-container {
+  width: 100% !important;
+}
+
+.google-button-container > div {
+  width: 100% !important;
+}
+
+.google-button-container iframe {
+  width: 100% !important;
+  min-width: 100% !important;
+}
+
+/* Target Google's rendered button specifically */
+.google-button-container [data-testid="google-signin-button"] {
+  width: 100% !important;
+}
+
+.google-button-container .gsi-button {
+  width: 100% !important;
+}
