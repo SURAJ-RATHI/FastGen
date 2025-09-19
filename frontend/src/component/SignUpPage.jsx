@@ -1,146 +1,101 @@
-import { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
-import { useAuth } from "../contexts/AuthContext.jsx"
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext.jsx";
 
 const SignUpPage = () => {
-  const { signInWithGoogle, signUpWithEmail, isSignedIn, isLoading } = useAuth()
-  const [showManualForm, setShowManualForm] = useState(false)
+  const { signInWithGoogle, signUpWithEmail, isSignedIn, isLoading } = useAuth();
+  const [showManualForm, setShowManualForm] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
     confirmPassword: ""
-  })
-  const [error, setError] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const navigate = useNavigate()
+  });
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
 
-  // Initialize Google OAuth
   useEffect(() => {
-    // Load Google Identity Services
-    const script = document.createElement('script');
-    script.src = 'https://accounts.google.com/gsi/client';
-    script.async = true;
-    script.defer = true;
-    document.head.appendChild(script);
+    if (isSignedIn && !isLoading) {
+      navigate("/main");
+    }
+  }, [isSignedIn, isLoading, navigate]);
 
-    script.onload = () => {
-      if (window.google) {
-        window.google.accounts.id.initialize({
-          client_id: '887137562653-q092j43greip16g706ggmb0006n3s5rr.apps.googleusercontent.com',
-          callback: handleGoogleSignIn
-        });
-        
-        window.google.accounts.id.renderButton(
-          document.getElementById('google-signin-button'),
-          { 
-            theme: 'outline', 
-            size: 'large', 
-            width: '100%',
-            shape: 'rectangular',
-            text: 'signin_with',
-            logo_alignment: 'left'
-          }
-        );
-      }
-    };
-
-    return () => {
-      if (script.parentNode) {
-        script.parentNode.removeChild(script);
-      }
-    };
-  }, []);
-
-  // Redirect if already signed in
-  if (isSignedIn && !isLoading) {
-    navigate('/main')
-    return null
-  }
-
-  const handleGoogleSignIn = async (response) => {
+  const handleGoogleSignIn = async () => {
     try {
-      const result = await signInWithGoogle(response.credential);
+      const result = await signInWithGoogle();
       if (result.success) {
-        navigate('/main');
+        navigate("/main");
       } else {
-        setError(result.error || 'Google sign in failed');
+        setError(result.error || "Google sign in failed");
       }
     } catch {
-      setError('Google sign in failed. Please try again.');
+      setError("Google sign in failed. Please try again.");
     }
   };
 
   const handleManualSignUp = async (e) => {
-    e.preventDefault()
-    
+    e.preventDefault();
+
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords don't match")
-      return
+      setError("Passwords don't match");
+      return;
     }
 
     if (formData.password.length < 8) {
-      setError("Password must be at least 8 characters")
-      return
+      setError("Password must be at least 8 characters");
+      return;
     }
 
-    setIsSubmitting(true)
-    setError("")
+    setIsSubmitting(true);
+    setError("");
 
     try {
-      // Use the signup method from AuthContext
       const result = await signUpWithEmail(formData.name, formData.email, formData.password);
       if (result.success) {
-        navigate('/main');
+        navigate("/main");
       } else {
-        setError(result.error || 'Signup failed');
+        setError(result.error || "Signup failed");
       }
     } catch {
-      setError("Signup failed. Please try again.")
+      setError("Signup failed. Please try again.");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   const handleInputChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    })
-  }
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[url('/bg2.svg')] bg-no-repeat bg-cover text-white">
         <div className="text-xl">Loading...</div>
       </div>
-    )
+    );
   }
 
   return (
-    <>
-      <style>
-        {`
-          .google-signin-container iframe {
-            width: 100% !important;
-            height: 48px !important;
-            border-radius: 8px !important;
-          }
-          @media (max-width: 640px) {
-            .google-signin-container iframe {
-              height: 44px !important;
-            }
-          }
-        `}
-      </style>
-      <div className="min-h-screen flex items-center justify-center bg-[url('/bg2.svg')] bg-no-repeat bg-cover text-white px-4 py-8">
-        <div className="w-full max-w-md bg-black/40 backdrop-blur-lg p-6 sm:p-8 rounded-2xl shadow-lg">
+    <div className="min-h-screen flex items-center justify-center bg-[url('/bg2.svg')] bg-no-repeat bg-cover text-white px-4 py-8">
+      <div className="w-full max-w-md bg-black/40 backdrop-blur-lg p-6 sm:p-8 rounded-2xl shadow-lg">
         <h2 className="text-xl sm:text-2xl font-bold mb-1">Welcome to FastGen ✨</h2>
         <p className="text-gray-300 mb-4 sm:mb-6 text-sm sm:text-base">Create your account to get started</p>
 
         {!showManualForm ? (
           <>
-            <div id="google-signin-button" className="w-full mt-4 google-signin-container"></div>
+            {/* Google Button */}
+            <button
+              onClick={handleGoogleSignIn}
+              className="w-full flex items-center justify-center gap-2 bg-white text-black font-medium py-2.5 sm:py-3 px-4 rounded-lg shadow hover:bg-gray-100 transition"
+            >
+              <img
+                src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                alt="Google logo"
+                className="w-5 h-5"
+              />
+              Sign up with Google
+            </button>
 
             <div className="relative my-4 sm:my-6">
               <div className="absolute inset-0 flex items-center">
@@ -227,9 +182,7 @@ const SignUpPage = () => {
               />
             </div>
 
-            {error && (
-              <div className="text-red-400 text-sm text-center">{error}</div>
-            )}
+            {error && <div className="text-red-400 text-sm text-center">{error}</div>}
 
             <button
               type="submit"
@@ -252,7 +205,7 @@ const SignUpPage = () => {
         <div className="mt-4 sm:mt-6 text-center text-xs sm:text-sm text-gray-400">
           Already have an account?{" "}
           <button
-            onClick={() => navigate('/signIn')}
+            onClick={() => navigate("/signIn")}
             className="text-blue-400 hover:underline cursor-pointer"
             disabled={isSubmitting}
           >
@@ -260,8 +213,8 @@ const SignUpPage = () => {
           </button>
         </div>
       </div>
-      </>
-  )
-}
+    </div>
+  );
+};
 
 export default SignUpPage;
