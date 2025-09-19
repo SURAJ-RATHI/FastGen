@@ -76,15 +76,16 @@ const UpgradeModal = ({ isOpen, onClose, usageData, featureType }) => {
           }, 1000);
         }
       } else {
-        // If not on home page, navigate to home with pricing hash
-        window.location.href = '/#pricing-section';
+        // If not on home page, navigate to dedicated pricing page
+        window.location.href = '/pricing';
         
         // After navigation, highlight the Pro plan
         setTimeout(() => {
-          const pricingSection = document.getElementById('pricing-section');
-          if (pricingSection) {
-            const pricingCards = pricingSection.querySelectorAll('.group');
-            const proPlanCard = pricingCards[1];
+          // Wait for page to load and then highlight the Pro plan
+          const highlightProPlan = () => {
+            // Find the Pro plan card (second card in the grid)
+            const pricingCards = document.querySelectorAll('.relative.bg-gray-800');
+            const proPlanCard = pricingCards[1]; // Pro plan is the second card (index 1)
             
             if (proPlanCard) {
               proPlanCard.style.transform = 'scale(1.05)';
@@ -108,9 +109,14 @@ const UpgradeModal = ({ isOpen, onClose, usageData, featureType }) => {
                   subscribeButton.style.backgroundColor = '';
                 }
               }, 4000);
+            } else {
+              // If elements not found yet, try again after a short delay
+              setTimeout(highlightProPlan, 500);
             }
-          }
-        }, 1500);
+          };
+          
+          highlightProPlan();
+        }, 1000);
       }
     }, 100);
   };

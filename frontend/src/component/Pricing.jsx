@@ -1,10 +1,45 @@
 import HomeHeader from "./HomeHeader";
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const Pricing = () => {
+  const navigate = useNavigate();
+  const { isSignedIn } = useAuth();
+  const handlePlanSelect = (plan) => {
+    if (plan.name === 'Free') {
+      navigate('/main');
+      return;
+    }
+    
+    if (plan.name === 'Enterprise') {
+      // Handle enterprise contact
+      window.open('mailto:sales@fastgen.ai?subject=Enterprise Plan Inquiry', '_blank');
+      return;
+    }
+
+    // Check if user is logged in before allowing subscription
+    if (!isSignedIn) {
+      if (window.showToast) {
+        window.showToast('Please sign in first to subscribe to a plan', 'warning');
+      }
+      navigate('/signUp');
+      return;
+    }
+
+    // For Pro plan, redirect to main with upgrade modal or handle payment
+    if (plan.name === 'Pro') {
+      // You can implement payment logic here or redirect to a payment page
+      if (window.showToast) {
+        window.showToast('Pro plan subscription coming soon!', 'info');
+      }
+      navigate('/main');
+    }
+  };
+
   const plans = [
     {
       name: "Free",
-      price: "$0",
+      price: "₹0",
       period: "month",
       description: "Perfect for getting started with FastGen",
       features: [
@@ -18,7 +53,7 @@ const Pricing = () => {
     },
     {
       name: "Pro",
-      price: "$19",
+      price: "₹999",
       period: "month",
       description: "Best for students and professionals",
       features: [
@@ -29,13 +64,13 @@ const Pricing = () => {
         "Custom learning paths",
         "Export to Notion"
       ],
-      buttonText: "Start Pro Trial",
+      buttonText: "Subscribe Now",
       buttonStyle: "bg-blue-600 hover:bg-blue-700",
       popular: true
     },
     {
       name: "Enterprise",
-      price: "$49",
+      price: "₹2,999",
       period: "month",
       description: "For teams and organizations",
       features: [
@@ -103,6 +138,7 @@ const Pricing = () => {
                 </ul>
                 
                 <button
+                  onClick={() => handlePlanSelect(plan)}
                   className={`w-full py-3 px-6 rounded-lg text-white font-semibold transition-colors ${plan.buttonStyle}`}
                 >
                   {plan.buttonText}
