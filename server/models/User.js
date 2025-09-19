@@ -26,6 +26,30 @@ const userSchema = new mongoose.Schema({
     required: function() {
       return !this.googleId; // Password required only for manual signup
     }
+  },
+  subscription: {
+    plan: {
+      type: String,
+      enum: ['free', 'pro', 'enterprise'],
+      default: 'free'
+    },
+    status: {
+      type: String,
+      enum: ['free', 'active', 'expired', 'cancelled'],
+      default: 'free'
+    },
+    startDate: {
+      type: Date
+    },
+    endDate: {
+      type: Date
+    },
+    paymentId: {
+      type: String
+    },
+    orderId: {
+      type: String
+    }
   }
 }, {
   timestamps: true

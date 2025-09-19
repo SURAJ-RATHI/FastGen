@@ -7,15 +7,53 @@ import { useNavigate, Link } from "react-router-dom";
 
 import axios from "axios";
 import { Library } from 'lucide-react';
+import paymentService from '../services/paymentService.js';
 
 gsap.registerPlugin();
 
 const LandingPage = () => {
   const wordRef = useRef(null);
 
-
   const words = ["Faster", " Smarter", " Effortlessly","24*7"];
   const navigate = useNavigate();
+  
+  // Payment handling functions
+  const handlePayment = async (plan, amount) => {
+    if (plan === 'free') {
+      navigate('/main');
+      return;
+    }
+    
+    if (plan === 'enterprise') {
+      // For enterprise, redirect to contact or show contact form
+      navigate('/main?tab=contact');
+      return;
+    }
+    
+    try {
+      await paymentService.processPayment(
+        amount,
+        plan,
+        () => {
+          // Payment successful
+          if (window.showToast) {
+            window.showToast(`Welcome to ${plan.charAt(0).toUpperCase() + plan.slice(1)} plan!`, 'success');
+          }
+          navigate('/main');
+        },
+        (error) => {
+          // Payment failed
+          if (window.showToast) {
+            window.showToast(`Payment failed: ${error}`, 'error');
+          }
+        }
+      );
+    } catch (err) {
+      if (window.showToast) {
+        window.showToast('Payment processing failed', 'error');
+      }
+    }
+  };
 
 
 
@@ -302,8 +340,10 @@ const LandingPage = () => {
             {[
               {
                 name: "Free",
-                price: "$0",
+                price: "₹0",
                 period: "month",
+                plan: "free",
+                amount: 0,
                 description: "Perfect for getting started with FastGen",
                 features: [
                   "5 AI-powered conversations per month",
@@ -316,8 +356,10 @@ const LandingPage = () => {
               },
               {
                 name: "Pro",
-                price: "$19",
+                price: "₹999",
                 period: "month",
+                plan: "pro",
+                amount: 999,
                 description: "Best for students and professionals",
                 features: [
                   "Unlimited AI conversations",
@@ -327,14 +369,16 @@ const LandingPage = () => {
                   "Custom learning paths",
                   "Export to Notion"
                 ],
-                buttonText: "Start Pro Trial",
+                buttonText: "Subscribe Now",
                 buttonStyle: "bg-blue-600 hover:bg-blue-700",
                 popular: true
               },
               {
                 name: "Enterprise",
-                price: "$49",
+                price: "₹2,999",
                 period: "month",
+                plan: "enterprise",
+                amount: 2999,
                 description: "For teams and organizations",
                 features: [
                   "Everything in Pro",
@@ -386,7 +430,7 @@ const LandingPage = () => {
                 </ul>
                 
                 <button
-                  onClick={() => navigate('/main')}
+                  onClick={() => handlePayment(plan.plan, plan.amount)}
                   className={`w-full py-4 px-6 rounded-xl text-white font-bold transition-all duration-300 ${plan.buttonStyle} hover:shadow-lg hover:scale-105 group-hover:shadow-xl`}
                 >
                   {plan.buttonText}
@@ -396,7 +440,8 @@ const LandingPage = () => {
           </div>
           
           <div className="mt-16 text-center">
-            <p className="text-gray-400 mb-4">All plans include a 14-day free trial</p>
+            <p className="text-gray-400 mb-4">All plans include secure payment processing</p>
+            <p className="text-gray-500 text-sm mb-4">Powered by Razorpay • Secure & reliable payments</p>
             <p className="text-gray-400">Need a custom plan? <span 
               onClick={() => {
                 const element = document.getElementById('contact-section');

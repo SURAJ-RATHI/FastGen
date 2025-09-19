@@ -120,6 +120,9 @@ app.use('/api/yt', ytRoutes);
 import emailRoutes from './routes/email.js';
 app.use('/api/email', emailRoutes);
 
+import paymentRoutes from './routes/payments.js';
+app.use('/api/payments', requireAuth, paymentRoutes);
+
 // Root route
 app.get('/', (req, res) => {
   res.json({ 
