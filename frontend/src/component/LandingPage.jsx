@@ -141,7 +141,7 @@ const LandingPage = () => {
       {/* Hero Section - Compact Layout */}
       <div className="relative z-10 flex flex-col items-center py-12 px-4 pt-20">
         {/* Top Title with Gradient */}
-        <div className="text-4xl md:text-6xl symbol font-bold mb-4 bg-gradient-to-r from-blue-400 via-purple-500 to-cyan-400 bg-clip-text text-transparent animate-fade-in">
+        <div className="text-4xl md:text-6xl symbol font-bold mb-4 bg-gradient-to-r from-blue-400 via-purple-500 to-cyan-400 bg-clip-text text-transparent animate-fade-in hover:scale-105 transition-transform duration-300">
           FastGen
         </div>
 
@@ -158,10 +158,10 @@ const LandingPage = () => {
 
         {/* Main Title with Enhanced Typography */}
         <div className="text-4xl md:text-6xl font-bold text-center text-white mb-4 leading-tight">
-          <div className="tagline mb-2">Our AI Features that Works </div>
+          <div className="tagline mb-2 animate-fade-in delay-200">Our AI Features that Works </div>
           <div className="tagline">
             <span className="relative inline-block align-middle">
-              <span ref={wordRef} className="inline-block mb-3 bg-gradient-to-r from-blue-400 via-purple-500 to-cyan-400 bg-clip-text text-transparent font-bold">
+              <span ref={wordRef} className="inline-block mb-3 bg-gradient-to-r from-blue-400 via-purple-500 to-cyan-400 bg-clip-text text-transparent font-bold animate-fade-in delay-400 hover:scale-110 transition-transform duration-500">
                 {words[0]}
               </span>
             </span>
@@ -170,46 +170,31 @@ const LandingPage = () => {
         
         {/* Enhanced Description */}
         <div className="text-center mb-8 max-w-3xl">
-          <p className="tagline text-gray-300 text-lg md:text-xl leading-relaxed">
+          <p className="tagline text-gray-300 text-lg md:text-xl leading-relaxed animate-fade-in delay-600">
             An AI-driven platform that makes life effortless using cutting-edge AI tools to 
-            <span className="text-white font-semibold"> maximize productivity</span> and 
-            <span className="text-white font-semibold"> accelerate learning</span>
+            <span className="text-white font-semibold hover:text-blue-300 transition-colors duration-300"> maximize productivity</span> and 
+            <span className="text-white font-semibold hover:text-purple-300 transition-colors duration-300"> accelerate learning</span>
           </p>
         </div>
         
         {/* Get Started Button */}
-        <div className="tagline mb-8">
+        <div className="tagline mb-8 animate-fade-in delay-800">
           <Button />
         </div>
         
         {/* Trust Indicators */}
-        <div className="flex flex-wrap justify-center items-center gap-6 text-gray-400 mb-8">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-wrap justify-center items-center gap-6 text-gray-400 animate-fade-in delay-1000">
+          <div className="flex items-center gap-2 hover:scale-105 transition-transform duration-300">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-sm">24/7 Available</span>
+            <span className="text-sm hover:text-green-300 transition-colors duration-300">24/7 Available</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 hover:scale-105 transition-transform duration-300">
             <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-            <span className="text-sm">AI-Powered</span>
+            <span className="text-sm hover:text-blue-300 transition-colors duration-300">AI-Powered</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 hover:scale-105 transition-transform duration-300">
             <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-            <span className="text-sm">Secure & Private</span>
-          </div>
-        </div>
-        
-        {/* Floating AI Visual Element */}
-        <div className="relative mt-8">
-          <div className="flex items-center justify-center space-x-4 text-gray-500">
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full flex items-center justify-center animate-float">
-              <span className="text-lg">🤖</span>
-            </div>
-            <div className="w-8 h-8 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-full flex items-center justify-center animate-float delay-1000">
-              <span className="text-lg">⚡</span>
-            </div>
-            <div className="w-8 h-8 bg-gradient-to-r from-pink-500/20 to-cyan-500/20 rounded-full flex items-center justify-center animate-float delay-2000">
-              <span className="text-lg">🚀</span>
-            </div>
+            <span className="text-sm hover:text-purple-300 transition-colors duration-300">Secure & Private</span>
           </div>
         </div>
       </div>
@@ -223,12 +208,12 @@ const LandingPage = () => {
         </div>
         
         <div className="max-w-7xl mx-auto text-center relative z-10">
-          <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent">
+          <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent animate-fade-in hover:scale-105 transition-transform duration-500">
             Our AI Features
           </h2>
-          <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-4xl mx-auto leading-relaxed">
+          <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-4xl mx-auto leading-relaxed animate-fade-in delay-200">
             FastGen adapts to your learning style and pace for 
-            <span className="text-white font-semibold"> maximum results</span>
+            <span className="text-white font-semibold hover:text-blue-300 transition-colors duration-300"> maximum results</span>
           </p>
           
           <div className="grid md:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-8">
@@ -279,7 +264,7 @@ const LandingPage = () => {
               <div
                 key={index}
                 onClick={() => navigate(feature.route)}
-                className="group bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-8 shadow-2xl text-white hover:scale-105 transition-all duration-500 cursor-pointer hover:border-white/20 hover:shadow-3xl hover:shadow-blue-500/10"
+                className={`group bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-8 shadow-2xl text-white hover:scale-105 transition-all duration-500 cursor-pointer hover:border-white/20 hover:shadow-3xl hover:shadow-blue-500/10 animate-fade-in delay-${(index + 1) * 200}`}
               >
                 <div className={`text-5xl mb-6 group-hover:scale-110 transition-transform duration-300 bg-gradient-to-r ${feature.gradient} bg-clip-text text-transparent`}>
                   {feature.icon}
@@ -304,13 +289,13 @@ const LandingPage = () => {
         </div>
         
         <div className="max-w-7xl mx-auto text-center relative z-10">
-          <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white via-purple-100 to-blue-100 bg-clip-text text-transparent">
+          <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white via-purple-100 to-blue-100 bg-clip-text text-transparent animate-fade-in hover:scale-105 transition-transform duration-500">
             Simple, Transparent Pricing
           </h2>
-          <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-4xl mx-auto leading-relaxed">
+          <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-4xl mx-auto leading-relaxed animate-fade-in delay-200">
             Choose the plan that fits your learning needs. All plans include our 
-            <span className="text-white font-semibold"> core AI features</span> with 
-            <span className="text-white font-semibold"> no hidden fees</span>.
+            <span className="text-white font-semibold hover:text-purple-300 transition-colors duration-300"> core AI features</span> with 
+            <span className="text-white font-semibold hover:text-blue-300 transition-colors duration-300"> no hidden fees</span>.
           </p>
           
           <div className="grid md:grid-cols-3 gap-8">
@@ -366,7 +351,7 @@ const LandingPage = () => {
             ].map((plan, index) => (
               <div 
                 key={index}
-                className={`group relative bg-gradient-to-br from-gray-800/90 to-gray-900/90 backdrop-blur-xl p-8 rounded-3xl border-2 transition-all duration-500 ${
+                className={`group relative bg-gradient-to-br from-gray-800/90 to-gray-900/90 backdrop-blur-xl p-8 rounded-3xl border-2 transition-all duration-500 animate-fade-in delay-${(index + 1) * 300} ${
                   plan.popular 
                     ? 'border-blue-500/50 scale-105 shadow-2xl shadow-blue-500/20' 
                     : 'border-gray-700/50 hover:border-gray-600/50'
