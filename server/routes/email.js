@@ -1,6 +1,20 @@
 import express from 'express';
+import nodemailer from 'nodemailer';
 
 const router = express.Router();
+
+// Create transporter for sending emails
+const createTransporter = () => {
+  return nodemailer.createTransporter({
+    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+    port: process.env.EMAIL_PORT || 587,
+    secure: process.env.EMAIL_SECURE === 'true' || false,
+    auth: {
+      user: process.env.EMAIL_USER || 'kodr.test@gmail.com',
+      pass: process.env.EMAIL_PASS
+    }
+  });
+};
 
 // Send email route
 router.post('/send-email', async (req, res) => {
@@ -20,35 +34,57 @@ router.post('/send-email', async (req, res) => {
     console.log('Message:', message);
     console.log('Timestamp:', new Date().toISOString());
 
-    // Store the contact form submission in a simple way
-    // This will log it to console and you can manually forward to kodr.test@gmail.com
-    const contactSubmission = {
-      timestamp: new Date().toISOString(),
+    // Create email transporter
+    const transporter = createTransporter();
+
+    // Email options
+    const mailOptions = {
+      from: process.env.EMAIL_FROM || '"FastGen App" <kodr.test@gmail.com>',
       to: to,
       subject: subject,
-      message: message,
-      status: 'pending_forward'
+      text: message,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #333;">New Contact Form Submission</h2>
+          <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px;">
+            <p><strong>From:</strong> ${to}</p>
+            <p><strong>Subject:</strong> ${subject}</p>
+            <p><strong>Timestamp:</strong> ${new Date().toISOString()}</p>
+          </div>
+          <div style="margin-top: 20px;">
+            <h3>Message:</h3>
+            <div style="background-color: #fff; padding: 15px; border-left: 4px solid #007bff; border-radius: 4px;">
+              ${message.replace(/\n/g, '<br>')}
+            </div>
+          </div>
+          <hr style="margin: 20px 0;">
+          <p style="color: #666; font-size: 12px;">
+            This email was sent from the FastGen contact form.
+          </p>
+        </div>
+      `
     };
 
-    // Log the contact form submission clearly
-    console.log('\n=== NEW CONTACT FORM SUBMISSION ===');
+    // Send email
+    const info = await transporter.sendMail(mailOptions);
+    
+    console.log('\n=== EMAIL SENT SUCCESSFULLY ===');
     console.log('📧 TO:', to);
     console.log('📝 SUBJECT:', subject);
     console.log('💬 MESSAGE:', message);
-    console.log('⏰ TIMESTAMP:', contactSubmission.timestamp);
-    console.log('📋 STATUS: Ready to forward to kodr.test@gmail.com');
+    console.log('⏰ TIMESTAMP:', new Date().toISOString());
+    console.log('📋 STATUS: Email sent successfully');
+    console.log('📬 Message ID:', info.messageId);
     console.log('=====================================\n');
-
-    // You can manually copy the above details and send to kodr.test@gmail.com
-    // Or set up a simple forwarding system later
 
     res.json({ 
       success: true, 
-      message: 'Contact form submitted successfully! Your message has been received and will be responded to soon.',
+      message: 'Contact form submitted successfully! Your message has been sent and will be responded to soon.',
       details: { 
         submitted: true,
-        timestamp: contactSubmission.timestamp,
-        note: 'Message logged and ready for manual forwarding'
+        timestamp: new Date().toISOString(),
+        messageId: info.messageId,
+        note: 'Email sent successfully to ' + to
       }
     });
 
