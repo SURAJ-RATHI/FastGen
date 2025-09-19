@@ -33,7 +33,14 @@ const SignUpPage = () => {
         
         window.google.accounts.id.renderButton(
           document.getElementById('google-signin-button'),
-          { theme: 'outline', size: 'large', width: '100%' }
+          { 
+            theme: 'outline', 
+            size: 'large', 
+            width: '100%',
+            shape: 'rectangular',
+            text: 'signin_with',
+            logo_alignment: 'left'
+          }
         );
       }
     };
@@ -111,14 +118,29 @@ const SignUpPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[url('/bg2.svg')] bg-no-repeat bg-cover text-white px-4 py-8">
-      <div className="w-full max-w-md bg-black/40 backdrop-blur-lg p-6 sm:p-8 rounded-2xl shadow-lg">
+    <>
+      <style>
+        {`
+          .google-signin-container iframe {
+            width: 100% !important;
+            height: 48px !important;
+            border-radius: 8px !important;
+          }
+          @media (max-width: 640px) {
+            .google-signin-container iframe {
+              height: 44px !important;
+            }
+          }
+        `}
+      </style>
+      <div className="min-h-screen flex items-center justify-center bg-[url('/bg2.svg')] bg-no-repeat bg-cover text-white px-4 py-8">
+        <div className="w-full max-w-md bg-black/40 backdrop-blur-lg p-6 sm:p-8 rounded-2xl shadow-lg">
         <h2 className="text-xl sm:text-2xl font-bold mb-1">Welcome to FastGen ✨</h2>
         <p className="text-gray-300 mb-4 sm:mb-6 text-sm sm:text-base">Create your account to get started</p>
 
         {!showManualForm ? (
           <>
-            <div id="google-signin-button" className="w-full mt-4"></div>
+            <div id="google-signin-button" className="w-full mt-4 google-signin-container"></div>
 
             <div className="relative my-4 sm:my-6">
               <div className="absolute inset-0 flex items-center">
@@ -238,7 +260,7 @@ const SignUpPage = () => {
           </button>
         </div>
       </div>
-    </div>
+      </>
   )
 }
 
