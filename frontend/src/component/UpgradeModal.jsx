@@ -35,7 +35,6 @@ const UpgradeModal = ({ isOpen, onClose, usageData, featureType }) => {
     
     // Navigate to pricing section
     setTimeout(() => {
-      // Try different ways to navigate to pricing
       if (window.location.pathname === '/') {
         // If on home page, scroll to pricing section
         const pricingSection = document.getElementById('pricing-section');
@@ -44,23 +43,74 @@ const UpgradeModal = ({ isOpen, onClose, usageData, featureType }) => {
           
           // Highlight the Pro plan after scrolling
           setTimeout(() => {
-            const proPlan = pricingSection.querySelector('.group:nth-child(2)') || 
-                           pricingSection.querySelector('[class*="border-blue-500"]');
-            if (proPlan) {
-              proPlan.style.transform = 'scale(1.05)';
-              proPlan.style.boxShadow = '0 0 30px rgba(59, 130, 246, 0.5)';
+            // Find the Pro plan card (second card in the grid)
+            const pricingCards = pricingSection.querySelectorAll('.group');
+            const proPlanCard = pricingCards[1]; // Pro plan is the second card (index 1)
+            
+            if (proPlanCard) {
+              // Add highlight effect
+              proPlanCard.style.transform = 'scale(1.05)';
+              proPlanCard.style.boxShadow = '0 0 30px rgba(59, 130, 246, 0.5)';
+              proPlanCard.style.borderColor = 'rgba(59, 130, 246, 0.8)';
               
-              // Reset after 3 seconds
+              // Find and highlight the Subscribe Now button
+              const subscribeButton = proPlanCard.querySelector('button');
+              if (subscribeButton) {
+                subscribeButton.style.transform = 'scale(1.1)';
+                subscribeButton.style.boxShadow = '0 0 20px rgba(59, 130, 246, 0.6)';
+                subscribeButton.style.backgroundColor = 'rgb(37, 99, 235)'; // blue-600
+              }
+              
+              // Reset after 4 seconds
               setTimeout(() => {
-                proPlan.style.transform = '';
-                proPlan.style.boxShadow = '';
-              }, 3000);
+                proPlanCard.style.transform = '';
+                proPlanCard.style.boxShadow = '';
+                proPlanCard.style.borderColor = '';
+                if (subscribeButton) {
+                  subscribeButton.style.transform = '';
+                  subscribeButton.style.boxShadow = '';
+                  subscribeButton.style.backgroundColor = '';
+                }
+              }, 4000);
             }
           }, 1000);
         }
       } else {
         // If not on home page, navigate to home with pricing hash
         window.location.href = '/#pricing-section';
+        
+        // After navigation, highlight the Pro plan
+        setTimeout(() => {
+          const pricingSection = document.getElementById('pricing-section');
+          if (pricingSection) {
+            const pricingCards = pricingSection.querySelectorAll('.group');
+            const proPlanCard = pricingCards[1];
+            
+            if (proPlanCard) {
+              proPlanCard.style.transform = 'scale(1.05)';
+              proPlanCard.style.boxShadow = '0 0 30px rgba(59, 130, 246, 0.5)';
+              proPlanCard.style.borderColor = 'rgba(59, 130, 246, 0.8)';
+              
+              const subscribeButton = proPlanCard.querySelector('button');
+              if (subscribeButton) {
+                subscribeButton.style.transform = 'scale(1.1)';
+                subscribeButton.style.boxShadow = '0 0 20px rgba(59, 130, 246, 0.6)';
+                subscribeButton.style.backgroundColor = 'rgb(37, 99, 235)';
+              }
+              
+              setTimeout(() => {
+                proPlanCard.style.transform = '';
+                proPlanCard.style.boxShadow = '';
+                proPlanCard.style.borderColor = '';
+                if (subscribeButton) {
+                  subscribeButton.style.transform = '';
+                  subscribeButton.style.boxShadow = '';
+                  subscribeButton.style.backgroundColor = '';
+                }
+              }, 4000);
+            }
+          }
+        }, 1500);
       }
     }, 100);
   };
