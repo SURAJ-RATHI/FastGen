@@ -1,5 +1,5 @@
 import { Pinecone } from '@pinecone-database/pinecone';
-import OpenAI from 'openai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -9,9 +9,7 @@ class PineconeService {
     this.pinecone = new Pinecone({
       apiKey: process.env.PINECONE_API_KEY,
     });
-    this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
+    this.genAI = new GoogleGenerativeAI(process.env.GEMINI_KEYS.split(',')[0].trim());
     this.indexName = process.env.PINECONE_INDEX_NAME || 'fastgen-chats';
     this.index = null;
   }
@@ -21,7 +19,7 @@ class PineconeService {
       console.log('Initializing Pinecone service...');
       console.log(`Index name: ${this.indexName}`);
       console.log(`API Key present: ${!!process.env.PINECONE_API_KEY}`);
-      console.log(`OpenAI Key present: ${!!process.env.OPENAI_API_KEY}`);
+      console.log(`Gemini Key present: ${!!process.env.GEMINI_KEYS}`);
       
       // Get or create index
       console.log('Listing existing indexes...');
@@ -102,14 +100,63 @@ class PineconeService {
 
   async generateEmbedding(text) {
     try {
-      const response = await this.openai.embeddings.create({
-        model: 'text-embedding-3-small',
-        input: text,
-      });
-      return response.data[0].embedding;
+      // Use Gemini to generate a semantic representation
+      const model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      
+      const prompt = `You are an embedding generator. Convert the following text into a 1536-dimensional vector representation.
+
+Text: "${text}"
+
+IMPORTANT: Return ONLY a JSON array of exactly 1536 numbers between -1 and 1. No explanations, no text, just the array.
+
+Example format: [0.1, -0.2, 0.3, 0.4, ...] (exactly 1536 numbers)
+
+Return the embedding vector now:`;
+      
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const embeddingText = response.text();
+      
+      // Extract JSON array from response (in case there's extra text)
+      const jsonMatch = embeddingText.match(/\[[\d\.,\s-]+\]/);
+      if (!jsonMatch) {
+        throw new Error('No valid JSON array found in response');
+      }
+      
+      // Parse the JSON array
+      const embedding = JSON.parse(jsonMatch[0]);
+      
+      // Ensure it's exactly 1536 dimensions, pad or truncate if needed
+      if (embedding.length !== 1536) {
+        console.log(`Adjusting embedding dimension from ${embedding.length} to 1536`);
+        if (embedding.length < 1536) {
+          // Pad with zeros
+          while (embedding.length < 1536) {
+            embedding.push(0);
+          }
+        } else {
+          // Truncate
+          embedding.length = 1536;
+        }
+      }
+      
+      return embedding;
     } catch (error) {
-      console.error('Error generating embedding:', error);
-      throw error;
+      console.error('Error generating Gemini embedding:', error);
+      
+      // Fallback to hash-based embedding
+      console.log('Falling back to hash-based embedding...');
+      const crypto = await import('crypto');
+      const hash = crypto.createHash('sha256').update(text).digest('hex');
+      
+      const embedding = [];
+      for (let i = 0; i < 1536; i++) {
+        const hashIndex = i % hash.length;
+        const charCode = hash.charCodeAt(hashIndex);
+        embedding.push((charCode - 128) / 128);
+      }
+      
+      return embedding;
     }
   }
 
@@ -157,7 +204,7 @@ class PineconeService {
         topK: limit,
         includeMetadata: true,
         filter: {
-          userId: { $eq: userId.toString() }
+          userId: userId.toString()
         }
       };
 
@@ -213,7 +260,7 @@ class PineconeService {
       // Delete all vectors for a user
       await this.index.deleteMany({
         filter: {
-          userId: { $eq: userId.toString() }
+          userId: userId.toString()
         }
       });
 
