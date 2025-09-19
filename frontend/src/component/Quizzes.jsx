@@ -65,6 +65,16 @@ const handleSend = async () => {
     localStorage.setItem('quizzes', JSON.stringify(parsed));
   } catch (err) {
     console.error("Failed to generate quizzes:", err);
+    
+    // Check if it's a usage limit error
+    if (err.response?.status === 429 && err.response?.data?.upgradeRequired) {
+      const usageData = err.response.data.usage;
+      alert(`🚫 You've reached your monthly limit!\n\nYou've used ${usageData.used}/${usageData.limit} content generations this month.\n\nUpgrade to Pro for unlimited access! 🚀\n\n- Unlimited content generation\n- Advanced AI models\n- Priority support\n- And much more!`);
+      
+      if (window.showToast) {
+        window.showToast('Monthly limit reached! Upgrade to Pro for unlimited content generation.', 'warning');
+      }
+    }
   } finally {
     setIsGenerating(false);
   }

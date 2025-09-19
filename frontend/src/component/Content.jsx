@@ -75,7 +75,16 @@ const Content = () => {
       localStorage.setItem('videoData', JSON.stringify(newVideos));
     } catch (err) {
       console.error(err);
-      if (err.response?.status === 500 && err.response?.data?.error?.includes('YouTube API key not set')) {
+      
+      // Check if it's a usage limit error
+      if (err.response?.status === 429 && err.response?.data?.upgradeRequired) {
+        const usageData = err.response.data.usage;
+        setError(`🚫 **You've reached your monthly limit!**\n\nYou've used ${usageData.used}/${usageData.limit} video recommendations this month.\n\n**Upgrade to Pro for unlimited access!** 🚀\n\n- Unlimited video recommendations\n- Advanced AI models\n- Priority support\n- And much more!`);
+        
+        if (window.showToast) {
+          window.showToast('Monthly limit reached! Upgrade to Pro for unlimited video recommendations.', 'warning');
+        }
+      } else if (err.response?.status === 500 && err.response?.data?.error?.includes('YouTube API key not set')) {
         setError('YouTube API not configured. Please contact support.');
       } else {
         setError('Failed to fetch videos.');

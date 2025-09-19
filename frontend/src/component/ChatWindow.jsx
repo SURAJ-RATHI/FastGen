@@ -317,10 +317,28 @@ export default function ChatWindow() {
       }
     } catch (err) {
       console.error('Failed to send message:', err);
-      setMessages(prev => [...prev, { sender: 'ai', content: 'Sorry, I encountered an error. Please try again.' }]);
-      setError(`Failed to send message: ${err.message}`);
-      if (window.showToast) {
-        window.showToast(`Failed to send message: ${err.message}`, 'error');
+      
+      // Check if it's a usage limit error
+      if (err.response?.status === 429 && err.response?.data?.upgradeRequired) {
+        const usageData = err.response.data.usage;
+        const limitType = err.response.data.message.includes('chatbot') ? 'chatbot chats' : 
+                         err.response.data.message.includes('video') ? 'video recommendations' : 
+                         'content generations';
+        
+        setMessages(prev => [...prev, { 
+          sender: 'ai', 
+          content: `🚫 **You've reached your monthly limit!**\n\nYou've used ${usageData.used}/${usageData.limit} ${limitType} this month.\n\n**Upgrade to Pro for unlimited access!** 🚀\n\n- Unlimited AI conversations\n- Advanced AI models\n- Priority support\n- And much more!` 
+        }]);
+        
+        if (window.showToast) {
+          window.showToast('Monthly limit reached! Upgrade to Pro for unlimited access.', 'warning');
+        }
+      } else {
+        setMessages(prev => [...prev, { sender: 'ai', content: 'Sorry, I encountered an error. Please try again.' }]);
+        setError(`Failed to send message: ${err.message}`);
+        if (window.showToast) {
+          window.showToast(`Failed to send message: ${err.message}`, 'error');
+        }
       }
     } finally {
       setIsTyping(false);
