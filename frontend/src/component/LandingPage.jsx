@@ -113,6 +113,7 @@ const LandingPage = () => {
       );
       
       setContactFormData({ name: '', email: '', message: '' });
+      setContactSubmitStatus('Message sent successfully!');
     } catch (error) {
       console.error('Failed to send message:', error);
       setContactSubmitStatus('Failed to send message. Please try again.');
@@ -461,7 +462,7 @@ const LandingPage = () => {
       </div>
 
       {/* Contact Section */}
-      <div id="contact-section" className="py-16 px-4 bg-gray-900/50">
+      <div id="contact-section" className="py-16 px-4 bg-gray-900/50 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl md:text-5xl font-bold text-white mb-8">
             Get in Touch
@@ -542,7 +543,7 @@ const LandingPage = () => {
       </div>
 
       {/* Footer */}
-      <footer className="bg-gray-900 py-16 px-4">
+      <footer className="bg-gray-900 py-16 px-4 relative z-20">
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-4 gap-8">
             {/* Company Info */}
