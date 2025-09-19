@@ -5,6 +5,14 @@ import User from '../models/User.js';
 const router = express.Router();
 
 // Initialize Razorpay
+console.log('Razorpay Key ID:', process.env.RAZORPAY_KEY_ID ? 'Present' : 'Missing');
+console.log('Razorpay Key Secret:', process.env.RAZORPAY_KEY_SECRET ? 'Present' : 'Missing');
+
+if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+  console.error('Razorpay environment variables are missing!');
+  console.error('Please set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in your .env file');
+}
+
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
@@ -13,11 +21,27 @@ const razorpay = new Razorpay({
 // Create payment order
 router.post('/create-order', async (req, res) => {
   try {
+    console.log('=== CREATE ORDER REQUEST ===');
+    console.log('Request body:', req.body);
+    console.log('User:', req.user);
+    console.log('Session Secret:', process.env.SESSION_SECRET ? 'Present' : 'Missing');
+    
+    if (!req.user) {
+      console.log('No user found in request');
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    
     const { amount, currency = 'INR', plan } = req.body;
     const userId = req.user.userId;
 
     if (!amount || !plan) {
+      console.log('Missing required fields:', { amount: !!amount, plan: !!plan });
       return res.status(400).json({ error: 'Amount and plan are required' });
+    }
+
+    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+      console.error('Razorpay environment variables are missing!');
+      return res.status(500).json({ error: 'Payment service not configured' });
     }
 
     // Create Razorpay order
@@ -32,7 +56,9 @@ router.post('/create-order', async (req, res) => {
       }
     };
 
+    console.log('Creating Razorpay order with options:', options);
     const order = await razorpay.orders.create(options);
+    console.log('Razorpay order created successfully:', order.id);
 
     res.json({
       success: true,
@@ -45,8 +71,18 @@ router.post('/create-order', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error creating Razorpay order:', error);
-    res.status(500).json({ error: 'Failed to create payment order' });
+    console.error('=== ERROR CREATING RAZORPAY ORDER ===');
+    console.error('Error details:', error);
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    
+    if (error.message.includes('key_id')) {
+      res.status(500).json({ error: 'Invalid Razorpay configuration' });
+    } else if (error.message.includes('amount')) {
+      res.status(400).json({ error: 'Invalid amount provided' });
+    } else {
+      res.status(500).json({ error: 'Failed to create payment order' });
+    }
   }
 });
 
