@@ -123,33 +123,47 @@ async function retrieveRelevantPastMessages(userId, currentChatId, currentQuery,
     
     // Search for relevant messages using text search
     const userChats = await Chat.find({ user: userId, _id: { $ne: currentChatId } })
-      .select('_id')
+      .select('_id title')
       .sort({ updatedAt: -1 })
-      .limit(10); // Check last 10 chats
+      .limit(20); // Check more chats for better context
     
     if (userChats.length === 0) return [];
     
     const chatIds = userChats.map(chat => chat._id);
     
-    // Get messages from other chats and score them
+    // Get messages from other chats and score them (both user and AI messages)
     const pastMessages = await Message.find({ 
-      chat: { $in: chatIds },
-      sender: 'user' // Focus on user messages
+      chat: { $in: chatIds }
     })
       .select('content sender createdAt')
       .sort({ createdAt: -1 })
-      .limit(50); // Get more messages to score
+      .limit(100); // Get more messages to score
     
-    // Score messages based on word overlap
+    // Score messages based on word overlap and semantic similarity
     const scoredMessages = pastMessages.map(msg => {
       const contentWords = msg.content.toLowerCase().split(/\s+/);
-      const overlap = queryWords.filter(word => 
+      
+      // Exact word matches (higher score)
+      const exactMatches = queryWords.filter(word => 
+        contentWords.includes(word)
+      ).length;
+      
+      // Partial word matches (medium score)
+      const partialMatches = queryWords.filter(word => 
         contentWords.some(contentWord => 
           contentWord.includes(word) || word.includes(contentWord)
         )
-      ).length;
+      ).length - exactMatches;
       
-      return { ...msg, score: overlap };
+      // Check for key phrases (names, important terms)
+      const hasKeyPhrases = queryWords.some(word => 
+        word.length > 3 && msg.content.toLowerCase().includes(word)
+      );
+      
+      // Calculate weighted score
+      const score = (exactMatches * 3) + (partialMatches * 1) + (hasKeyPhrases ? 2 : 0);
+      
+      return { ...msg, score };
     });
     
     // Return top scored messages
@@ -225,11 +239,15 @@ Title:`;
 // Function to build comprehensive conversation context - PINECONE ENHANCED
 async function buildConversationContext(userId, chatId, currentQuery) {
   try {
+    console.log(`Building context for user ${userId}, chat ${chatId}, query: "${currentQuery}"`);
+    
     // Get recent messages for immediate context
     const recentMessages = await Message.find({ chat: chatId })
       .select('content sender createdAt')
       .sort({ createdAt: -1 })
       .limit(5);
+    
+    console.log(`Found ${recentMessages.length} recent messages`);
     
     let context = "";
     
@@ -241,6 +259,7 @@ ${recentMessages.reverse().map(msg => `- ${msg.sender === 'user' ? 'User' : 'AI'
     
     // Get relevant messages using Pinecone semantic search
     try {
+      console.log('Attempting Pinecone search...');
       const relevantMessages = await pineconeService.searchSimilarMessages(
         userId, 
         currentQuery, 
@@ -248,21 +267,31 @@ ${recentMessages.reverse().map(msg => `- ${msg.sender === 'user' ? 'User' : 'AI'
         chatId // Exclude current chat
       );
       
+      console.log(`Pinecone search returned ${relevantMessages.length} relevant messages`);
+      
       if (relevantMessages.length > 0) {
         context += `\n\nRELEVANT PAST CONVERSATIONS (semantic search):
 ${relevantMessages.map(msg => `- ${msg.sender === 'user' ? 'User' : 'AI'}: ${msg.content.substring(0, 80)}${msg.content.length > 80 ? '...' : ''} (relevance: ${(msg.score * 100).toFixed(1)}%)`).join('\n')}`;
+      } else {
+        console.log('No relevant messages found via Pinecone');
       }
     } catch (pineconeError) {
       console.error('Pinecone search failed, falling back to database search:', pineconeError);
       
       // Fallback to database search if Pinecone fails
+      console.log('Attempting database fallback search...');
       const relevantPastMessages = await retrieveRelevantPastMessages(userId, chatId, currentQuery, 6);
+      console.log(`Database fallback returned ${relevantPastMessages.length} relevant messages`);
+      
       if (relevantPastMessages.length > 0) {
         context += `\n\nRELEVANT PAST CONVERSATIONS (database fallback):
 ${relevantPastMessages.map(msg => `- ${msg.sender === 'user' ? 'User' : 'AI'}: ${msg.content.substring(0, 80)}${msg.content.length > 80 ? '...' : ''}`).join('\n')}`;
+      } else {
+        console.log('No relevant messages found via database fallback');
       }
     }
     
+    console.log(`Final context length: ${context.length} characters`);
     return context;
   } catch (error) {
     console.error('Error building context:', error);
@@ -557,12 +586,13 @@ CURRENT USER QUERY: ${prompt}
 
 IMPORTANT: 
 - Address the user by name: ${userName}
-- Use your long-term memory and relevant past conversations for context
-- Reference previous discussions when relevant (e.g., "As we discussed earlier about...", "Remember when you mentioned...")
-- If the user refers to something from a past conversation, acknowledge it and build upon it
-- Provide a helpful, accurate, and well-structured response
-- Maintain conversation continuity across sessions
-- If you have access to past conversations, use them to provide more personalized responses`;
+- ALWAYS check the context provided above for relevant past conversations
+- If context shows previous discussions about the same topic, reference them explicitly
+- Use phrases like "As we discussed before...", "Remember when you mentioned...", "Building on our previous conversation..."
+- If the user asks about something mentioned in past chats, acknowledge it and provide continuity
+- NEVER say you don't have access to past conversations if context is provided above
+- Provide helpful, accurate, and well-structured responses that build upon previous interactions
+- Maintain conversation continuity across sessions`;
 
     if (parseText) {
       finalPrompt += `\n text/file: ${parseText}`;
@@ -817,12 +847,13 @@ CURRENT USER QUERY: ${prompt}
 
 IMPORTANT: 
 - Address the user by name: ${userName}
-- Use your long-term memory and relevant past conversations for context
-- Reference previous discussions when relevant (e.g., "As we discussed earlier about...", "Remember when you mentioned...")
-- If the user refers to something from a past conversation, acknowledge it and build upon it
-- Provide a helpful, accurate, and well-structured response
-- Maintain conversation continuity across sessions
-- If you have access to past conversations, use them to provide more personalized responses`;
+- ALWAYS check the context provided above for relevant past conversations
+- If context shows previous discussions about the same topic, reference them explicitly
+- Use phrases like "As we discussed before...", "Remember when you mentioned...", "Building on our previous conversation..."
+- If the user asks about something mentioned in past chats, acknowledge it and provide continuity
+- NEVER say you don't have access to past conversations if context is provided above
+- Provide helpful, accurate, and well-structured responses that build upon previous interactions
+- Maintain conversation continuity across sessions`;
 
     if (parseText) {
       finalPrompt += `\n text/file: ${parseText}`;
@@ -945,6 +976,28 @@ router.put('/chat-title/:chatId', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to update chat title' });
+  }
+});
+
+// Test Pinecone endpoint
+router.get('/test-pinecone', async (req, res) => {
+  try {
+    const testResult = await pineconeService.searchSimilarMessages(
+      req.user.id, 
+      'test query', 
+      3
+    );
+    res.json({ 
+      status: 'Pinecone working', 
+      results: testResult.length,
+      timestamp: new Date().toISOString() 
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      status: 'Pinecone error', 
+      error: error.message,
+      timestamp: new Date().toISOString() 
+    });
   }
 });
 
