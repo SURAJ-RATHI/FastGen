@@ -7,13 +7,30 @@ import App from './App.jsx'
 // Register Service Worker for offline caching (only in production)
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
+    // Try main service worker first
+    navigator.serviceWorker.register('/sw.js', {
+      scope: '/',
+      updateViaCache: 'none'
+    })
       .then((registration) => {
-        console.log('SW registered: ', registration);
+        if (import.meta.env.DEV) {
+          console.log('SW registered: ', registration);
+        }
       })
       .catch((registrationError) => {
-        console.log('SW registration failed: ', registrationError);
-        // Silently fail - don't show errors to users
+        // Try fallback service worker
+        navigator.serviceWorker.register('/sw-fallback.js')
+          .then((registration) => {
+            if (import.meta.env.DEV) {
+              console.log('Fallback SW registered: ', registration);
+            }
+          })
+          .catch((fallbackError) => {
+            // Silently fail - don't show errors to users
+            if (import.meta.env.DEV) {
+              console.log('Both SW registrations failed: ', fallbackError);
+            }
+          });
       });
   });
 }
