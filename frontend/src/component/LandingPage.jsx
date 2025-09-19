@@ -498,8 +498,9 @@ const LandingPage = () => {
                   value={contactFormData.name}
                   onChange={handleContactInputChange}
                   placeholder="Your Name"
-                  className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500"
+                  className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
                   required
+                  autoComplete="name"
                 />
                 <input
                   type="email"
@@ -507,8 +508,9 @@ const LandingPage = () => {
                   value={contactFormData.email}
                   onChange={handleContactInputChange}
                   placeholder="Your Email"
-                  className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500"
+                  className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
                   required
+                  autoComplete="email"
                 />
                 <textarea
                   name="message"
@@ -516,7 +518,7 @@ const LandingPage = () => {
                   onChange={handleContactInputChange}
                   placeholder="Your Message"
                   rows="4"
-                  className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500 resize-none"
+                  className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 resize-none"
                   required
                 ></textarea>
                 
@@ -529,7 +531,7 @@ const LandingPage = () => {
                 <button
                   type="submit"
                   disabled={isSubmittingContact}
-                  className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
                 >
                   {isSubmittingContact ? 'Sending...' : 'Send Message'}
                 </button>
@@ -598,7 +600,7 @@ const LandingPage = () => {
                       const element = document.getElementById('features-section');
                       element?.scrollIntoView({ behavior: 'smooth' });
                     }}
-                    className="text-gray-400 hover:text-blue-400 transition-colors"
+                    className="text-gray-400 hover:text-blue-400 transition-colors cursor-pointer focus:outline-none focus:text-blue-400"
                   >
                     Features
                   </button>
@@ -609,7 +611,7 @@ const LandingPage = () => {
                       const element = document.getElementById('pricing-section');
                       element?.scrollIntoView({ behavior: 'smooth' });
                     }}
-                    className="text-gray-400 hover:text-blue-400 transition-colors"
+                    className="text-gray-400 hover:text-blue-400 transition-colors cursor-pointer focus:outline-none focus:text-blue-400"
                   >
                     Pricing
                   </button>
@@ -620,13 +622,13 @@ const LandingPage = () => {
                       const element = document.getElementById('contact-section');
                       element?.scrollIntoView({ behavior: 'smooth' });
                     }}
-                    className="text-gray-400 hover:text-blue-400 transition-colors"
+                    className="text-gray-400 hover:text-blue-400 transition-colors cursor-pointer focus:outline-none focus:text-blue-400"
                   >
                     Contact
                   </button>
                 </li>
                 <li>
-                  <Link to="/main" className="text-gray-400 hover:text-blue-400 transition-colors">
+                  <Link to="/main" className="text-gray-400 hover:text-blue-400 transition-colors cursor-pointer focus:outline-none focus:text-blue-400">
                     Dashboard
                   </Link>
                 </li>
@@ -638,22 +640,22 @@ const LandingPage = () => {
               <h3 className="text-white font-semibold mb-4">Support</h3>
               <ul className="space-y-2">
                 <li>
-                  <Link to="/help" className="text-gray-400 hover:text-blue-400 transition-colors">
+                  <Link to="/help" className="text-gray-400 hover:text-blue-400 transition-colors cursor-pointer focus:outline-none focus:text-blue-400">
                     Help Center
                   </Link>
                 </li>
                 <li>
-                  <Link to="/docs" className="text-gray-400 hover:text-blue-400 transition-colors">
+                  <Link to="/docs" className="text-gray-400 hover:text-blue-400 transition-colors cursor-pointer focus:outline-none focus:text-blue-400">
                     Documentation
                   </Link>
                 </li>
                 <li>
-                  <Link to="/privacy" className="text-gray-400 hover:text-blue-400 transition-colors">
+                  <Link to="/privacy" className="text-gray-400 hover:text-blue-400 transition-colors cursor-pointer focus:outline-none focus:text-blue-400">
                     Privacy Policy
                   </Link>
                 </li>
                 <li>
-                  <Link to="/terms" className="text-gray-400 hover:text-blue-400 transition-colors">
+                  <Link to="/terms" className="text-gray-400 hover:text-blue-400 transition-colors cursor-pointer focus:outline-none focus:text-blue-400">
                     Terms of Service
                   </Link>
                 </li>
@@ -667,13 +669,13 @@ const LandingPage = () => {
               © 2024 FastGen. All rights reserved.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
-              <Link to="/privacy" className="text-gray-400 hover:text-blue-400 transition-colors text-sm">
+              <Link to="/privacy" className="text-gray-400 hover:text-blue-400 transition-colors text-sm cursor-pointer focus:outline-none focus:text-blue-400">
                 Privacy
               </Link>
-              <Link to="/terms" className="text-gray-400 hover:text-blue-400 transition-colors text-sm">
+              <Link to="/terms" className="text-gray-400 hover:text-blue-400 transition-colors text-sm cursor-pointer focus:outline-none focus:text-blue-400">
                 Terms
               </Link>
-              <Link to="/privacy" className="text-gray-400 hover:text-blue-400 transition-colors text-sm">
+              <Link to="/privacy" className="text-gray-400 hover:text-blue-400 transition-colors text-sm cursor-pointer focus:outline-none focus:text-blue-400">
                 Cookies
               </Link>
             </div>
