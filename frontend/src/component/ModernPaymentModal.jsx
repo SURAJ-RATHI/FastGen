@@ -114,13 +114,11 @@ const ModernPaymentModal = ({
           <div>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
               {step === 'method' && 'Choose Payment Method'}
-              {step === 'details' && 'Payment Details'}
               {step === 'processing' && 'Processing Payment'}
               {step === 'success' && 'Payment Successful'}
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               {step === 'method' && `Complete your ${plan} plan purchase`}
-              {step === 'details' && 'Enter your payment information'}
               {step === 'processing' && 'Please wait while we process your payment'}
               {step === 'success' && 'Your subscription has been activated'}
             </p>
@@ -194,81 +192,14 @@ const ModernPaymentModal = ({
 
               {/* Pay Button */}
               <button
-                onClick={() => setStep('details')}
+                onClick={handlePayment}
                 className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-6 rounded-xl transition-all transform hover:scale-[1.02] active:scale-[0.98]"
               >
-                Continue to Payment
+                Pay ₹{amount}
               </button>
             </>
           )}
 
-          {step === 'details' && (
-            <>
-              {/* Payment Form */}
-              <div className="space-y-4 mb-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Card Number
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="1234 5678 9012 3456"
-                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
-                  />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Expiry Date
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="MM/YY"
-                      className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      CVV
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="123"
-                      className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
-                    />
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Cardholder Name
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="John Doe"
-                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
-                  />
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex space-x-3">
-                <button
-                  onClick={() => setStep('method')}
-                  className="flex-1 py-3 px-6 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                >
-                  Back
-                </button>
-                <button
-                  onClick={handlePayment}
-                  className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-6 rounded-xl transition-all transform hover:scale-[1.02] active:scale-[0.98]"
-                >
-                  Pay ₹{amount}
-                </button>
-              </div>
-            </>
-          )}
 
           {step === 'processing' && (
             <div className="text-center py-8">
