@@ -1,23 +1,11 @@
 import HomeHeader from "./HomeHeader";
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import useModernPayment from '../hooks/useModernPayment';
-import ModernPaymentModal from './ModernPaymentModal';
+import paymentService from '../services/paymentService';
 
 const Pricing = () => {
   const navigate = useNavigate();
   const { isSignedIn } = useAuth();
-  
-  // Modern payment hook
-  const {
-    isModalOpen,
-    paymentData,
-    isLoading,
-    initiatePayment,
-    handlePaymentSuccess,
-    handlePaymentError,
-    closeModal
-  } = useModernPayment();
   const handlePlanSelect = async (plan) => {
     if (plan.name === 'Free') {
       navigate('/main');
@@ -39,10 +27,26 @@ const Pricing = () => {
       return;
     }
 
-    // For Pro plan, initiate payment
+    // For Pro plan, directly open Razorpay payment page
     if (plan.name === 'Pro') {
       try {
-        await initiatePayment(999, 'pro');
+        await paymentService.processPaymentLegacy(
+          999, 
+          'pro',
+          (subscription) => {
+            // Payment success
+            if (window.showToast) {
+              window.showToast(`Welcome to ${subscription.plan.charAt(0).toUpperCase() + subscription.plan.slice(1)} plan!`, 'success');
+            }
+            navigate('/main');
+          },
+          (error) => {
+            // Payment error
+            if (window.showToast) {
+              window.showToast(`Payment failed: ${error}`, 'error');
+            }
+          }
+        );
       } catch (error) {
         console.error('Failed to initiate payment:', error);
         if (window.showToast) {
@@ -50,29 +54,6 @@ const Pricing = () => {
         }
       }
     }
-  };
-
-  // Handle payment success
-  const onPaymentSuccess = async (paymentDetails) => {
-    try {
-      const result = await handlePaymentSuccess(paymentDetails);
-      if (window.showToast) {
-        window.showToast(`Welcome to ${result.subscription.plan.charAt(0).toUpperCase() + result.subscription.plan.slice(1)} plan!`, 'success');
-      }
-      navigate('/main');
-    } catch (error) {
-      if (window.showToast) {
-        window.showToast(`Payment verification failed: ${error.message}`, 'error');
-      }
-    }
-  };
-
-  // Handle payment error
-  const onPaymentError = (error) => {
-    if (window.showToast) {
-      window.showToast(`Payment failed: ${error}`, 'error');
-    }
-    handlePaymentError(error);
   };
 
   const plans = [
@@ -178,10 +159,9 @@ const Pricing = () => {
                 
                 <button
                   onClick={() => handlePlanSelect(plan)}
-                  disabled={isLoading}
-                  className={`w-full py-3 px-6 rounded-lg text-white font-semibold transition-colors ${plan.buttonStyle} ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`w-full py-3 px-6 rounded-lg text-white font-semibold transition-colors ${plan.buttonStyle}`}
                 >
-                  {isLoading ? 'Processing...' : plan.buttonText}
+                  {plan.buttonText}
                 </button>
               </div>
             ))}
@@ -193,17 +173,6 @@ const Pricing = () => {
           </div>
         </div>
       </div>
-
-      {/* Modern Payment Modal */}
-      <ModernPaymentModal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        amount={paymentData?.amount}
-        plan={paymentData?.plan}
-        orderId={paymentData?.order?.id}
-        onPaymentSuccess={onPaymentSuccess}
-        onPaymentError={onPaymentError}
-      />
     </div>
   );
 };
