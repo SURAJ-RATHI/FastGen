@@ -64,7 +64,7 @@ export default function FeaturePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 p-8">
-      <div className="max-w-6xl mx-auto text-center mb-12">
+      <div className="max-w-6xl mx-auto text-center mb-20">
         <h1 className="text-5xl font-bold text-white mb-4">FastGen</h1>
         <p className="text-xl text-white">Our AI Features that </p>
         <p className="text-md text-white mt-2">
@@ -72,17 +72,17 @@ export default function FeaturePage() {
         </p>
       </div>
 
-      <div className="grid md:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-8 max-w-6xl mx-auto">
+      <div className="grid md:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-6 max-w-6xl mx-auto">
         {features.map((feature, index) => (
           <div
             key={index}
             ref={(el) => (cardsRef.current[index] = el)}
             onClick={() => navigate(feature.route)}
-            className="bg-white/20 backdrop-blur-lg border border-white/30 rounded-2xl p-6 shadow-lg text-white hover:scale-105 transition-transform cursor-pointer hover:border-blue-400 hover:bg-white/30"
+            className="bg-white/20 backdrop-blur-lg border border-white/30 rounded-2xl p-4 shadow-lg text-white hover:scale-105 transition-transform cursor-pointer hover:border-blue-400 hover:bg-white/30"
           >
-            <div className="text-4xl mb-4">{feature.icon}</div>
-            <h2 className="text-xl font-semibold mb-2">{feature.title}</h2>
-            <p className="text-sm">{feature.description}</p>
+            <div className="text-3xl mb-3">{feature.icon}</div>
+            <h2 className="text-lg font-semibold mb-2">{feature.title}</h2>
+            <p className="text-xs">{feature.description}</p>
           </div>
         ))}
       </div>
