@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import axios from 'axios';
 import { LuSendHorizontal } from 'react-icons/lu';
@@ -10,7 +10,7 @@ import TypingIndicator from './TypingIndicator.jsx';
 import UpgradeModal from './UpgradeModal.jsx';
 
 // Memoized Message Component for better performance
-const MessageItem = React.memo(({ msg, user, searchQuery, highlightSearchTerms }) => {
+const MessageItem = memo(({ msg, user, searchQuery, highlightSearchTerms }) => {
   return (
     <div className="py-4 px-4">
       <div className={`max-w-3xl mx-auto flex gap-4 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -55,6 +55,8 @@ const MessageItem = React.memo(({ msg, user, searchQuery, highlightSearchTerms }
     </div>
   );
 });
+
+MessageItem.displayName = 'MessageItem';
 
 export default function ChatWindow() {
   const { user, isSignedIn } = useAuth();
@@ -185,7 +187,7 @@ export default function ChatWindow() {
       console.log('User signed in, loading chat history...'); // Debug log
       loadChatHistory();
     }
-  }, [isSignedIn]); // Removed loadChatHistory and user from dependencies
+  }, [isSignedIn, loadChatHistory]);
 
   // Initialize chat once on sign-in - ULTRA OPTIMIZED
   useEffect(() => {
@@ -280,7 +282,7 @@ export default function ChatWindow() {
     return () => {
       isMounted = false;
     };
-  }, [isSignedIn]); // Removed loadChatHistory and loadMessages from dependencies
+  }, [isSignedIn, chatId, loadChatHistory, loadMessages]);
 
   // Auto-scroll when messages change
   useEffect(() => {
@@ -683,7 +685,58 @@ export default function ChatWindow() {
   // Update filtered chats when search query changes
   useEffect(() => {
     searchChats(searchQuery);
-  }, [searchQuery]); // Removed chatHistory from dependencies to prevent excessive re-renders
+  }, [searchQuery, searchChats]); // Added searchChats to dependencies
+
+  // Memoize the messages rendering for better performance
+  const renderedMessages = useMemo(() => {
+    if (messages.length === 0) {
+      return (
+        <div className="text-center text-gray-300 mt-20">
+          <div className="mb-3">
+            <svg className="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-semibold mb-2">How can I help you today?</h2>
+          <p className="text-sm text-gray-400">Ask me anything or start a new conversation.</p>
+        </div>
+      );
+    }
+
+    // Virtual scrolling for large message lists
+    if (messages.length > 50) {
+      return (
+        <div className="space-y-0">
+          {messages.slice(-50).map((msg, idx) => (
+            <MessageItem 
+              key={`${msg.sender}-${idx}-${msg.content.slice(0, 20)}`}
+              msg={msg} 
+              idx={idx} 
+              user={user}
+              searchQuery={searchQuery}
+              highlightSearchTerms={highlightSearchTerms}
+            />
+          ))}
+          {messages.length > 50 && (
+            <div className="text-center text-gray-400 py-4">
+              Showing last 50 messages. Scroll up to see more.
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    return messages.map((msg, idx) => (
+      <MessageItem 
+        key={`${msg.sender}-${idx}-${msg.content.slice(0, 20)}`}
+        msg={msg} 
+        idx={idx} 
+        user={user}
+        searchQuery={searchQuery}
+        highlightSearchTerms={highlightSearchTerms}
+      />
+    ));
+  }, [messages, user, searchQuery, highlightSearchTerms]);
 
   const shareChat = async (chatIdToShare) => {
     try {
@@ -926,49 +979,7 @@ export default function ChatWindow() {
 
         {/* Messages - OPTIMIZED */}
         <div className="flex-1 overflow-y-auto scrollbar-hide pb-32" ref={containerRef}>
-          {messages.length === 0 ? (
-            <div className="text-center text-gray-300 mt-20">
-              <div className="mb-3">
-                <svg className="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-              </div>
-              <h2 className="text-xl font-semibold mb-2">How can I help you today?</h2>
-              <p className="text-sm text-gray-400">Ask me anything or start a new conversation.</p>
-            </div>
-          ) : (
-            // Virtual scrolling for large message lists
-            messages.length > 50 ? (
-              <div className="space-y-0">
-                {messages.slice(-50).map((msg, idx) => (
-                  <MessageItem 
-                    key={`${msg.sender}-${idx}-${msg.content.slice(0, 20)}`}
-                    msg={msg} 
-                    idx={idx} 
-                    user={user}
-                    searchQuery={searchQuery}
-                    highlightSearchTerms={highlightSearchTerms}
-                  />
-                ))}
-                {messages.length > 50 && (
-                  <div className="text-center text-gray-400 py-4">
-                    Showing last 50 messages. Scroll up to see more.
-                  </div>
-                )}
-              </div>
-            ) : (
-              messages.map((msg, idx) => (
-                <MessageItem 
-                  key={`${msg.sender}-${idx}-${msg.content.slice(0, 20)}`}
-                  msg={msg} 
-                  idx={idx} 
-                  user={user}
-                  searchQuery={searchQuery}
-                  highlightSearchTerms={highlightSearchTerms}
-                />
-              ))
-            )
-          )}
+          {renderedMessages}
 
           {isTyping && (
             <div className="py-4 px-4">

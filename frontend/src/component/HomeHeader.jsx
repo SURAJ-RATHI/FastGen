@@ -1,7 +1,8 @@
-import { Library, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { useState, useEffect, useRef } from 'react';
+import LazyImage from './LazyImage';
 
 const HomeHeader = () => {
     const { isSignedIn, user, signOut } = useAuth();
@@ -43,10 +44,13 @@ const HomeHeader = () => {
                 onClick={() => navigate('/')}
                 className="flex items-center space-x-1.5 text-base md:text-xl px-3 md:px-6 font-bold text-blue-400 cursor-pointer hover:text-blue-300 transition-colors"
             >
-                <div><Library
-                className='h-5 w-5 md:h-8 md:w-8 text-white'
-                
-                /></div>
+                <div className="h-5 w-5 md:h-8 md:w-8">
+                    <LazyImage 
+                        src="/logo.svg" 
+                        alt="FastGen Logo" 
+                        className="h-full w-full object-contain"
+                    />
+                </div>
                 <span>FastGen</span>
             </div>
 

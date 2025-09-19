@@ -1,9 +1,62 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo, memo } from 'react';
 import { FiPlay, FiExternalLink, FiX } from 'react-icons/fi';
+import LazyImage from './LazyImage';
+
+// Memoized VideoCard component for better performance
+const VideoCard = memo(({ video, index, onVideoClick }) => {
+  const handleClick = useCallback((e) => {
+    console.log('🖱️ Click event triggered!');
+    console.log('🎯 Video being clicked:', video.title);
+    console.log('📍 Event target:', e.target);
+    console.log('📍 Current target:', e.currentTarget);
+    
+    e.preventDefault();
+    e.stopPropagation();
+    
+    console.log('🔒 Event prevented and stopped');
+    onVideoClick(video);
+  }, [video, onVideoClick]);
+
+  return (
+    <div
+      onClick={handleClick}
+      className="bg-gray-800 rounded-lg p-4 hover:bg-gray-700 hover:scale-105 transition-all duration-200 border border-gray-700 hover:border-blue-500 cursor-pointer select-none shadow-lg hover:shadow-xl"
+    >
+      <div className="relative">
+        <LazyImage
+          alt={video.title}
+          className="w-full h-32 object-cover rounded-lg mb-3"
+          src={video.thumbnail}
+        />
+        <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+          #{index + 1}
+        </div>
+        <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+          {video.duration}
+        </div>
+      </div>
+      <div>
+        <h3
+          className="text-gray-200 font-semibold text-sm mb-2 overflow-hidden"
+          style={{
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical'
+          }}
+        >
+          {video.title}
+        </h3>
+        <p className="text-gray-400 text-xs mb-3">{video.channel}</p>
+      </div>
+    </div>
+  );
+});
+
+VideoCard.displayName = 'VideoCard';
 
 export default function VideoSearch() {
   const [searchTopic, setSearchTopic] = useState('book');
-  const [videos, setVideos] = useState([
+  const [videos] = useState([
     {
       id: 1,
       title: "romance only bookstore in NYC 🍎💌",
@@ -89,12 +142,12 @@ export default function VideoSearch() {
   const [showVideoPlayer, setShowVideoPlayer] = useState(false);
   const [showVideoPreview, setShowVideoPreview] = useState(false);
 
-  const handleSearch = () => {
+  const handleSearch = useCallback(() => {
     // Implement actual search functionality here
     console.log('Searching for:', searchTopic);
-  };
+  }, [searchTopic]);
 
-  const handleVideoCardClick = (video) => {
+  const handleVideoCardClick = useCallback((video) => {
     console.log('🎬 Video card clicked!');
     console.log('📹 Video details:', video);
     console.log('🔍 Current state - selectedVideo:', selectedVideo);
@@ -111,27 +164,41 @@ export default function VideoSearch() {
       console.log('🔄 State after update - selectedVideo:', selectedVideo);
       console.log('🔄 State after update - showVideoPlayer:', showVideoPlayer);
     }, 100);
-  };
+  }, [selectedVideo, showVideoPlayer]);
 
-  const handlePlayVideo = () => {
+  const handlePlayVideo = useCallback(() => {
     // This function is now called from the preview modal if needed
     setShowVideoPreview(false);
     setShowVideoPlayer(true);
-  };
+  }, []);
 
-  const handlePlayOnYouTube = (videoId) => {
+  const handlePlayOnYouTube = useCallback((videoId) => {
     window.open(`https://www.youtube.com/watch?v=${videoId}`, '_blank');
-  };
+  }, []);
 
-  const handleClosePreview = () => {
+  const handleClosePreview = useCallback(() => {
     setShowVideoPreview(false);
     setSelectedVideo(null);
-  };
+  }, []);
 
-  const handleCloseVideo = () => {
+  const handleCloseVideo = useCallback(() => {
     setShowVideoPlayer(false);
     setSelectedVideo(null);
-  };
+  }, []);
+
+  // Memoize the video grid to prevent unnecessary re-renders
+  const videoGrid = useMemo(() => (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {videos.map((video, index) => (
+        <VideoCard 
+          key={video.id} 
+          video={video} 
+          index={index} 
+          onVideoClick={handleVideoCardClick}
+        />
+      ))}
+    </div>
+  ), [videos, handleVideoCardClick]);
 
   return (
     <div className="bg-[#113] bg-opacity-40 backdrop-blur-md rounded-lg shadow-lg border hover:shadow-[0_0_10px_rgba(90,175,255,0.4)] border-gray-700 p-4 max-w-xl mx-auto mt-1" style={{ height: '88vh' }}>
@@ -186,53 +253,7 @@ export default function VideoSearch() {
 
       {/* Video Grid */}
       <div className="overflow-y-auto" style={{ height: 'calc(88vh - 200px)' }}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {videos.map((video, index) => (
-            <div
-              key={video.id}
-              onClick={(e) => {
-                console.log('🖱️ Click event triggered!');
-                console.log('🎯 Video being clicked:', video.title);
-                console.log('📍 Event target:', e.target);
-                console.log('📍 Current target:', e.currentTarget);
-                
-                e.preventDefault();
-                e.stopPropagation();
-                
-                console.log('🔒 Event prevented and stopped');
-                handleVideoCardClick(video);
-              }}
-              className="bg-gray-800 rounded-lg p-4 hover:bg-gray-700 hover:scale-105 transition-all duration-200 border border-gray-700 hover:border-blue-500 cursor-pointer select-none shadow-lg hover:shadow-xl"
-            >
-              <div className="relative">
-                <img
-                  alt={video.title}
-                  className="w-full h-32 object-cover rounded-lg mb-3"
-                  src={video.thumbnail}
-                />
-                <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
-                  #{index + 1}
-                </div>
-                <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
-                  {video.duration}
-                </div>
-              </div>
-              <div>
-                <h3
-                  className="text-gray-200 font-semibold text-sm mb-2 overflow-hidden"
-                  style={{
-                    display: '-webkit-box',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical'
-                  }}
-                >
-                  {video.title}
-                </h3>
-                <p className="text-gray-400 text-xs mb-3">{video.channel}</p>
-              </div>
-            </div>
-          ))}
-        </div>
+        {videoGrid}
       </div>
 
       {/* Video Preview Modal */}
@@ -250,7 +271,7 @@ export default function VideoSearch() {
             </div>
             
             <div className="relative">
-              <img
+              <LazyImage
                 alt={selectedVideo.title}
                 className="w-full h-80 object-cover rounded-lg"
                 src={selectedVideo.thumbnail}
