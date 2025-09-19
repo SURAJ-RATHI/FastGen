@@ -228,23 +228,8 @@ export default function ChatWindow() {
         } else {
           localStorage.removeItem('chatId');
           
-          // Load chat history (cached)
-          const chats = await loadChatHistory();
-          if (!isMounted) return;
-          
-          if (chats.length > 0) {
-            const mostRecent = chats[0];
-            setChatId(mostRecent._id);
-            setCurrentChatTitle(mostRecent.title || `Chat ${new Date(mostRecent.startedAt).toLocaleDateString()}`);
-            localStorage.setItem('chatId', mostRecent._id);
-            
-            // Load messages in background
-            loadMessages(mostRecent._id).catch(err => 
-              console.error('Background message loading failed:', err)
-            );
-          } else {
-            await createNewChat();
-          }
+          // Always create a new chat when no stored chatId (e.g., from "Explore Now" button)
+          await createNewChat();
         }
       } catch (err) {
         if (!isMounted) return;
