@@ -18,7 +18,7 @@ const debugPaymentEndpoint = async () => {
       name: 'Payment endpoint without auth',
       method: 'POST',
       url: '/api/payments/create-order',
-      data: { amount: 999, plan: 'pro' }
+      data: { amount: 99, plan: 'pro' }
     },
     {
       name: 'Payment endpoint with minimal data',

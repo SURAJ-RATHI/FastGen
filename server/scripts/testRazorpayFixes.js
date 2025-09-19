@@ -30,7 +30,7 @@ const testRazorpayFixes = async () => {
     console.log('\n📋 Test 2: Creating order with fixed receipt...');
     
     const orderOptions = {
-      amount: 99900, // ₹999 in paise
+      amount: 9900, // ₹999 in paise
       currency: 'INR',
       receipt: receipt,
       notes: {

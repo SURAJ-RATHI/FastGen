@@ -39,7 +39,7 @@ const ModernPricing = () => {
     {
       id: 'pro',
       name: 'Pro',
-      price: 999,
+      price: 99,
       period: 'month',
       icon: Crown,
       description: 'For power users and professionals',
@@ -58,7 +58,7 @@ const ModernPricing = () => {
     {
       id: 'enterprise',
       name: 'Enterprise',
-      price: 4999,
+      price: 2999,
       period: 'month',
       icon: Building,
       description: 'For teams and organizations',

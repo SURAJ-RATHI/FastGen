@@ -46,11 +46,11 @@ const PaymentTest = () => {
       
       <div className="space-y-4 mb-6">
         <button
-          onClick={() => handlePayment('pro', 999)}
+          onClick={() => handlePayment('pro', 99)}
           disabled={isLoading}
           className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
         >
-          {isLoading ? 'Loading...' : 'Pay ₹999 - Pro Plan'}
+          {isLoading ? 'Loading...' : 'Pay ₹99 - Pro Plan'}
         </button>
         
         <button

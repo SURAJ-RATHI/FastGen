@@ -363,10 +363,10 @@ const LandingPage = () => {
               },
               {
                 name: "Pro",
-                price: "₹999",
+                price: "₹99",
                 period: "month",
                 plan: "pro",
-                amount: 999,
+                amount: 99,
                 description: "Best for students and professionals",
                 features: [
                   "Unlimited AI conversations",

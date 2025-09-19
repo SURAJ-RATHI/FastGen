@@ -218,7 +218,7 @@ const UpgradeModal = ({ isOpen, onClose, usageData, featureType }) => {
           {/* Pricing Info */}
           <div className="mt-3 sm:mt-4 text-center">
             <p className="text-gray-400 text-xs sm:text-sm">
-              Starting at <span className="text-white font-semibold">₹999/month</span>
+              Starting at <span className="text-white font-semibold">₹99/month</span>
             </p>
             <p className="text-gray-500 text-xs mt-1">
               Cancel anytime • No hidden fees

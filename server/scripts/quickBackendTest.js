@@ -19,7 +19,7 @@ const testBackend = async () => {
     console.log('\nTesting /api/payments/create-order endpoint...');
     try {
       const paymentResponse = await axios.post(`${backendURL}/api/payments/create-order`, {
-        amount: 999,
+        amount: 99,
         plan: 'pro'
       }, {
         headers: {
