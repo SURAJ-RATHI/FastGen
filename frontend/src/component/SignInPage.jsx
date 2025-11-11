@@ -102,6 +102,21 @@ const SignInPage = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white px-4 py-8">
+      <style>{`
+        #google-signin-button {
+          width: 100% !important;
+          min-width: 100% !important;
+          flex-shrink: 0 !important;
+        }
+        #google-signin-button > div {
+          width: 100% !important;
+          min-width: 100% !important;
+        }
+        #google-signin-button iframe {
+          width: 100% !important;
+          min-width: 100% !important;
+        }
+      `}</style>
       <div className="w-full max-w-md bg-white border border-gray-200 p-6 sm:p-8 rounded-xl shadow-sm">
         <h2 className="text-2xl sm:text-3xl font-semibold mb-2 text-gray-900">Welcome Back</h2>
         <p className="text-gray-600 mb-6 text-sm sm:text-base">
@@ -110,7 +125,7 @@ const SignInPage = () => {
 
           {!showManualForm ? (
             <>
-              <div id="google-signin-button" className="w-full mt-4 google-button-container min-h-[40px] flex-shrink-0 overflow-hidden"></div>
+              <div id="google-signin-button" className="w-full mt-4 google-button-container min-h-[40px] flex-shrink-0" style={{ width: '100%', minWidth: '100%' }}></div>
 
               <div className="relative my-4 sm:my-6">
                 <div className="absolute inset-0 flex items-center">
