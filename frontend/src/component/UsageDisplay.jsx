@@ -83,13 +83,15 @@ const UsageDisplay = ({ onUpgradeClick }) => {
           )}
         </div>
         {hasReached && (
-          <div className="mt-2 text-xs text-red-400">
-            ⚠️ Limit reached! Upgrade for unlimited access.
+          <div className="mt-2 text-xs text-red-400 flex items-center gap-1">
+            <AlertTriangle className="w-3 h-3" />
+            Limit reached! Upgrade for unlimited access.
           </div>
         )}
         {isApproaching && !hasReached && (
-          <div className="mt-2 text-xs text-yellow-400">
-            ⚠️ Approaching limit! Consider upgrading.
+          <div className="mt-2 text-xs text-yellow-400 flex items-center gap-1">
+            <AlertTriangle className="w-3 h-3" />
+            Approaching limit! Consider upgrading.
           </div>
         )}
       </div>

@@ -1,22 +1,15 @@
 import HomeHeader from "./HomeHeader";
-import { useRef, useState } from "react";
-import gsap from "gsap";
-import { useGSAP } from "@gsap/react";
+import { useState } from "react";
 import Button from "./compo/Button";
 import { useNavigate, Link } from "react-router-dom";
 
 import axios from "axios";
-import { Library } from 'lucide-react';
+import { Library, Target, Play, Key, HelpCircle, FileText, BookOpen, Sparkles } from 'lucide-react';
 import useModernPayment from '../hooks/useModernPayment';
 import ModernPaymentModal from './ModernPaymentModal';
 import { useAuth } from '../contexts/AuthContext';
 
-gsap.registerPlugin();
-
 const LandingPage = () => {
-  const wordRef = useRef(null);
-
-  const words = ["Faster", " Smarter", " Effortlessly","24*7"];
   const navigate = useNavigate();
   const { isSignedIn } = useAuth();
   
@@ -122,125 +115,67 @@ const LandingPage = () => {
     }
   };
 
-
-  useGSAP(() => {
-    let index = 0;
-
-    gsap.from('.tagline', {
-      y: 70,
-      opacity: 0,
-      duration: 2,
-      ease: 'power2.out'  // makes it smoother!
-    });
-
-
-    
-
-
-
-    const flip = () => {
-      // Animate out
-      gsap.to(wordRef.current, {
-        y: "100%", // Move down
-        rotationX: 90,
-        opacity: 0,
-        duration: 0.3,
-        ease: 'power1.in',
-        onComplete: () => {
-          // Update text
-          index = (index + 1) % words.length;
-          if (wordRef.current) {
-            wordRef.current.textContent = words[index]; // Use textContent for safety
-          }
-
-          // Reset position
-          gsap.set(wordRef.current, { y: "-100%", rotationX: -90, opacity: 0 });
-
-          // Animate in
-          gsap.to(wordRef.current, {
-            y: "0%",
-            rotationX: 0,
-            opacity: 1,
-            duration: 0.3,
-            ease: 'power1.in',
-          });
-        },
-      });
-    };
-
-    // the animation loop
-    const interval = setInterval(flip, 2000);
-
-    // Cleanup interval on component unmount
-    return () => clearInterval(interval);
-  }, []); // Empty dependency array ensures this runs once on mount
-   
-
   return (
     <div className="bg-black min-h-screen relative overflow-hidden">
-      {/* Animated Background Elements */}
+      {/* Static Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute top-40 right-20 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute bottom-20 left-1/3 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
+        <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute top-40 right-20 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 left-1/3 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl"></div>
       </div>
       
       <HomeHeader />
       
-      {/* Hero Section - Compact Layout */}
+      {/* Hero Section - Simple Pre-rendered Layout */}
       <div className="relative z-10 flex flex-col items-center py-12 px-10 pt-25 min-h-[60vh] md:min-h-[70vh] lg:min-h-[80vh] pb-16 md:pb-20 lg:pb-24">
-        {/* Top Title with Gradient */}
-
-        {/* Explore Button/Tag with Modern Design */}
+        {/* Explore Button/Tag */}
         <div 
           onClick={() => navigate('/main')}
-          className="group text-sm text-white px-6 py-3 rounded-full border border-white/20 shadow-lg bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-lg transition-all duration-300 cursor-pointer mb-6 hover:bg-gradient-to-r hover:from-white/20 hover:to-white/10 hover:border-white/30 hover:shadow-xl hover:scale-105"
+          className="text-sm text-white px-6 py-3 rounded-full border border-white/20 shadow-lg bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-lg cursor-pointer mb-6"
         >
           <span className="flex items-center gap-2">
             explore FastGen 
-            <span className="text-lg group-hover:animate-spin">✨</span>
+            <Sparkles className="w-4 h-4" />
           </span>
         </div>
 
-        {/* Main Title with Enhanced Typography */}
+        {/* Main Title */}
         <div className="text-4xl md:text-6xl font-bold text-center text-white mb-4 leading-tight">
-          <div className="tagline mb-2 animate-fade-in delay-200">Our AI Features that Works </div>
-          <div className="tagline">
-            <span className="relative inline-block align-middle">
-              <span ref={wordRef} className="inline-block mb-3 bg-gradient-to-r from-blue-400 via-purple-500 to-cyan-400 bg-clip-text text-transparent font-bold animate-fade-in delay-400 hover:scale-110 transition-transform duration-500">
-                {words[0]}
-              </span>
+          <div className="mb-2">Our AI Features that Works </div>
+          <div>
+            <span className="inline-block mb-3 bg-gradient-to-r from-blue-400 via-purple-500 to-cyan-400 bg-clip-text text-transparent font-bold">
+              Faster
             </span>
           </div>
         </div>
         
-        {/* Enhanced Description */}
+        {/* Description */}
         <div className="text-center mb-8 max-w-3xl">
-          <p className="tagline text-gray-300 text-lg md:text-xl leading-relaxed animate-fade-in delay-600">
+          <p className="text-gray-300 text-lg md:text-xl leading-relaxed">
             An AI-driven platform that makes life effortless using cutting-edge AI tools to 
-            <span className="text-white font-semibold hover:text-blue-300 transition-colors duration-300"> maximize productivity</span> and 
-            <span className="text-white font-semibold hover:text-purple-300 transition-colors duration-300"> accelerate learning</span>
+            <span className="text-white font-semibold"> maximize productivity</span> and 
+            <span className="text-white font-semibold"> accelerate learning</span>
           </p>
         </div>
         
         {/* Get Started Button */}
-        <div className="tagline mb-8 animate-fade-in delay-800">
+        <div className="mb-8">
           <Button />
         </div>
         
         {/* Trust Indicators */}
-        <div className="flex flex-wrap justify-center items-center gap-6 text-gray-400 animate-fade-in delay-1000">
-          <div className="flex items-center gap-2 hover:scale-105 transition-transform duration-300">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-sm hover:text-green-300 transition-colors duration-300">24/7 Available</span>
+        <div className="flex flex-wrap justify-center items-center gap-6 text-gray-400">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            <span className="text-sm">24/7 Available</span>
           </div>
-          <div className="flex items-center gap-2 hover:scale-105 transition-transform duration-300">
-            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-            <span className="text-sm hover:text-blue-300 transition-colors duration-300">AI-Powered</span>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+            <span className="text-sm">AI-Powered</span>
           </div>
-          <div className="flex items-center gap-2 hover:scale-105 transition-transform duration-300">
-            <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-            <span className="text-sm hover:text-purple-300 transition-colors duration-300">Secure & Private</span>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+            <span className="text-sm">Secure & Private</span>
           </div>
         </div>
       </div>
@@ -267,53 +202,55 @@ const LandingPage = () => {
               {
                 title: "Personalized Chatbot",
                 description: "FastGen's intelligent chatbot answers all your questions with context-aware responses and memory of past conversations.",
-                icon: "🎯",
+                icon: Target,
                 route: "/main?tab=chatbot",
                 gradient: "from-blue-500 to-cyan-500"
               },
               {
                 title: "Content Searcher",
                 description: "Discover the best YouTube videos and educational content tailored to your specific learning needs.",
-                icon: "▶️",
+                icon: Play,
                 route: "/main?tab=content",
                 gradient: "from-purple-500 to-pink-500"
               },
               {
                 title: "Key Points Extraction",
                 description: "Automatically extract key insights from any uploaded file to focus on what really matters.",
-                icon: "🔑",
+                icon: Key,
                 route: "/main?tab=chatbot",
                 gradient: "from-green-500 to-emerald-500"
               },
               {
                 title: "Quiz Generator",
                 description: "Generate intelligent quizzes from your files to test and reinforce your knowledge instantly.",
-                icon: "❓",
+                icon: HelpCircle,
                 route: "/main?tab=quizzes",
                 gradient: "from-orange-500 to-red-500"
               },
               {
                 title: "Smart Notes",
                 description: "Take organized notes as you learn with AI-powered suggestions and automatic categorization.",
-                icon: "📝",
+                icon: FileText,
                 route: "/main?tab=notes",
                 gradient: "from-indigo-500 to-blue-500"
               },
               {
                 title: "All Content in One Place",
                 description: "Access all your study material including PDFs and text files in a unified, searchable content hub.",
-                icon: "📚",
+                icon: BookOpen,
                 route: "/main?tab=chatbot",
                 gradient: "from-teal-500 to-cyan-500"
               }
-            ].map((feature, index) => (
+            ].map((feature, index) => {
+              const IconComponent = feature.icon;
+              return (
               <div
                 key={index}
                 onClick={() => navigate(feature.route)}
                 className={`group bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-8 shadow-2xl text-white hover:scale-105 transition-all duration-500 cursor-pointer hover:border-white/20 hover:shadow-3xl hover:shadow-blue-500/10 animate-fade-in delay-${(index + 1) * 200}`}
               >
-                <div className="text-5xl mb-6 group-hover:scale-110 transition-transform duration-300">
-                  {feature.icon}
+                <div className="mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <IconComponent className="w-12 h-12" />
                 </div>
                 <h3 className="text-xl font-bold mb-4 group-hover:text-white transition-colors">{feature.title}</h3>
                 <p className="text-gray-300 leading-relaxed group-hover:text-gray-200 transition-colors">{feature.description}</p>
@@ -321,7 +258,8 @@ const LandingPage = () => {
                 {/* Hover Effect */}
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-purple-500/5 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               </div>
-            ))}
+            );
+            })}
           </div>
         </div>
       </div>
@@ -357,7 +295,8 @@ const LandingPage = () => {
                   "5 AI-powered conversations per month",
                   "Basic quiz generation",
                   "Standard content analysis",
-                  "Community support"
+                  "Community support",
+                  "Unlimited notes creation"
                 ],
                 buttonText: "Get Started Free",
                 buttonStyle: "bg-gray-600 hover:bg-gray-700"

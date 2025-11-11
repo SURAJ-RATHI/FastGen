@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
+import { AlertTriangle } from 'lucide-react';
 
 export default function SharedChat() {
   const { chatId } = useParams();
@@ -55,7 +56,7 @@ export default function SharedChat() {
     return (
       <div className="min-h-screen bg-[#343541] flex items-center justify-center">
         <div className="text-white text-center max-w-md mx-auto p-6">
-          <div className="text-red-400 text-6xl mb-4">⚠️</div>
+          <AlertTriangle className="w-16 h-16 text-red-400 mb-4 mx-auto" />
           <h1 className="text-2xl font-bold mb-4">Chat Unavailable</h1>
           <p className="text-gray-300 mb-6">{error}</p>
           <button

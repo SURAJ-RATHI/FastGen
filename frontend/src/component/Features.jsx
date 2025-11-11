@@ -2,48 +2,49 @@
 import React, { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { useNavigate } from 'react-router-dom';
+import { Target, BookOpen, Key, HelpCircle, FileText, Zap, Sparkles } from 'lucide-react';
 
 const features = [
   {
     title: "Personalized Learning",
     description: "FastGen adapts to your learning style and pace for maximum results.",
-    icon: "🎯",
+    icon: Target,
     route: "/main?tab=chatbot",
   },
   {
     title: "All Content in One Place",
     description: "Easily access all your study material including PDFs and text files in a single content hub.",
-    icon: "📚",
+    icon: BookOpen,
     route: "/main?tab=content",
   },
   {
     title: "Key Points Extraction",
     description: "Get key points from any uploaded file to focus on what really matters.",
-    icon: "🔑",
+    icon: Key,
     route: "/main?tab=content",
   },
   {
     title: "Quiz Generator",
     description: "Generate quizzes from your files to test and reinforce your knowledge instantly.",
-    icon: "❓",
+    icon: HelpCircle,
     route: "/main?tab=quizzes",
   },
   {
     title: "Smart Notes",
     description: "Take important notes as you learn and keep them organized.",
-    icon: "📝",
+    icon: FileText,
     route: "/main?tab=notes",
   },
   {
     title: "One-Click Notion Access",
     description: "Open your Notion files directly with a single click—no more switching tabs.",
-    icon: "⚡",
+    icon: Zap,
     route: "/main?tab=content",
   },
   {
     title: "Super Modern Design",
     description: "FastGen boasts a sleek, vibrant UI that makes last-minute learning feel exciting and fun.",
-    icon: "✨",
+    icon: Sparkles,
     route: "/main?tab=chatbot",
   },
 ];
@@ -73,18 +74,23 @@ export default function FeaturePage() {
       </div>
 
       <div className="grid md:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-6 max-w-6xl mx-auto">
-        {features.map((feature, index) => (
+        {features.map((feature, index) => {
+          const IconComponent = feature.icon;
+          return (
           <div
             key={index}
             ref={(el) => (cardsRef.current[index] = el)}
             onClick={() => navigate(feature.route)}
             className="bg-white/20 backdrop-blur-lg border border-white/30 rounded-2xl p-4 shadow-lg text-white hover:scale-105 transition-transform cursor-pointer hover:border-blue-400 hover:bg-white/30"
           >
-            <div className="text-3xl mb-3">{feature.icon}</div>
+            <div className="mb-3">
+              <IconComponent className="w-8 h-8" />
+            </div>
             <h2 className="text-lg font-semibold mb-2">{feature.title}</h2>
             <p className="text-xs">{feature.description}</p>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

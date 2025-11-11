@@ -9,6 +9,7 @@ import ShareModal from './ShareModal.jsx';
 import TypingIndicator from './TypingIndicator.jsx';
 import UpgradeModal from './UpgradeModal.jsx';
 
+
 // Memoized Message Component for better performance
 const MessageItem = memo(({ msg, user, searchQuery, highlightSearchTerms }) => {
   return (
