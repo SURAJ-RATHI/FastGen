@@ -135,10 +135,16 @@ const LandingPage = () => {
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 mb-12">
           <button
-            onClick={() => navigate('/main')}
+            onClick={() => {
+              if (isSignedIn) {
+                navigate('/main?tab=chatbot');
+              } else {
+                navigate('/signUp');
+              }
+            }}
             className="px-8 py-4 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors text-base"
           >
-            Get Started
+            Explore Now
           </button>
           <button
             onClick={() => {

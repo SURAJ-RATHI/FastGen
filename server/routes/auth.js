@@ -31,8 +31,8 @@ router.post('/signup', async (req, res) => {
       return res.status(400).json({ error: 'Name, email, and password are required' });
     }
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    // Check if user already exists (optimized query with select only email)
+    const existingUser = await User.findOne({ email }).select('email').lean();
 
     if (existingUser) {
       return res.status(400).json({ error: 'User with this email already exists' });
@@ -76,8 +76,8 @@ router.post('/signin', async (req, res) => {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    // Find user by email
-    const user = await User.findOne({ email });
+    // Find user by email (optimized - select only needed fields)
+    const user = await User.findOne({ email }).select('_id name email password');
 
     if (!user || !user.hasPassword()) {
       return res.status(401).json({ error: 'Invalid credentials' });
@@ -132,8 +132,8 @@ router.post('/google', async (req, res) => {
       picture
     });
     
-    // Find or create user
-    let user = await User.findOne({ googleId });
+    // Find or create user (optimized query)
+    let user = await User.findOne({ googleId }).select('_id name email googleId avatar');
     if (!user) {
       user = await User.create({
         googleId,
@@ -186,14 +186,17 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Get current user (protected route)
+// Get current user (protected route) - optimized to fetch only essential fields
 router.get('/me', verifyToken, async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId);
+    const user = await User.findById(req.user.userId)
+      .select('_id name email avatar subscription')
+      .lean();
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    res.json(user);
+    // Convert _id to id for consistency
+    res.json({ id: user._id, name: user.name, email: user.email, avatar: user.avatar, subscription: user.subscription });
   } catch (error) {
     console.error('Error fetching user:', error);
     res.status(500).json({ error: 'Failed to fetch user' });

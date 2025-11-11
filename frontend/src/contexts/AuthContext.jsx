@@ -37,7 +37,10 @@ export const AuthProvider = ({ children }) => {
 
   const checkAuthStatus = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_APP_BE_BASEURL}/api/auth/me`);
+      // Fetch only essential user data for faster response
+      const response = await axios.get(`${import.meta.env.VITE_APP_BE_BASEURL}/api/auth/me`, {
+        timeout: 5000 // 5 second timeout
+      });
       setUser(response.data);
       setIsSignedIn(true);
     } catch (error) {
@@ -60,6 +63,8 @@ export const AuthProvider = ({ children }) => {
       
       const response = await axios.post(`${import.meta.env.VITE_APP_BE_BASEURL}/api/auth/google`, {
         credential
+      }, {
+        timeout: 10000 // 10 second timeout
       });
       
       const { token: newToken, user: userData } = response.data;
@@ -101,6 +106,8 @@ export const AuthProvider = ({ children }) => {
       const response = await axios.post(`${import.meta.env.VITE_APP_BE_BASEURL}/api/auth/signin`, {
         email,
         password
+      }, {
+        timeout: 10000 // 10 second timeout
       });
       
       const { token: newToken, user: userData } = response.data;
@@ -122,11 +129,18 @@ export const AuthProvider = ({ children }) => {
         name,
         email,
         password
+      }, {
+        timeout: 10000 // 10 second timeout
       });
       
       if (response.data.success) {
-        // Automatically sign in after successful signup
-        return await signInWithEmail(email, password);
+        // Use token and user data directly from signup response (no need for second API call)
+        const { token: newToken, user: userData } = response.data;
+        localStorage.setItem('authToken', newToken);
+        setToken(newToken);
+        setUser(userData);
+        setIsSignedIn(true);
+        return { success: true };
       }
       
       return { success: false, error: 'Signup failed' };
