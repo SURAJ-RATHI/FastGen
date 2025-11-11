@@ -22,12 +22,12 @@ const Notes = () => {
   };
 
   return (
-    <div className="relative w-full h-[91vh] bg-black overflow-hidden">
+    <div className="relative w-full h-[91vh] bg-white overflow-hidden">
       <div className="h-full p-4">
       {/* Notion button */}
       <button
         onClick={handleNotionToggle}
-        className="absolute top-6 right-6 flex items-center gap-2 px-4 py-2 bg-gray-800 text-white rounded-lg shadow-md hover:bg-gray-700 transition-colors border border-gray-600"
+        className="absolute top-6 right-6 flex items-center gap-2 px-4 py-2 bg-white text-gray-900 rounded-md shadow-sm hover:bg-gray-50 transition-colors border border-gray-200"
       >
         <RxNotionLogo className="text-lg" />
         <span>Notion</span>
@@ -38,7 +38,7 @@ const Notes = () => {
         value={userText}
         onChange={(e) => setUserText(e.target.value)}
         placeholder="Write anything..."
-        className="w-full h-full p-8 text-base outline-none border-none resize-none overflow-y-scroll scrollbar-hide bg-gray-800 text-white border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400"
+        className="w-full h-full p-8 text-base outline-none border-none resize-none overflow-y-scroll scrollbar-hide bg-white text-gray-900 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 placeholder-gray-400"
       ></textarea>
       </div>
     </div>

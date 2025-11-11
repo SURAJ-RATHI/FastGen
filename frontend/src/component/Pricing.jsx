@@ -116,15 +116,15 @@ const Pricing = () => {
             {plans.map((plan, index) => (
               <div 
                 key={index}
-                className={`relative bg-white border rounded-xl p-8 transition-all duration-200 ${
+                className={`relative bg-white border rounded-lg p-8 transition-all duration-200 ${
                   plan.popular 
-                    ? 'border-gray-900 shadow-lg' 
-                    : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
+                    ? 'border-gray-900 shadow-sm' 
+                    : 'border-gray-200 hover:border-gray-300'
                 }`}
               >
                 {plan.popular && (
                   <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-gray-900 text-white px-4 py-1 rounded-full text-xs font-medium">
+                    <span className="bg-gray-900 text-white px-3 py-1 rounded-full text-xs font-medium">
                       Most Popular
                     </span>
                   </div>
@@ -152,7 +152,7 @@ const Pricing = () => {
                 
                 <button
                   onClick={() => handlePlanSelect(plan)}
-                  className={`w-full py-3 px-6 rounded-lg font-medium transition-colors duration-200 ${
+                  className={`w-full py-2.5 px-6 rounded-md font-medium transition-colors duration-200 ${
                     plan.name === 'Enterprise' 
                       ? 'bg-white hover:bg-gray-50 text-gray-900 border border-gray-300'
                       : 'bg-gray-900 hover:bg-gray-800 text-white'

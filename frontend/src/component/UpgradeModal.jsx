@@ -7,13 +7,13 @@ const UpgradeModal = ({ isOpen, onClose, usageData, featureType }) => {
   const getFeatureIcon = (type) => {
     switch (type) {
       case 'chatbotChats':
-        return <Zap className="w-6 h-6 text-blue-400" />;
+        return <Zap className="w-6 h-6 text-gray-900" />;
       case 'videoRecommendations':
-        return <Video className="w-6 h-6 text-red-400" />;
+        return <Video className="w-6 h-6 text-gray-900" />;
       case 'contentGenerations':
-        return <FileText className="w-6 h-6 text-green-400" />;
+        return <FileText className="w-6 h-6 text-gray-900" />;
       default:
-        return <Zap className="w-6 h-6 text-blue-400" />;
+        return <Zap className="w-6 h-6 text-gray-900" />;
     }
   };
 
@@ -122,42 +122,42 @@ const UpgradeModal = ({ isOpen, onClose, usageData, featureType }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-      <div className="bg-gray-900 rounded-xl sm:rounded-2xl max-w-md w-full mx-2 sm:mx-4 overflow-hidden border border-gray-700 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
+      <div className="bg-white rounded-lg max-w-md w-full mx-2 sm:mx-4 overflow-hidden border border-gray-200 shadow-xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 sm:p-6 text-center relative">
+        <div className="p-6 text-center relative border-b border-gray-200">
           <button
             onClick={onClose}
-            className="absolute top-3 right-3 sm:top-4 sm:right-4 text-white hover:text-gray-200 transition-colors"
+            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
           
           <div className="flex items-center justify-center gap-2 sm:gap-3 mb-2">
-            <Crown className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-300" />
-            <h2 className="text-xl sm:text-2xl font-bold text-white">Upgrade to Pro</h2>
+            <Crown className="w-6 h-6 sm:w-8 sm:h-8 text-gray-900" />
+            <h2 className="text-xl sm:text-2xl font-semibold text-gray-900">Upgrade to Pro</h2>
           </div>
           
-          <p className="text-blue-100 text-xs sm:text-sm">
-            You've reached your monthly limit!
+          <p className="text-gray-600 text-sm">
+            You've reached your monthly limit
           </p>
         </div>
 
         {/* Content */}
-        <div className="p-4 sm:p-6">
+        <div className="p-6">
           {/* Usage Info */}
-          <div className="bg-red-900/20 border border-red-500 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
             <div className="flex items-center gap-2 sm:gap-3 mb-2">
               {getFeatureIcon(featureType)}
-              <span className="text-red-400 font-semibold text-sm sm:text-base">
+              <span className="text-red-700 font-medium text-sm sm:text-base">
                 {getFeatureName(featureType)} Limit Reached
               </span>
             </div>
             {usageData && (
-              <p className="text-red-300 text-xs sm:text-sm">
+              <p className="text-red-600 text-sm">
                 You've used <strong>{usageData.used}/{usageData.limit}</strong> this month.
                 {usageData.remaining > 0 && (
-                  <span className="ml-2 text-gray-400">
+                  <span className="ml-2 text-gray-500">
                     ({usageData.remaining} remaining)
                   </span>
                 )}
@@ -166,59 +166,59 @@ const UpgradeModal = ({ isOpen, onClose, usageData, featureType }) => {
           </div>
 
           {/* Pro Benefits */}
-          <div className="mb-4 sm:mb-6">
-            <h3 className="text-white font-semibold mb-3 sm:mb-4 text-center text-sm sm:text-base">
-              🚀 Pro Plan Benefits
+          <div className="mb-6">
+            <h3 className="text-gray-900 font-medium mb-4 text-center text-base">
+              Pro Plan Benefits
             </h3>
             
-            <div className="space-y-2 sm:space-y-3">
-              <div className="flex items-center gap-2 sm:gap-3 text-gray-300">
-                <Check className="w-4 h-4 sm:w-5 sm:h-5 text-green-400 flex-shrink-0" />
-                <span className="text-xs sm:text-sm">Unlimited AI conversations</span>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 text-gray-700">
+                <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
+                <span className="text-sm">Unlimited AI conversations</span>
               </div>
-              <div className="flex items-center gap-2 sm:gap-3 text-gray-300">
-                <Check className="w-4 h-4 sm:w-5 sm:h-5 text-green-400 flex-shrink-0" />
-                <span className="text-xs sm:text-sm">Unlimited video recommendations</span>
+              <div className="flex items-center gap-3 text-gray-700">
+                <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
+                <span className="text-sm">Unlimited video recommendations</span>
               </div>
-              <div className="flex items-center gap-2 sm:gap-3 text-gray-300">
-                <Check className="w-4 h-4 sm:w-5 sm:h-5 text-green-400 flex-shrink-0" />
-                <span className="text-xs sm:text-sm">Unlimited content generation</span>
+              <div className="flex items-center gap-3 text-gray-700">
+                <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
+                <span className="text-sm">Unlimited content generation</span>
               </div>
-              <div className="flex items-center gap-2 sm:gap-3 text-gray-300">
-                <Check className="w-4 h-4 sm:w-5 sm:h-5 text-green-400 flex-shrink-0" />
-                <span className="text-xs sm:text-sm">Advanced AI models (GPT-4, Claude)</span>
+              <div className="flex items-center gap-3 text-gray-700">
+                <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
+                <span className="text-sm">Advanced AI models (GPT-4, Claude)</span>
               </div>
-              <div className="flex items-center gap-2 sm:gap-3 text-gray-300">
-                <Check className="w-4 h-4 sm:w-5 sm:h-5 text-green-400 flex-shrink-0" />
-                <span className="text-xs sm:text-sm">Priority support</span>
+              <div className="flex items-center gap-3 text-gray-700">
+                <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
+                <span className="text-sm">Priority support</span>
               </div>
-              <div className="flex items-center gap-2 sm:gap-3 text-gray-300">
-                <Check className="w-4 h-4 sm:w-5 sm:h-5 text-green-400 flex-shrink-0" />
-                <span className="text-xs sm:text-sm">Custom integrations</span>
+              <div className="flex items-center gap-3 text-gray-700">
+                <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
+                <span className="text-sm">Custom integrations</span>
               </div>
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <button
               onClick={onClose}
-              className="flex-1 px-3 sm:px-4 py-2 sm:py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors text-sm sm:text-base"
+              className="flex-1 px-4 py-2.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 rounded-md transition-colors text-sm font-medium"
             >
               Maybe Later
             </button>
             <button
               onClick={handleUpgrade}
-              className="flex-1 px-3 sm:px-4 py-2 sm:py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg transition-all transform hover:scale-105 font-semibold text-sm sm:text-base"
+              className="flex-1 px-4 py-2.5 bg-gray-900 hover:bg-gray-800 text-white rounded-md transition-colors font-medium text-sm"
             >
               Upgrade Now
             </button>
           </div>
 
           {/* Pricing Info */}
-          <div className="mt-3 sm:mt-4 text-center">
-            <p className="text-gray-400 text-xs sm:text-sm">
-              Starting at <span className="text-white font-semibold">₹99/month</span>
+          <div className="mt-4 text-center">
+            <p className="text-gray-600 text-sm">
+              Starting at <span className="text-gray-900 font-medium">₹99/month</span>
             </p>
             <p className="text-gray-500 text-xs mt-1">
               Cancel anytime • No hidden fees

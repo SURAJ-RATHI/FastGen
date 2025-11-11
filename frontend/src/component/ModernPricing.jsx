@@ -102,33 +102,33 @@ const ModernPricing = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 py-12 px-4">
+    <div className="min-h-screen bg-white py-12 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+          <h1 className="text-4xl font-semibold text-gray-900 mb-4">
             Choose Your Plan
           </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Unlock the full potential of AI with our flexible pricing plans
           </p>
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
           {plans.map((plan) => {
             const Icon = plan.icon;
             return (
               <div
                 key={plan.id}
-                className={`relative bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-105 ${
-                  plan.popular ? 'ring-2 ring-blue-500 scale-105' : ''
+                className={`relative bg-white border rounded-lg overflow-hidden transition-all duration-200 ${
+                  plan.popular ? 'border-gray-900 shadow-sm' : 'border-gray-200 hover:border-gray-300'
                 }`}
               >
                 {/* Popular Badge */}
                 {plan.popular && (
                   <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                    <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-1 rounded-full text-sm font-semibold">
+                    <div className="bg-gray-900 text-white px-3 py-1 rounded-full text-xs font-medium">
                       Most Popular
                     </div>
                   </div>
@@ -137,25 +137,25 @@ const ModernPricing = () => {
                 <div className="p-8">
                   {/* Plan Header */}
                   <div className="text-center mb-8">
-                    <div className={`w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center ${
+                    <div className={`w-12 h-12 mx-auto mb-4 rounded-lg flex items-center justify-center ${
                       plan.popular 
-                        ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white' 
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                        ? 'bg-gray-900 text-white' 
+                        : 'bg-gray-100 text-gray-600'
                     }`}>
-                      <Icon className="w-8 h-8" />
+                      <Icon className="w-6 h-6" />
                     </div>
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                    <h3 className="text-2xl font-semibold text-gray-900 mb-2">
                       {plan.name}
                     </h3>
-                    <p className="text-gray-600 dark:text-gray-400 mb-4">
+                    <p className="text-gray-600 mb-4 text-sm">
                       {plan.description}
                     </p>
                     <div className="mb-4">
-                      <span className="text-4xl font-bold text-gray-900 dark:text-white">
+                      <span className="text-4xl font-semibold text-gray-900">
                         ₹{plan.price}
                       </span>
                       {plan.price > 0 && (
-                        <span className="text-gray-600 dark:text-gray-400">
+                        <span className="text-gray-600">
                           /{plan.period}
                         </span>
                       )}
@@ -163,11 +163,11 @@ const ModernPricing = () => {
                   </div>
 
                   {/* Features */}
-                  <ul className="space-y-4 mb-8">
+                  <ul className="space-y-3 mb-8">
                     {plan.features.map((feature, index) => (
                       <li key={index} className="flex items-start">
-                        <Check className="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
-                        <span className="text-gray-700 dark:text-gray-300">{feature}</span>
+                        <Check className="w-5 h-5 text-gray-900 mt-0.5 mr-3 flex-shrink-0" />
+                        <span className="text-gray-700 text-sm">{feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -176,10 +176,10 @@ const ModernPricing = () => {
                   <button
                     onClick={() => handlePlanSelect(plan)}
                     disabled={isLoading}
-                    className={`w-full py-3 px-6 rounded-xl font-semibold transition-all duration-200 ${
+                    className={`w-full py-2.5 px-6 rounded-md font-medium transition-colors duration-200 ${
                       plan.buttonStyle === 'primary'
-                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white transform hover:scale-105 active:scale-95'
-                        : 'border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                        ? 'bg-gray-900 hover:bg-gray-800 text-white'
+                        : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
                     } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     {isLoading ? 'Processing...' : plan.buttonText}
@@ -192,39 +192,39 @@ const ModernPricing = () => {
 
         {/* FAQ Section */}
         <div className="mt-20 max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-white mb-12">
+          <h2 className="text-3xl font-semibold text-center text-gray-900 mb-12">
             Frequently Asked Questions
           </h2>
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-3">
                 Can I change plans anytime?
               </h3>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-gray-600 text-sm">
                 Yes! You can upgrade or downgrade your plan at any time. Changes take effect immediately.
               </p>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+            <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-3">
                 Is there a free trial?
               </h3>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-gray-600 text-sm">
                 Our Free plan is always available. Pro and Enterprise plans come with a 7-day free trial.
               </p>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+            <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-3">
                 What payment methods do you accept?
               </h3>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-gray-600 text-sm">
                 We accept all major credit cards, UPI, digital wallets, and net banking through Razorpay.
               </p>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+            <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-3">
                 Can I cancel anytime?
               </h3>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-gray-600 text-sm">
                 Absolutely! Cancel anytime with no questions asked. No hidden fees or long-term contracts.
               </p>
             </div>

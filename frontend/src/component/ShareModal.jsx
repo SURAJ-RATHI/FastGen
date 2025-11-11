@@ -43,29 +43,29 @@ export default function ShareModal({ isOpen, onClose, shareData }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-[#202123] rounded-lg w-full max-w-md mx-4 p-6">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg w-full max-w-md mx-4 p-6 border border-gray-200 shadow-xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-medium text-white">
+          <h2 className="text-xl font-medium text-gray-900">
             {shareData?.type === 'update' ? 'Update public link to chat' : 'Public link created'}
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors"
+            className="text-gray-400 hover:text-gray-600 transition-colors"
           >
             <FiX size={24} />
           </button>
         </div>
 
         {/* Warning Banner */}
-        <div className="bg-gray-700 rounded-lg p-4 mb-4">
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
           <div className="flex items-start gap-3">
-            <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+            <div className="w-5 h-5 rounded-full bg-gray-900 flex items-center justify-center flex-shrink-0 mt-0.5">
               <span className="text-white text-sm font-bold">i</span>
             </div>
-            <div className="text-sm text-gray-200">
-              <p className="font-semibold mb-1">
+            <div className="text-sm text-gray-700">
+              <p className="font-medium mb-1">
                 This conversation may include personal information.
               </p>
               <p>Take a moment to check the content before sharing the link.</p>
@@ -74,28 +74,28 @@ export default function ShareModal({ isOpen, onClose, shareData }) {
         </div>
 
         {/* Privacy Info */}
-        <p className="text-sm text-gray-300 mb-4">
+        <p className="text-sm text-gray-600 mb-4">
           Your name, custom instructions, and any messages you add after sharing stay private.{' '}
-          <a href="#" className="text-blue-400 hover:underline">Learn more</a>
+          <a href="#" className="text-gray-900 hover:underline font-medium">Learn more</a>
         </p>
 
         {/* Share Link Input */}
         <div className="flex gap-3 mb-6">
-          <div className="flex-1 bg-gray-700 rounded-lg p-3">
+          <div className="flex-1 bg-white border border-gray-200 rounded-md p-3">
             <input
               type="text"
               value={shareData?.shareUrl || ''}
               readOnly
-              className="w-full bg-transparent text-gray-300 text-sm outline-none"
+              className="w-full bg-transparent text-gray-900 text-sm outline-none"
               placeholder="https://yourapp.com/share/..."
             />
           </div>
           <button
             onClick={handleCopyLink}
-            className={`px-4 py-3 rounded-lg font-medium transition-colors ${
+            className={`px-4 py-3 rounded-md font-medium transition-colors ${
               copied
                 ? 'bg-green-600 text-white'
-                : 'bg-white text-black hover:bg-gray-100'
+                : 'bg-gray-900 text-white hover:bg-gray-800'
             }`}
           >
             <div className="flex items-center gap-2">
@@ -118,9 +118,9 @@ export default function ShareModal({ isOpen, onClose, shareData }) {
         <div className="flex justify-center gap-6 mb-6">
           <button
             onClick={() => handleSocialShare('whatsapp')}
-            className="flex flex-col items-center gap-2 text-gray-400 hover:text-white transition-colors"
+            className="flex flex-col items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
           >
-            <div className="w-12 h-12 bg-gray-600 rounded-full flex items-center justify-center hover:bg-gray-500 transition-colors">
+            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors">
               <FaWhatsapp size={20} />
             </div>
             <span className="text-xs">WhatsApp</span>
@@ -128,9 +128,9 @@ export default function ShareModal({ isOpen, onClose, shareData }) {
 
           <button
             onClick={() => handleSocialShare('linkedin')}
-            className="flex flex-col items-center gap-2 text-gray-400 hover:text-white transition-colors"
+            className="flex flex-col items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
           >
-            <div className="w-12 h-12 bg-gray-600 rounded-full flex items-center justify-center hover:bg-gray-500 transition-colors">
+            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors">
               <FiLinkedin size={20} />
             </div>
             <span className="text-xs">LinkedIn</span>
@@ -138,9 +138,9 @@ export default function ShareModal({ isOpen, onClose, shareData }) {
 
           <button
             onClick={() => handleSocialShare('reddit')}
-            className="flex flex-col items-center gap-2 text-gray-400 hover:text-white transition-colors"
+            className="flex flex-col items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
           >
-            <div className="w-12 h-12 bg-gray-600 rounded-full flex items-center justify-center hover:bg-gray-500 transition-colors">
+            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors">
               <FaReddit size={20} />
             </div>
             <span className="text-xs">Reddit</span>
@@ -148,9 +148,9 @@ export default function ShareModal({ isOpen, onClose, shareData }) {
 
           <button
             onClick={() => handleSocialShare('twitter')}
-            className="flex flex-col items-center gap-2 text-gray-400 hover:text-white transition-colors"
+            className="flex flex-col items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
           >
-            <div className="w-12 h-12 bg-gray-600 rounded-full flex items-center justify-center hover:bg-gray-500 transition-colors">
+            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors">
               <FiTwitter size={20} />
             </div>
             <span className="text-xs">X</span>

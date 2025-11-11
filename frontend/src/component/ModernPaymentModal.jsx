@@ -142,17 +142,17 @@ const ModernPaymentModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden border border-gray-200">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+            <h2 className="text-xl font-medium text-gray-900">
               {step === 'method' && 'Choose Payment Method'}
               {step === 'processing' && 'Processing Payment'}
               {step === 'success' && 'Payment Successful'}
             </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-sm text-gray-600 mt-1">
               {step === 'method' && `Complete your ${plan} plan purchase`}
               {step === 'processing' && 'Please wait while we process your payment'}
               {step === 'success' && 'Your subscription has been activated'}
@@ -161,9 +161,9 @@ const ModernPaymentModal = ({
           {step !== 'processing' && step !== 'success' && (
             <button
               onClick={onClose}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-100 rounded-md transition-colors"
             >
-              <X className="w-5 h-5 text-gray-500" />
+              <X className="w-5 h-5 text-gray-400" />
             </button>
           )}
         </div>
@@ -173,15 +173,15 @@ const ModernPaymentModal = ({
           {step === 'method' && (
             <>
               {/* Amount Display */}
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-4 mb-6">
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Total Amount</p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">₹{amount}</p>
+                    <p className="text-sm text-gray-600">Total Amount</p>
+                    <p className="text-2xl font-semibold text-gray-900">₹{amount}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Plan</p>
-                    <p className="font-semibold text-gray-900 dark:text-white capitalize">{plan}</p>
+                    <p className="text-sm text-gray-600">Plan</p>
+                    <p className="font-medium text-gray-900 capitalize">{plan}</p>
                   </div>
                 </div>
               </div>
@@ -194,27 +194,27 @@ const ModernPaymentModal = ({
                     <button
                       key={method.id}
                       onClick={() => setSelectedMethod(method.id)}
-                      className={`w-full p-4 rounded-xl border-2 transition-all ${
+                      className={`w-full p-4 rounded-md border-2 transition-all ${
                         selectedMethod === method.id
-                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                          ? 'border-gray-900 bg-gray-50'
+                          : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
                       <div className="flex items-center space-x-3">
-                        <div className={`p-2 rounded-lg ${
+                        <div className={`p-2 rounded-md ${
                           selectedMethod === method.id
-                            ? 'bg-blue-500 text-white'
-                            : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+                            ? 'bg-gray-900 text-white'
+                            : 'bg-gray-100 text-gray-600'
                         }`}>
                           <Icon className="w-5 h-5" />
                         </div>
                         <div className="text-left">
-                          <p className="font-medium text-gray-900 dark:text-white">{method.name}</p>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">{method.description}</p>
+                          <p className="font-medium text-gray-900">{method.name}</p>
+                          <p className="text-sm text-gray-600">{method.description}</p>
                         </div>
                         {selectedMethod === method.id && (
                           <div className="ml-auto">
-                            <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                            <div className="w-5 h-5 bg-gray-900 rounded-full flex items-center justify-center">
                               <CheckCircle className="w-3 h-3 text-white" />
                             </div>
                           </div>
@@ -229,7 +229,7 @@ const ModernPaymentModal = ({
               <button
                 onClick={handlePayment}
                 disabled={isRazorpayLoading}
-                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-6 rounded-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                className="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-3 px-6 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isRazorpayLoading ? 'Loading...' : `Pay ₹${amount}`}
               </button>
@@ -239,13 +239,13 @@ const ModernPaymentModal = ({
 
           {step === 'processing' && (
             <div className="text-center py-8">
-              <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-8 h-8 border-4 border-gray-900 border-t-transparent rounded-full animate-spin"></div>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
                 Processing Payment
               </h3>
-              <p className="text-gray-500 dark:text-gray-400">
+              <p className="text-gray-600">
                 Please don't close this window...
               </p>
             </div>
@@ -253,13 +253,13 @@ const ModernPaymentModal = ({
 
           {step === 'success' && (
             <div className="text-center py-8">
-              <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="w-8 h-8 text-green-500" />
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="w-8 h-8 text-green-600" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
                 Payment Successful!
               </h3>
-              <p className="text-gray-500 dark:text-gray-400">
+              <p className="text-gray-600">
                 Your {plan} plan has been activated
               </p>
             </div>
@@ -269,8 +269,8 @@ const ModernPaymentModal = ({
         {/* Footer */}
         {step !== 'processing' && step !== 'success' && (
           <div className="px-6 pb-6">
-            <div className="flex items-center justify-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
-              <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+            <div className="flex items-center justify-center space-x-2 text-xs text-gray-600">
+              <div className="w-4 h-4 bg-green-600 rounded-full flex items-center justify-center">
                 <CheckCircle className="w-2 h-2 text-white" />
               </div>
               <span>Secured by Razorpay</span>

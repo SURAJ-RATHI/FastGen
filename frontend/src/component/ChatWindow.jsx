@@ -88,7 +88,7 @@ export default function ChatWindow() {
   const [messages, setMessages] = useState([]);
   const [prompt, setPrompt] = useState('');
   const [chatId, setChatId] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isTyping, setIsTyping] = useState(false);
   const [uploadedParsedFileName, setUploadedParsedFileName] = useState('');
@@ -822,38 +822,38 @@ export default function ChatWindow() {
     return (
       <div className="relative flex h-screen bg-black">
         {/* Sidebar Skeleton */}
-        <div className="w-64 bg-black flex flex-col h-screen">
+        <div className="w-64 bg-black flex flex-col h-screen border-r border-gray-800">
           <div className="pt-8 px-3 pb-3 flex gap-2">
-            <div className="flex-1 h-10 bg-gray-700 rounded-lg animate-pulse"></div>
-            <div className="w-10 h-10 bg-gray-700 rounded-lg animate-pulse"></div>
+            <div className="flex-1 h-10 bg-gray-800 rounded-lg"></div>
+            <div className="w-10 h-10 bg-gray-800 rounded-lg"></div>
           </div>
           <div className="px-3 mb-3">
-            <div className="h-10 bg-gray-700 rounded-lg animate-pulse"></div>
+            <div className="h-10 bg-gray-800 rounded-lg"></div>
           </div>
-          <div className="flex-1 px-3 space-y-2">
+          <div className="flex-1 px-3 space-y-2 overflow-y-auto">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-16 bg-gray-700 rounded-lg animate-pulse"></div>
+              <div key={i} className="h-16 bg-gray-800 rounded-lg"></div>
             ))}
           </div>
         </div>
         
         {/* Main Content Skeleton */}
-        <div className="flex-1 flex flex-col h-full">
-          <div className="flex-1 p-4">
-            <div className="max-w-3xl mx-auto space-y-4">
+        <div className="flex-1 flex flex-col h-full bg-black">
+          <div className="flex-1 p-4 overflow-y-auto">
+            <div className="max-w-3xl mx-auto space-y-6">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="flex gap-4">
-                  <div className="w-8 h-8 bg-gray-700 rounded-full animate-pulse"></div>
+                <div key={i} className="flex gap-4 items-start">
+                  <div className="w-8 h-8 bg-gray-800 rounded-full flex-shrink-0"></div>
                   <div className="flex-1 space-y-2">
-                    <div className="h-4 bg-gray-700 rounded animate-pulse w-3/4"></div>
-                    <div className="h-4 bg-gray-700 rounded animate-pulse w-1/2"></div>
+                    <div className="h-4 bg-gray-800 rounded w-3/4"></div>
+                    <div className="h-4 bg-gray-800 rounded w-1/2"></div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
-          <div className="p-4">
-            <div className="max-w-3xl mx-auto h-12 bg-gray-700 rounded-xl animate-pulse"></div>
+          <div className="p-4 border-t border-gray-800">
+            <div className="max-w-3xl mx-auto h-12 bg-gray-800 rounded-xl"></div>
           </div>
         </div>
       </div>
