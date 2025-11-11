@@ -43,9 +43,9 @@ export default function SharedChat() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#343541] flex items-center justify-center">
-        <div className="text-white text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-gray-900 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
           <p>Loading shared chat...</p>
         </div>
       </div>
@@ -54,14 +54,14 @@ export default function SharedChat() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[#343541] flex items-center justify-center">
-        <div className="text-white text-center max-w-md mx-auto p-6">
-          <AlertTriangle className="w-16 h-16 text-red-400 mb-4 mx-auto" />
-          <h1 className="text-2xl font-bold mb-4">Chat Unavailable</h1>
-          <p className="text-gray-300 mb-6">{error}</p>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-gray-900 text-center max-w-md mx-auto p-6">
+          <AlertTriangle className="w-16 h-16 text-red-600 mb-4 mx-auto" />
+          <h1 className="text-2xl font-semibold mb-4">Chat Unavailable</h1>
+          <p className="text-gray-600 mb-6">{error}</p>
           <button
             onClick={() => window.history.back()}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            className="bg-gray-900 text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition-colors"
           >
             Go Back
           </button>
@@ -72,8 +72,8 @@ export default function SharedChat() {
 
   if (!chat) {
     return (
-      <div className="min-h-screen bg-[#343541] flex items-center justify-center">
-        <div className="text-white text-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-gray-900 text-center">
           <p>No chat data available.</p>
         </div>
       </div>
@@ -81,14 +81,14 @@ export default function SharedChat() {
   }
 
   return (
-    <div className="min-h-screen bg-[#343541]">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="bg-[#202123] border-b border-gray-700 p-4">
+      <div className="bg-white border-b border-gray-200 p-4">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-xl font-medium text-gray-300 text-center">
+          <h1 className="text-xl font-semibold text-gray-900 text-center">
             {chat.title || 'Shared Chat'}
           </h1>
-          <p className="text-sm text-gray-400 text-center mt-2">
+          <p className="text-sm text-gray-600 text-center mt-2">
             Shared by {chat.sharedBy} • {new Date(chat.startedAt).toLocaleDateString()}
           </p>
         </div>
@@ -100,20 +100,20 @@ export default function SharedChat() {
           chat.messages.map((msg, idx) => (
             <div
               key={idx}
-              className={`py-6 ${msg.sender === 'user' ? 'bg-[#343541]' : 'bg-[#444654]'}`}
+              className={`py-6 ${msg.sender === 'user' ? 'bg-white' : 'bg-gray-50'}`}
             >
               <div className="px-4 flex gap-4">
                 {/* Avatar */}
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                  msg.sender === 'user' ? 'bg-gray-600 text-white' : 'bg-green-600 text-white'
+                  msg.sender === 'user' ? 'bg-gray-900 text-white' : 'bg-gray-700 text-white'
                 }`}>
                   {msg.sender === 'user' ? 'U' : 'AI'}
                 </div>
                 
                 {/* Message Content */}
-                <div className="flex-1 text-gray-200 leading-relaxed">
+                <div className="flex-1 text-gray-900 leading-relaxed">
                   {msg.sender === 'ai' ? (
-                    <div className="prose prose-invert max-w-none">
+                    <div className="prose max-w-none">
                       <ReactMarkdown>
                         {msg.content}
                       </ReactMarkdown>
@@ -126,7 +126,7 @@ export default function SharedChat() {
             </div>
           ))
         ) : (
-          <div className="text-center text-gray-300 mt-32">
+          <div className="text-center text-gray-600 mt-32">
             <div className="mb-4">
               <img 
                 src="/logo.svg" 
@@ -134,20 +134,20 @@ export default function SharedChat() {
                 className="w-20 h-20 mx-auto animate-pulse"
               />
             </div>
-            <h2 className="text-2xl font-semibold mb-2">No Messages</h2>
-            <p className="text-gray-400">This shared chat doesn't contain any messages.</p>
+            <h2 className="text-2xl font-semibold mb-2 text-gray-900">No Messages</h2>
+            <p className="text-gray-500">This shared chat doesn't contain any messages.</p>
           </div>
         )}
       </div>
 
       {/* Footer */}
-      <div className="bg-[#202123] border-t border-gray-700 p-4 mt-8">
-        <div className="text-center text-gray-400 text-sm">
+      <div className="bg-white border-t border-gray-200 p-4 mt-8">
+        <div className="text-center text-gray-600 text-sm">
           <p>This is a shared chat from FastGen AI</p>
           <p className="mt-1">
             <a 
               href="/" 
-              className="text-blue-400 hover:text-blue-300 underline"
+              className="text-gray-900 hover:text-gray-700 underline font-medium"
             >
               Create your own chat
             </a>

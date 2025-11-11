@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext.jsx";
-import { Sparkles } from 'lucide-react';
 
 const SignUpPage = () => {
   const { signInWithGoogle, signUpWithEmail, isSignedIn, isLoading } = useAuth();
@@ -101,19 +100,19 @@ const SignUpPage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[url('/bg2.svg')] bg-no-repeat bg-cover text-white">
-        <div className="text-xl">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-xl text-gray-900">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[url('/bg2.svg')] bg-no-repeat bg-cover text-white px-4 py-8">
-      <div className="w-full max-w-md bg-black/40 backdrop-blur-lg p-6 sm:p-8 rounded-2xl shadow-lg">
-        <h2 className="text-xl sm:text-2xl font-bold mb-1 flex items-center gap-2">
-          Welcome to FastGen <Sparkles className="w-5 h-5" />
+    <div className="min-h-screen flex items-center justify-center bg-white px-4 py-8">
+      <div className="w-full max-w-md bg-white border border-gray-200 p-6 sm:p-8 rounded-xl shadow-sm">
+        <h2 className="text-2xl sm:text-3xl font-semibold mb-2 text-gray-900">
+          Welcome to FastGen
         </h2>
-        <p className="text-gray-300 mb-4 sm:mb-6 text-sm sm:text-base">Create your account to get started</p>
+        <p className="text-gray-600 mb-6 text-sm sm:text-base">Create your account to get started</p>
 
         {!showManualForm ? (
           <>
@@ -121,16 +120,16 @@ const SignUpPage = () => {
 
             <div className="relative my-4 sm:my-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-600"></div>
+                <div className="w-full border-t border-gray-200"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-black/40 text-gray-400">or</span>
+                <span className="px-2 bg-white text-gray-500">or</span>
               </div>
             </div>
 
             <button
               onClick={() => setShowManualForm(true)}
-              className="w-full bg-gray-800 hover:bg-gray-700 text-white font-semibold py-2.5 sm:py-3 px-4 rounded-lg transition-colors text-sm sm:text-base"
+              className="w-full bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 font-medium py-2.5 sm:py-3 px-4 rounded-lg transition-colors text-sm sm:text-base"
             >
               Sign up with Email
             </button>
@@ -138,8 +137,8 @@ const SignUpPage = () => {
         ) : (
           <form onSubmit={handleManualSignUp} className="space-y-3 sm:space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">
-                Full Name <span className="text-red-400">*</span>
+              <label className="block text-sm font-medium mb-1 text-gray-900">
+                Full Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -148,14 +147,14 @@ const SignUpPage = () => {
                 value={formData.name}
                 onChange={handleInputChange}
                 disabled={isSubmitting}
-                className="w-full px-4 py-2 bg-gray-950 text-white rounded-lg border border-gray-600 hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                className="w-full px-4 py-2 bg-white text-gray-900 rounded-lg border border-gray-300 hover:border-gray-400 focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 disabled:opacity-50"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">
-                Email address <span className="text-red-400">*</span>
+              <label className="block text-sm font-medium mb-1 text-gray-900">
+                Email address <span className="text-red-500">*</span>
               </label>
               <input
                 type="email"
@@ -164,14 +163,14 @@ const SignUpPage = () => {
                 value={formData.email}
                 onChange={handleInputChange}
                 disabled={isSubmitting}
-                className="w-full px-4 py-2 bg-gray-950 text-white rounded-lg border border-gray-600 hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                className="w-full px-4 py-2 bg-white text-gray-900 rounded-lg border border-gray-300 hover:border-gray-400 focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 disabled:opacity-50"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">
-                Password <span className="text-red-400">*</span>
+              <label className="block text-sm font-medium mb-1 text-gray-900">
+                Password <span className="text-red-500">*</span>
               </label>
               <input
                 type="password"
@@ -180,16 +179,16 @@ const SignUpPage = () => {
                 value={formData.password}
                 onChange={handleInputChange}
                 disabled={isSubmitting}
-                className="w-full px-4 py-2 bg-gray-950 text-white rounded-lg border border-gray-600 hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                className="w-full px-4 py-2 bg-white text-gray-900 rounded-lg border border-gray-300 hover:border-gray-400 focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 disabled:opacity-50"
                 required
                 minLength={8}
               />
-              <p className="text-xs text-gray-400 mt-1">Minimum 8 characters</p>
+              <p className="text-xs text-gray-500 mt-1">Minimum 8 characters</p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">
-                Confirm Password <span className="text-red-400">*</span>
+              <label className="block text-sm font-medium mb-1 text-gray-900">
+                Confirm Password <span className="text-red-500">*</span>
               </label>
               <input
                 type="password"
@@ -198,18 +197,18 @@ const SignUpPage = () => {
                 value={formData.confirmPassword}
                 onChange={handleInputChange}
                 disabled={isSubmitting}
-                className="w-full px-4 py-2 bg-gray-950 text-white rounded-lg border border-gray-600 hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                className="w-full px-4 py-2 bg-white text-gray-900 rounded-lg border border-gray-300 hover:border-gray-400 focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 disabled:opacity-50"
                 required
                 minLength={8}
               />
             </div>
 
-            {error && <div className="text-red-400 text-sm text-center">{error}</div>}
+            {error && <div className="text-red-600 text-sm text-center bg-red-50 border border-red-200 rounded-lg p-2">{error}</div>}
 
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full mt-3 sm:mt-4 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold py-2.5 sm:py-3 rounded-lg transition-colors text-sm sm:text-base"
+              className="w-full mt-3 sm:mt-4 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-2.5 sm:py-3 rounded-lg transition-colors text-sm sm:text-base"
             >
               {isSubmitting ? "Creating Account..." : "Create Account"}
             </button>
@@ -217,18 +216,18 @@ const SignUpPage = () => {
             <button
               type="button"
               onClick={() => setShowManualForm(false)}
-              className="w-full bg-gray-800 hover:bg-gray-700 text-white font-semibold py-2 rounded-lg transition-colors text-sm sm:text-base"
+              className="w-full bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 font-medium py-2 rounded-lg transition-colors text-sm sm:text-base"
             >
               Back to Google Sign Up
             </button>
           </form>
         )}
 
-        <div className="mt-4 sm:mt-6 text-center text-xs sm:text-sm text-gray-400">
+        <div className="mt-4 sm:mt-6 text-center text-xs sm:text-sm text-gray-600">
           Already have an account?{" "}
           <button
             onClick={() => navigate("/signIn")}
-            className="text-blue-400 hover:underline cursor-pointer"
+            className="text-gray-900 hover:underline cursor-pointer font-medium"
             disabled={isSubmitting}
           >
             Sign In

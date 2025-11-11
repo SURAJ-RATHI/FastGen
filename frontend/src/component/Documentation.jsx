@@ -338,11 +338,11 @@ print(response.content)`
                     <code className="text-sm text-gray-800">{sdk.install}</code>
                   </div>
                   <div className="flex space-x-3">
-                    <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
+                    <button className="flex items-center space-x-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors text-sm">
                       <Download className="h-4 w-4" />
                       <span>Download</span>
                     </button>
-                    <button className="flex items-center space-x-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm">
+                    <button className="flex items-center space-x-2 px-4 py-2 border border-gray-300 text-gray-900 rounded-lg hover:bg-gray-50 transition-colors text-sm">
                       <ExternalLink className="h-4 w-4" />
                       <span>View Docs</span>
                     </button>
@@ -374,7 +374,7 @@ print(response.content)`
                         <Copy className="h-4 w-4" />
                       )}
                     </button>
-                    <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
+                    <pre className="bg-gray-50 text-gray-900 border border-gray-200 p-4 rounded-lg overflow-x-auto text-sm">
                       <code>{example.code}</code>
                     </pre>
                   </div>
@@ -387,7 +387,7 @@ print(response.content)`
       case 'webhooks':
         return (
           <div className="space-y-6">
-            <div className="bg-blue-50 rounded-lg p-6">
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-3">Webhook Overview</h3>
               <p className="text-gray-600 mb-4">
                 Webhooks allow you to receive real-time notifications when events occur in FastGen. 
@@ -486,8 +486,8 @@ print(response.content)`
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                   activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-gray-900 text-gray-900'
+                    : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
                 }`}
               >
                 {tab.icon}

@@ -101,48 +101,48 @@ const Pricing = () => {
   ];
 
   return (
-    <div className="bg-black min-h-screen">
+    <div className="bg-white min-h-screen">
       <HomeHeader />
-      <div className="flex flex-col items-center justify-center min-h-screen px-4 py-8">
+      <div className="flex flex-col items-center justify-center min-h-screen px-4 py-20">
         <div className="max-w-6xl mx-auto text-center">
-          <h1 className="text-3xl md:text-5xl font-bold text-white mb-3">
+          <h1 className="text-4xl md:text-5xl font-semibold text-gray-900 mb-4">
             Simple, Transparent Pricing
           </h1>
-          <p className="text-lg text-gray-300 mb-8 max-w-3xl mx-auto">
-            Choose the plan that fits your learning needs. All plans include our core AI features with <span className="text-purple-400 font-bold">no hidden fees</span>.
+          <p className="text-lg text-gray-600 mb-12 max-w-3xl mx-auto">
+            Choose the plan that fits your learning needs. All plans include our core AI features with <span className="text-gray-900 font-medium">no hidden fees</span>.
           </p>
           
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid md:grid-cols-3 gap-6">
             {plans.map((plan, index) => (
               <div 
                 key={index}
-                className={`relative bg-gray-800 p-4 rounded-2xl border-2 ${
+                className={`relative bg-white border rounded-xl p-8 transition-all duration-200 ${
                   plan.popular 
-                    ? 'border-blue-500 scale-105' 
-                    : 'border-gray-600'
+                    ? 'border-gray-900 shadow-lg' 
+                    : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
                 }`}
               >
                 {plan.popular && (
                   <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                    <span className="bg-gray-900 text-white px-4 py-1 rounded-full text-xs font-medium">
                       Most Popular
                     </span>
                   </div>
                 )}
                 
-                <div className="text-center mb-4">
-                  <h3 className="text-xl font-bold text-white mb-1">{plan.name}</h3>
-                  <div className="flex items-baseline justify-center mb-1">
-                    <span className="text-3xl font-bold text-white">{plan.price}</span>
-                    <span className="text-gray-400 ml-1 text-sm">/{plan.period}</span>
+                <div className="text-center mb-8">
+                  <h3 className="text-2xl font-semibold text-gray-900 mb-3">{plan.name}</h3>
+                  <div className="flex items-baseline justify-center mb-3">
+                    <span className="text-5xl font-semibold text-gray-900">{plan.price}</span>
+                    <span className="text-gray-600 ml-2 text-lg">/{plan.period}</span>
                   </div>
-                  <p className="text-gray-300 text-xs">{plan.description}</p>
+                  <p className="text-gray-600 text-sm">{plan.description}</p>
                 </div>
                 
-                <ul className="space-y-1 mb-4">
+                <ul className="space-y-3 mb-8">
                   {plan.features.map((feature, featureIndex) => (
-                    <li key={featureIndex} className="flex items-start text-gray-300 text-xs">
-                      <svg className="w-3 h-3 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <li key={featureIndex} className="flex items-start text-gray-600 text-sm">
+                      <svg className="w-5 h-5 text-gray-900 mr-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                       <span className="leading-tight">{feature}</span>
@@ -152,7 +152,11 @@ const Pricing = () => {
                 
                 <button
                   onClick={() => handlePlanSelect(plan)}
-                  className={`w-full py-2 px-4 rounded-lg text-white font-semibold transition-colors text-sm ${plan.buttonStyle}`}
+                  className={`w-full py-3 px-6 rounded-lg font-medium transition-colors duration-200 ${
+                    plan.name === 'Enterprise' 
+                      ? 'bg-white hover:bg-gray-50 text-gray-900 border border-gray-300'
+                      : 'bg-gray-900 hover:bg-gray-800 text-white'
+                  }`}
                 >
                   {plan.buttonText}
                 </button>
@@ -160,10 +164,10 @@ const Pricing = () => {
             ))}
           </div>
           
-          <div className="mt-8 text-center">
-            <p className="text-gray-400 mb-1 text-sm">All plans include secure payment processing</p>
-            <p className="text-gray-400 mb-1 text-sm">Powered by Razorpay • Secure & reliable payments</p>
-            <p className="text-gray-400 text-sm">Need a custom plan? <span className="text-blue-400 cursor-pointer hover:underline">Contact us</span></p>
+          <div className="mt-16 text-center">
+            <p className="text-gray-600 mb-2">All plans include secure payment processing</p>
+            <p className="text-gray-500 text-sm mb-4">Powered by Razorpay • Secure & reliable payments</p>
+            <p className="text-gray-600">Need a custom plan? <span className="text-gray-900 cursor-pointer hover:underline font-medium">Contact us</span></p>
           </div>
         </div>
       </div>

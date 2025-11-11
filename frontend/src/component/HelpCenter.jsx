@@ -121,7 +121,7 @@ const HelpCenter = () => {
                 placeholder="Search for help articles, tutorials, or guides..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-1 focus:ring-gray-900 focus:border-gray-900"
               />
             </div>
           </div>
@@ -192,17 +192,17 @@ const HelpCenter = () => {
         </div>
 
         {/* Contact Support */}
-        <div className="mt-12 bg-blue-50 rounded-lg p-8 text-center">
+        <div className="mt-12 bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
           <h3 className="text-xl font-semibold text-gray-900 mb-4">Still need help?</h3>
           <p className="text-gray-600 mb-6">
             Can't find what you're looking for? Our support team is here to help you 24/7.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="flex items-center justify-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+            <button className="flex items-center justify-center space-x-2 px-6 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors">
               <MessageCircle className="h-5 w-5" />
               <span>Contact Support</span>
             </button>
-            <button className="flex items-center justify-center space-x-2 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+            <button className="flex items-center justify-center space-x-2 px-6 py-3 border border-gray-300 text-gray-900 rounded-lg hover:bg-gray-50 transition-colors">
               <Video className="h-5 w-5" />
               <span>Schedule a Call</span>
             </button>

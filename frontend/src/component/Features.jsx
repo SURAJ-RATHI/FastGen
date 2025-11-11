@@ -147,12 +147,11 @@ export default function FeaturePage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 p-8">
-      <div className="max-w-6xl mx-auto text-center mb-20">
-        <h1 className="text-5xl font-bold text-white mb-4">FastGen</h1>
-        <p className="text-xl text-white">Our AI Features that </p>
-        <p className="text-md text-white mt-2">
-          An AI-driven app that adapts to your needs and helps you master topics quickly.
+    <div className="min-h-screen bg-white p-8">
+      <div className="max-w-6xl mx-auto text-center mb-16">
+        <h1 className="text-4xl md:text-5xl font-semibold text-gray-900 mb-4">FastGen</h1>
+        <p className="text-lg md:text-xl text-gray-600">
+          Our AI Features that adapt to your needs and help you master topics quickly.
         </p>
       </div>
 
@@ -164,13 +163,13 @@ export default function FeaturePage() {
             key={index}
             ref={(el) => (cardsRef.current[index] = el)}
             onClick={() => navigate(feature.route)}
-            className="bg-white/20 backdrop-blur-lg border border-white/30 rounded-2xl p-4 shadow-lg text-white transition-colors duration-200 cursor-pointer hover:bg-white/30"
+            className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm text-gray-900 transition-all duration-200 cursor-pointer hover:border-gray-300 hover:shadow-md"
           >
-            <div className="mb-3 flex items-center justify-center">
-              <IconComponent className="w-10 h-10 text-white" />
+            <div className="mb-4 flex items-center justify-center">
+              <IconComponent className="w-10 h-10 text-gray-900" />
             </div>
-            <h2 className="text-lg font-semibold mb-2">{feature.title}</h2>
-            <p className="text-xs">{feature.description}</p>
+            <h2 className="text-lg font-semibold mb-2 text-gray-900">{feature.title}</h2>
+            <p className="text-sm text-gray-600">{feature.description}</p>
           </div>
           );
         })}
