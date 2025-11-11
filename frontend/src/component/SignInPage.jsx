@@ -190,7 +190,6 @@ const SignInPage = () => {
           </div>
         </div>
       </div>
-    </div>
   );
 };
 
