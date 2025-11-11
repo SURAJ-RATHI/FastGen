@@ -37,71 +37,71 @@ const HomeHeader = () => {
     };
 
     return ( 
-        <header className="w-full bg-black/80 backdrop-blur-md shadow-md py-2 md:py-3 flex items-center justify-between fixed top-0 left-0 right-0 z-50">
+        <header className="w-full bg-white border-b border-gray-200 py-3 md:py-4 flex items-center justify-between fixed top-0 left-0 right-0 z-50">
             {/* Logo */}
             <div 
                 onClick={() => navigate('/')}
-                className="flex items-center space-x-1.5 text-base md:text-xl px-3 md:px-6 font-bold text-blue-400 cursor-pointer hover:text-blue-300 transition-colors"
+                className="flex items-center space-x-2 text-base md:text-lg px-4 md:px-6 font-semibold text-gray-900 cursor-pointer hover:text-gray-700 transition-colors"
             >
                 <div><Library
-                className='h-5 w-5 md:h-8 md:w-8 text-white'
+                className='h-5 w-5 md:h-6 md:w-6 text-gray-900'
                 
                 /></div>
                 <span>FastGen</span>
             </div>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex space-x-6 text-gray-300 font-medium">
+            <nav className="hidden md:flex space-x-1 text-gray-600 font-medium">
                 <button 
                     onClick={() => scrollToSection('features-section')}
-                    className="px-6 py-3 transition-colors cursor-pointer border-b-2 hover:text-blue-400 hover:bg-gray-800 border-transparent"
+                    className="px-4 py-2 rounded-lg transition-colors cursor-pointer hover:text-gray-900 hover:bg-gray-100"
                 >
                     Features
                 </button>
                 <button 
-                    onClick={() => scrollToSection('contact-section')}
-                    className="px-6 py-3 transition-colors cursor-pointer border-b-2 hover:text-blue-400 hover:bg-gray-800 border-transparent"
-                >
-                    Contact Us
-                </button>
-                <button 
                     onClick={() => scrollToSection('pricing-section')}
-                    className="px-6 py-3 transition-colors cursor-pointer border-b-2 hover:text-blue-400 hover:bg-gray-800 border-transparent"
+                    className="px-4 py-2 rounded-lg transition-colors cursor-pointer hover:text-gray-900 hover:bg-gray-100"
                 >
                     Pricing
+                </button>
+                <button 
+                    onClick={() => scrollToSection('contact-section')}
+                    className="px-4 py-2 rounded-lg transition-colors cursor-pointer hover:text-gray-900 hover:bg-gray-100"
+                >
+                    Contact
                 </button>
             </nav>
 
             {/* Right Side - Auth and Mobile Toggle */}
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3">
                 {/* Auth Buttons */}
                 {isSignedIn ? (
-                    <div className="flex space-x-2 mr-1 items-center">
+                    <div className="flex space-x-2 mr-2 items-center">
                         {/* Profile Button with User Info Display */}
                         <div className="relative" ref={profileMenuRef}>
                             <button
                                 onClick={() => setShowProfileMenu(!showProfileMenu)}
-                                className="flex items-center space-x-1.5 p-1 rounded hover:bg-gray-800 transition-colors"
+                                className="flex items-center space-x-2 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors"
                             >
                                 {user?.avatar ? (
                                     <img 
                                         src={user.avatar} 
                                         alt={user.displayName || user.name} 
-                                        className="w-5 h-5 md:w-8 md:h-8 rounded-full"
+                                        className="w-6 h-6 md:w-7 md:h-7 rounded-full"
                                     />
                                 ) : (
-                                    <div className="w-5 h-5 md:w-8 md:h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xs md:text-sm font-medium shadow-lg">
+                                    <div className="w-6 h-6 md:w-7 md:h-7 bg-gray-900 rounded-full flex items-center justify-center text-white text-xs md:text-sm font-medium">
                                         {(user?.displayName || user?.name)?.charAt(0) || 'U'}
                                     </div>
                                 )}
-                                <span className="text-white text-xs md:text-sm hidden md:block font-medium">
+                                <span className="text-gray-900 text-sm hidden md:block font-medium">
                                     {user?.displayName || user?.name || 'User'}
                                 </span>
                             </button>
 
                             {/* User Info Display */}
                             {showProfileMenu && (
-                                <div className="absolute right-0 top-full mt-2 w-64 bg-gray-800 border border-gray-600 rounded-md shadow-lg z-50">
+                                <div className="absolute right-0 top-full mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
                                     <div className="p-4">
                                         {/* User Details */}
                                         <div className="mb-4">
@@ -113,15 +113,15 @@ const HomeHeader = () => {
                                                         className="w-12 h-12 rounded-full"
                                                     />
                                                 ) : (
-                                                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-lg font-medium">
+                                                    <div className="w-12 h-12 bg-gray-900 rounded-full flex items-center justify-center text-white text-lg font-medium">
                                                         {(user?.displayName || user?.name)?.charAt(0) || 'U'}
                                                     </div>
                                                 )}
                                                 <div>
-                                                    <h3 className="text-white font-semibold text-sm">
+                                                    <h3 className="text-gray-900 font-semibold text-sm">
                                                         {user?.displayName || user?.name || 'User'}
                                                     </h3>
-                                                    <p className="text-gray-300 text-xs">
+                                                    <p className="text-gray-600 text-xs">
                                                         {user?.email || 'No email'}
                                                     </p>
                                                 </div>
@@ -133,7 +133,7 @@ const HomeHeader = () => {
                                          
                                             <button
                                                 onClick={handleSignOut}
-                                                className="w-full px-3 py-2 text-left text-sm text-white hover:bg-gray-700 rounded flex items-center gap-2 transition-colors border-t border-gray-600 pt-2"
+                                                className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-lg flex items-center gap-2 transition-colors border-t border-gray-200 pt-2"
                                             >
                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -150,7 +150,7 @@ const HomeHeader = () => {
                     <div className="flex space-x-3">
                         <button
                             onClick={() => navigate('/signUp')}
-                            className="px-4 py-1 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors font-semibold shadow"
+                            className="px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-gray-800 transition-colors font-medium"
                         >
                             Get started
                         </button>
@@ -160,7 +160,7 @@ const HomeHeader = () => {
                 {/* Mobile Navigation Toggle - Rightmost */}
                 <button
                     onClick={() => setShowMobileMenu(!showMobileMenu)}
-                    className="md:hidden flex items-center justify-center text-gray-300 hover:text-blue-400 transition-colors px-3 py-2 ml-2"
+                    className="md:hidden flex items-center justify-center text-gray-600 hover:text-gray-900 transition-colors px-3 py-2"
                 >
                     {showMobileMenu ? (
                         <X className="h-5 w-5" />
@@ -172,25 +172,25 @@ const HomeHeader = () => {
 
             {/* Mobile Navigation Menu - Overlay */}
             {showMobileMenu && (
-                <div className="md:hidden absolute top-full left-0 right-0 bg-gray-900/95 border-t border-gray-700 shadow-lg">
-                    <nav className="flex flex-col space-y-1 px-3 py-3">
+                <div className="md:hidden absolute top-full left-0 right-0 bg-white border-t border-gray-200 shadow-lg">
+                    <nav className="flex flex-col space-y-1 px-4 py-3">
                         <button 
                             onClick={() => scrollToSection('features-section')}
-                            className="px-4 py-3 text-left text-gray-300 hover:text-blue-400 hover:bg-gray-800 rounded-lg transition-colors font-medium"
+                            className="px-4 py-3 text-left text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors font-medium"
                         >
                             Features
                         </button>
                         <button 
-                            onClick={() => scrollToSection('contact-section')}
-                            className="px-4 py-3 text-left text-gray-300 hover:text-blue-400 hover:bg-gray-800 rounded-lg transition-colors font-medium"
-                        >
-                            Contact Us
-                        </button>
-                        <button 
                             onClick={() => scrollToSection('pricing-section')}
-                            className="px-4 py-3 text-left text-gray-300 hover:text-blue-400 hover:bg-gray-800 rounded-lg transition-colors font-medium"
+                            className="px-4 py-3 text-left text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors font-medium"
                         >
                             Pricing
+                        </button>
+                        <button 
+                            onClick={() => scrollToSection('contact-section')}
+                            className="px-4 py-3 text-left text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors font-medium"
+                        >
+                            Contact
                         </button>
                     </nav>
                 </div>
