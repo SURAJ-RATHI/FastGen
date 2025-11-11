@@ -1,5 +1,5 @@
 import HomeHeader from "./HomeHeader";
-import { useState, lazy, Suspense } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
 import axios from "axios";
@@ -112,6 +112,18 @@ const LandingPage = () => {
   const navigate = useNavigate();
   const { isSignedIn } = useAuth();
   
+  // Rotating text for hero section
+  const rotatingTexts = ['Faster', 'Smarter', '24*7', 'smoothly'];
+  const [currentRotatingText, setCurrentRotatingText] = useState(0);
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentRotatingText((prev) => (prev + 1) % rotatingTexts.length);
+    }, 2000); // Change every 2 seconds
+    
+    return () => clearInterval(interval);
+  }, [rotatingTexts.length]);
+  
   // Modern payment hook
   const {
     isModalOpen,
@@ -222,7 +234,7 @@ const LandingPage = () => {
       <div className="relative z-10 flex flex-col items-center justify-center py-20 px-6 pt-32 min-h-[70vh] md:min-h-[80vh]">
         {/* Main Title */}
         <div className="text-5xl md:text-7xl font-semibold text-center text-gray-900 mb-6 leading-tight max-w-4xl">
-          Our AI Features that Works <span className="text-gray-600">Faster</span>
+          Our AI Features that Works <span className="text-gray-600 transition-opacity duration-500">{rotatingTexts[currentRotatingText]}</span>
         </div>
         
         {/* Description */}

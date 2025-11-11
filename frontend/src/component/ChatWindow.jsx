@@ -26,39 +26,43 @@ const MessageItem = memo(({ msg, user, searchQuery, highlightSearchTerms }) => {
     <div className="py-4 px-4">
       <div className={`max-w-3xl mx-auto flex gap-4 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
         {msg.sender === 'ai' && (
-          <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-sm font-medium text-white flex-shrink-0">
+          <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center text-sm font-medium text-white flex-shrink-0">
             AI
           </div>
         )}
-        <div className={`${msg.sender === 'user' ? 'max-w-[70%] text-right' : 'flex-1'} text-gray-100`}>
+        <div className={`${msg.sender === 'user' ? 'max-w-[70%] text-right' : 'flex-1'}`}>
           {msg.sender === 'ai' ? (
-            <div className="prose prose-invert max-w-none prose-sm">
-              {msg.isStreaming ? (
-                <div className="flex items-center space-x-2">
-                  <MarkdownRenderer>{msg.content}</MarkdownRenderer>
-                  <div className="flex space-x-1">
-                    <div className="w-1 h-1 bg-gray-400 rounded-full animate-pulse"></div>
-                    <div className="w-1 h-1 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                    <div className="w-1 h-1 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+            <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+              <div className="prose max-w-none prose-sm text-gray-900">
+                {msg.isStreaming ? (
+                  <div className="flex items-center space-x-2">
+                    <MarkdownRenderer>{msg.content}</MarkdownRenderer>
+                    <div className="flex space-x-1">
+                      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-pulse"></div>
+                      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                searchQuery ? 
-                  highlightSearchTerms(msg.content, searchQuery) : 
-                  <MarkdownRenderer>{msg.content}</MarkdownRenderer>
-              )}
+                ) : (
+                  searchQuery ? 
+                    highlightSearchTerms(msg.content, searchQuery) : 
+                    <MarkdownRenderer>{msg.content}</MarkdownRenderer>
+                )}
+              </div>
             </div>
           ) : (
-            <div className="whitespace-pre-wrap">
-              {searchQuery ? 
-                highlightSearchTerms(msg.content, searchQuery) : 
-                msg.content
-              }
+            <div className="bg-gray-900 text-white rounded-lg px-4 py-2.5 inline-block">
+              <div className="whitespace-pre-wrap text-sm">
+                {searchQuery ? 
+                  highlightSearchTerms(msg.content, searchQuery) : 
+                  msg.content
+                }
+              </div>
             </div>
           )}
         </div>
         {msg.sender === 'user' && (
-          <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-medium text-white flex-shrink-0">
+          <div className="w-8 h-8 bg-gray-900 rounded-full flex items-center justify-center text-sm font-medium text-white flex-shrink-0">
             {user?.displayName?.charAt(0) || user?.name?.charAt(0) || user?.email?.charAt(0) || 'U'}
           </div>
         )}
@@ -315,7 +319,7 @@ export default function ChatWindow() {
       // Try streaming first, fallback to regular request if it fails
       try {
         await handleStreamingResponse(originalPrompt);
-      } catch (streamingError) {
+      } catch {
         // Streaming failed, falling back to regular request
         await handleRegularResponse(originalPrompt);
       }
@@ -698,14 +702,14 @@ export default function ChatWindow() {
   const renderedMessages = useMemo(() => {
     if (messages.length === 0) {
       return (
-        <div className="text-center text-gray-300 mt-20">
+        <div className="text-center text-gray-600 mt-20">
           <div className="mb-3">
             <svg className="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
             </svg>
           </div>
-          <h2 className="text-xl font-semibold mb-2">How can I help you today?</h2>
-          <p className="text-sm text-gray-400">Ask me anything or start a new conversation.</p>
+          <h2 className="text-xl font-semibold mb-2 text-gray-900">How can I help you today?</h2>
+          <p className="text-sm text-gray-500">Ask me anything or start a new conversation.</p>
         </div>
       );
     }
@@ -725,7 +729,7 @@ export default function ChatWindow() {
             />
           ))}
           {messages.length > 50 && (
-            <div className="text-center text-gray-400 py-4">
+            <div className="text-center text-gray-500 py-4">
               Showing last 50 messages. Scroll up to see more.
             </div>
           )}
@@ -816,48 +820,48 @@ export default function ChatWindow() {
   // UI States
   if (!isSignedIn) {
     return (
-      <div className="max-w-2xl mx-auto mt-10 p-4 bg-transparent rounded-2xl shadow-lg h-[80vh] flex items-center justify-center">
-        <div className="text-white text-center"><p>Please sign in to use the chat</p></div>
+      <div className="max-w-2xl mx-auto mt-10 p-4 bg-white rounded-2xl shadow-sm border border-gray-200 h-[80vh] flex items-center justify-center">
+        <div className="text-gray-900 text-center"><p>Please sign in to use the chat</p></div>
       </div>
     );
   }
 
   if (loading) {
     return (
-      <div className="relative flex h-screen bg-black">
+      <div className="relative flex h-screen bg-gray-50">
         {/* Sidebar Skeleton */}
-        <div className="w-64 bg-black flex flex-col h-screen border-r border-gray-800">
+        <div className="w-64 bg-white flex flex-col h-screen border-r border-gray-200">
           <div className="pt-8 px-3 pb-3 flex gap-2">
-            <div className="flex-1 h-10 bg-gray-800 rounded-lg"></div>
-            <div className="w-10 h-10 bg-gray-800 rounded-lg"></div>
+            <div className="flex-1 h-10 bg-gray-100 rounded-lg"></div>
+            <div className="w-10 h-10 bg-gray-100 rounded-lg"></div>
           </div>
           <div className="px-3 mb-3">
-            <div className="h-10 bg-gray-800 rounded-lg"></div>
+            <div className="h-10 bg-gray-100 rounded-lg"></div>
           </div>
           <div className="flex-1 px-3 space-y-2 overflow-y-auto">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-16 bg-gray-800 rounded-lg"></div>
+              <div key={i} className="h-16 bg-gray-100 rounded-lg"></div>
             ))}
           </div>
         </div>
         
         {/* Main Content Skeleton */}
-        <div className="flex-1 flex flex-col h-full bg-black">
+        <div className="flex-1 flex flex-col h-full bg-gray-50">
           <div className="flex-1 p-4 overflow-y-auto">
             <div className="max-w-3xl mx-auto space-y-6">
               {[...Array(3)].map((_, i) => (
                 <div key={i} className="flex gap-4 items-start">
-                  <div className="w-8 h-8 bg-gray-800 rounded-full flex-shrink-0"></div>
+                  <div className="w-8 h-8 bg-gray-200 rounded-full flex-shrink-0"></div>
                   <div className="flex-1 space-y-2">
-                    <div className="h-4 bg-gray-800 rounded w-3/4"></div>
-                    <div className="h-4 bg-gray-800 rounded w-1/2"></div>
+                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
-          <div className="p-4 border-t border-gray-800">
-            <div className="max-w-3xl mx-auto h-12 bg-gray-800 rounded-xl"></div>
+          <div className="p-4 border-t border-gray-200 bg-white">
+            <div className="max-w-3xl mx-auto h-12 bg-gray-100 rounded-xl"></div>
           </div>
         </div>
       </div>
@@ -866,28 +870,28 @@ export default function ChatWindow() {
 
   if (error) {
     return (
-      <div className="max-w-2xl mx-auto mt-10 p-4 bg-transparent rounded-2xl shadow-lg h-[80vh] flex items-center justify-center">
-        <div className="text-red-500 text-center">
+      <div className="max-w-2xl mx-auto mt-10 p-4 bg-white rounded-2xl shadow-sm border border-gray-200 h-[80vh] flex items-center justify-center">
+        <div className="text-red-600 text-center">
           <p>Error: {error}</p>
-          <button onClick={() => window.location.reload()} className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700">Retry</button>
+          <button onClick={() => window.location.reload()} className="mt-4 bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors cursor-pointer">Retry</button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="relative flex h-screen bg-black">
+    <div className="relative flex h-screen bg-gray-50">
 
 
       {/* SIDEBAR */}
-      <div className={`${sidebarOpen ? 'w-full md:w-64' : 'w-0'} bg-black flex flex-col transition-all duration-300 overflow-hidden h-screen md:relative absolute z-50`}>
+      <div className={`${sidebarOpen ? 'w-full md:w-64' : 'w-0'} bg-white border-r border-gray-200 flex flex-col transition-all duration-300 overflow-hidden h-screen md:relative absolute z-50 shadow-sm`}>
         {/* Top controls */}
         <div className="pt-8 px-3 pb-3 flex gap-2">
-          <button onClick={handleNewChat} className="flex-1 py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center gap-2 transition-colors text-sm font-medium">
+          <button onClick={handleNewChat} className="flex-1 py-2 px-3 bg-gray-900 hover:bg-gray-800 text-white rounded-lg flex items-center justify-center gap-2 transition-colors text-sm font-medium cursor-pointer">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
             New chat
           </button>
-          <button onClick={toggleSidebar} className="py-2 px-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors" title={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}>
+          <button onClick={toggleSidebar} className="py-2 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors cursor-pointer" title={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
           </button>
         </div>
@@ -901,24 +905,24 @@ export default function ChatWindow() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search chats..."
-              className="w-full pl-10 pr-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none text-sm placeholder-gray-400"
+              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent text-sm placeholder-gray-400"
             />
           </div>
         </div>
 
         {/* Chat history list */}
-        <div className="flex-1 overflow-y-auto px-3 pb-20 space-y-2 scrollbar-hide">
+        <div className="flex-1 overflow-y-auto px-3 pb-20 space-y-1 scrollbar-hide">
           {searchQuery && filteredChats.length === 0 ? (
-            <div className="text-center text-gray-400 py-8">
+            <div className="text-center text-gray-500 py-8">
               <FiSearch className="w-8 h-8 mx-auto mb-2 opacity-50" />
               <p className="text-sm">No chats found</p>
-              <p className="text-xs mt-1">Try a different search term</p>
+              <p className="text-xs mt-1 text-gray-400">Try a different search term</p>
             </div>
           ) : (
             (searchQuery ? filteredChats : chatHistory).map((chat) => (
-              <div key={chat._id} className={`group relative rounded-lg transition-colors ${chatId === chat._id ? 'bg-gray-700' : 'hover:bg-gray-700'}`}>
-              <button onClick={() => switchToChat(chat._id)} className={`w-full p-3 text-left transition-colors ${chatId === chat._id ? 'text-white' : 'text-gray-300 hover:text-white'}`}>
-                <div className="truncate text-sm">
+              <div key={chat._id} className={`group relative rounded-lg transition-colors ${chatId === chat._id ? 'bg-gray-100' : 'hover:bg-gray-50'}`}>
+              <button onClick={() => switchToChat(chat._id)} className={`w-full p-3 text-left transition-colors cursor-pointer ${chatId === chat._id ? 'text-gray-900' : 'text-gray-700 hover:text-gray-900'}`}>
+                <div className="truncate text-sm font-medium">
                   {searchQuery ? 
                     highlightSearchTerms(
                       chat.title || (chat.messages?.[0]?.content?.slice(0,30) + '...') || `Chat ${new Date(chat.startedAt).toLocaleDateString()}`,
@@ -929,22 +933,22 @@ export default function ChatWindow() {
                 </div>
               </button>
               {/* 3-dot menu */}
-              <button onClick={(e) => toggleMenu(chat._id, e)} className="absolute right-2 top-2 opacity-100 group-hover:opacity-100 transition-opacity p-1 text-gray-400 hover:text-white rounded" title="More options">
+              <button onClick={(e) => toggleMenu(chat._id, e)} className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 text-gray-400 hover:text-gray-600 rounded cursor-pointer" title="More options">
                 <FiMoreVertical className="w-4 h-4" />
               </button>
               {openMenuId === chat._id && (
-                <div className="absolute right-0 top-8 z-50 bg-gray-800 border border-gray-600 rounded-md shadow-lg min-w-[160px]">
-                  <button onClick={(e) => { e.stopPropagation(); startEditingTitle(chat._id, chat.title); }} className="w-full px-3 py-2 text-left text-sm text-white hover:bg-gray-700 flex items-center gap-2"><FiEdit3 className="w-4 h-4" />Rename</button>
-                  <button onClick={(e) => { e.stopPropagation(); shareChat(chat._id); }} className="w-full px-3 py-2 text-left text-sm text-white hover:bg-gray-700 flex items-center gap-2"><FiShare2 className="w-4 h-4" />Share</button>
-                  <button onClick={(e) => { e.stopPropagation(); deleteChat(chat._id); }} className="w-full px-3 py-2 text-left text-sm text-white hover:bg-gray-700 flex items-center gap-2 border-t border-gray-600"><FiTrash2 className="w-4 h-4" />Delete</button>
+                <div className="absolute right-0 top-8 z-50 bg-white border border-gray-200 rounded-lg shadow-lg min-w-[160px]">
+                  <button onClick={(e) => { e.stopPropagation(); startEditingTitle(chat._id, chat.title); }} className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 cursor-pointer"><FiEdit3 className="w-4 h-4" />Rename</button>
+                  <button onClick={(e) => { e.stopPropagation(); shareChat(chat._id); }} className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 cursor-pointer"><FiShare2 className="w-4 h-4" />Share</button>
+                  <button onClick={(e) => { e.stopPropagation(); deleteChat(chat._id); }} className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 border-t border-gray-200 cursor-pointer"><FiTrash2 className="w-4 h-4" />Delete</button>
                 </div>
               )}
               {editingChatId === chat._id && (
-                <div className="absolute right-0 top-8 z-50 bg-gray-800 border border-gray-600 rounded-md shadow-lg p-2 min-w-[220px]">
-                  <input type="text" value={editingTitle} onChange={(e) => setEditingTitle(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') renameChat(chat._id, editingTitle); if (e.key === 'Escape') closeMenu(); }} className="w-full px-2 py-1 text-sm text-white bg-gray-700 border border-gray-500 rounded focus:outline-none focus:border-blue-500" placeholder="Enter new title..." autoFocus />
+                <div className="absolute right-0 top-8 z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-2 min-w-[220px]">
+                  <input type="text" value={editingTitle} onChange={(e) => setEditingTitle(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') renameChat(chat._id, editingTitle); if (e.key === 'Escape') closeMenu(); }} className="w-full px-2 py-1 text-sm text-gray-900 bg-white border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent" placeholder="Enter new title..." autoFocus />
                   <div className="flex gap-2 mt-2">
-                    <button onClick={() => renameChat(chat._id, editingTitle)} className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
-                    <button onClick={closeMenu} className="px-2 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-700">Cancel</button>
+                    <button onClick={() => renameChat(chat._id, editingTitle)} className="px-2 py-1 text-xs bg-gray-900 text-white rounded hover:bg-gray-800 cursor-pointer">Save</button>
+                    <button onClick={closeMenu} className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 cursor-pointer">Cancel</button>
                   </div>
                 </div>
               )}
@@ -953,28 +957,28 @@ export default function ChatWindow() {
         </div>
 
         {/* User info - Fixed at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 px-3 pb-3">
-          <div className="flex items-center gap-3 text-gray-300 p-3 rounded-lg hover:bg-gray-700 cursor-pointer transition-colors">
+        <div className="absolute bottom-0 left-0 right-0 px-3 pb-3 bg-white border-t border-gray-200">
+          <div className="flex items-center gap-3 text-gray-700 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
             <img 
               alt="Suraj Rathi" 
               className="w-8 h-8 rounded-full" 
               src="https://lh3.googleusercontent.com/a/ACg8ocI-pz2vamZU3_DjcH701awV83zThpQkB-APYHhXSmEy6ecP4g=s96-c"
             />
             <div className="text-sm">
-              <div className="font-medium">Suraj Rathi</div>
+              <div className="font-medium text-gray-900">Suraj Rathi</div>
             </div>
           </div>
         </div>
       </div>
 
       {/* MAIN */}
-      <div className="flex-1 flex flex-col h-full">
+      <div className="flex-1 flex flex-col h-full bg-gray-50">
         {/* Sidebar toggle button when sidebar is closed */}
         {!sidebarOpen && (
           <div className="absolute left-4 top-4 z-10">
             <button 
               onClick={toggleSidebar} 
-              className="p-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors" 
+              className="p-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-lg transition-colors shadow-sm cursor-pointer" 
               title="Show sidebar"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -985,18 +989,20 @@ export default function ChatWindow() {
         )}
 
         {/* Messages - OPTIMIZED */}
-        <div className="flex-1 overflow-y-auto scrollbar-hide pb-32" ref={containerRef}>
+        <div className="flex-1 overflow-y-auto scrollbar-hide pb-32 bg-gray-50" ref={containerRef}>
           {renderedMessages}
 
           {isTyping && (
             <div className="py-4 px-4">
               <div className="max-w-3xl mx-auto flex gap-4">
-                <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-sm font-medium text-white flex-shrink-0">AI</div>
-                <div className="flex-1 text-gray-100">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center text-sm font-medium text-white flex-shrink-0">AI</div>
+                <div className="flex-1">
+                  <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1005,21 +1011,21 @@ export default function ChatWindow() {
         </div>
 
         {/* Input */}
-        <div className={`fixed bottom-0 ${sidebarOpen ? 'left-64' : 'left-0'} right-0 p-4 bg-black z-50 transition-all duration-300`}>
+        <div className={`fixed bottom-0 ${sidebarOpen ? 'left-64' : 'left-0'} right-0 p-4 bg-white border-t border-gray-200 z-50 transition-all duration-300 shadow-sm`}>
           <div className="max-w-3xl mx-auto">
             {/* File attachment indicator */}
             {uploadedParsedFileName && (
-              <div className="mb-2 p-2 bg-green-900 border border-green-700 rounded-lg flex items-center justify-between">
+              <div className="mb-2 p-2 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-green-300 text-sm">File attached</span>
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                  <span className="text-emerald-700 text-sm font-medium">File attached</span>
                 </div>
                 <button 
                   onClick={() => {
                     setUploadedParsedFileName('');
                     if (fileInputRef.current) fileInputRef.current.value = '';
                   }}
-                  className="text-green-400 hover:text-green-300 text-sm"
+                  className="text-emerald-600 hover:text-emerald-700 text-sm font-medium cursor-pointer"
                 >
                   Remove
                 </button>
@@ -1028,26 +1034,26 @@ export default function ChatWindow() {
             
             {/* Upload progress indicator */}
             {isUploading && (
-              <div className="mb-2 p-2 bg-blue-900 border border-blue-700 rounded-lg">
+              <div className="mb-2 p-2 bg-blue-50 border border-blue-200 rounded-lg">
                 <div className="flex items-center gap-2 mb-1">
                   <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                  <span className="text-blue-300 text-sm">Uploading file...</span>
+                  <span className="text-blue-700 text-sm font-medium">Uploading file...</span>
                 </div>
-                <div className="w-full bg-blue-800 rounded-full h-1">
+                <div className="w-full bg-blue-100 rounded-full h-1.5">
                   <div 
-                    className="bg-blue-500 h-1 rounded-full transition-all duration-300" 
+                    className="bg-blue-500 h-1.5 rounded-full transition-all duration-300" 
                     style={{ width: `${uploadProgress}%` }}
                   ></div>
                 </div>
               </div>
             )}
             
-            <div className="relative bg-gray-800 rounded-xl focus-within:ring-2 focus-within:ring-blue-500 transition-all">
+            <div className="relative bg-white border border-gray-200 rounded-lg focus-within:ring-2 focus-within:ring-gray-900 focus-within:border-transparent transition-all shadow-sm">
               <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 onKeyDown={handleKeyDown}
-                className="w-full p-3 pr-16 bg-transparent text-white focus:outline-none resize-none placeholder-gray-400 text-sm"
+                className="w-full p-3 pr-16 bg-transparent text-gray-900 focus:outline-none resize-none placeholder-gray-400 text-sm"
                 placeholder="Message FastGen AI..."
                 disabled={!chatId}
                 rows={1}
@@ -1059,18 +1065,18 @@ export default function ChatWindow() {
                   disabled={isUploading}
                   className={`p-1.5 transition-colors rounded-lg group relative ${
                     isUploading 
-                      ? 'text-blue-400 bg-blue-900 cursor-not-allowed' 
+                      ? 'text-blue-500 bg-blue-50 cursor-not-allowed' 
                       : uploadedParsedFileName
-                        ? 'text-green-400 hover:text-green-300 hover:bg-green-900'
-                        : 'text-gray-400 hover:text-white hover:bg-gray-700'
+                        ? 'text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 cursor-pointer'
+                        : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100 cursor-pointer'
                   }`} 
                   title={uploadedParsedFileName ? "File attached - click to change" : "Attach PDF file"}
                 >
                   <IoMdAttach className={`w-4 h-4 ${isUploading ? 'animate-pulse' : ''}`} />
                   {uploadedParsedFileName && (
-                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full"></div>
+                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-500 rounded-full"></div>
                   )}
-                  <span className="absolute bottom-full right-0 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                  <span className="absolute bottom-full right-0 mb-2 px-2 py-1 text-xs text-white bg-gray-900 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                     {isUploading ? `Uploading... ${uploadProgress}%` : uploadedParsedFileName ? 'File attached' : 'PDF only (max 10MB)'}
                   </span>
                 </button>
@@ -1079,8 +1085,8 @@ export default function ChatWindow() {
                   disabled={!chatId || !prompt.trim()} 
                   className={`p-1.5 rounded-lg transition-all duration-200 ${
                     !chatId || !prompt.trim() 
-                      ? 'text-gray-500 bg-gray-700 cursor-not-allowed' 
-                      : 'text-white bg-blue-600 hover:bg-blue-700'
+                      ? 'text-gray-400 bg-gray-100 cursor-not-allowed' 
+                      : 'text-white bg-gray-900 hover:bg-gray-800 cursor-pointer'
                   }`} 
                   title="Send message"
                 >
@@ -1096,31 +1102,31 @@ export default function ChatWindow() {
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4 border border-gray-600">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 border border-gray-200 shadow-xl">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center">
-                <FiTrash2 className="w-5 h-5 text-white" />
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                <FiTrash2 className="w-5 h-5 text-red-600" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-white">Delete Conversation</h3>
-                <p className="text-gray-300 text-sm">This action cannot be undone.</p>
+                <h3 className="text-lg font-semibold text-gray-900">Delete Conversation</h3>
+                <p className="text-gray-500 text-sm">This action cannot be undone.</p>
               </div>
             </div>
             
-            <p className="text-gray-300 mb-6">
-              Are you sure you want to delete <span className="text-white font-medium">"{chatToDelete?.title || 'Untitled Chat'}"</span>? All messages will be permanently removed.
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete <span className="text-gray-900 font-medium">"{chatToDelete?.title || 'Untitled Chat'}"</span>? All messages will be permanently removed.
             </p>
             
             <div className="flex gap-3 justify-end">
               <button
                 onClick={cancelDeleteChat}
-                className="px-4 py-2 text-gray-300 hover:text-white transition-colors"
+                className="px-4 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmDeleteChat}
-                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors cursor-pointer"
               >
                 Delete
               </button>
