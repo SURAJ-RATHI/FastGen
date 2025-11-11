@@ -1,12 +1,112 @@
 import HomeHeader from "./HomeHeader";
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
 import axios from "axios";
 import { Library, Target, Play, Key, HelpCircle, FileText, BookOpen } from 'lucide-react';
 import useModernPayment from '../hooks/useModernPayment';
-import ModernPaymentModal from './ModernPaymentModal';
 import { useAuth } from '../contexts/AuthContext';
+
+// Lazy load payment modal - only loads when needed
+const ModernPaymentModal = lazy(() => import('./ModernPaymentModal'));
+
+// Move static data outside component to prevent recreation on every render
+const FEATURES_DATA = [
+  {
+    title: "Personalized Chatbot",
+    description: "FastGen's intelligent chatbot answers all your questions with context-aware responses and memory of past conversations.",
+    icon: Target,
+    route: "/main?tab=chatbot"
+  },
+  {
+    title: "Content Searcher",
+    description: "Discover the best YouTube videos and educational content tailored to your specific learning needs.",
+    icon: Play,
+    route: "/main?tab=content"
+  },
+  {
+    title: "Key Points Extraction",
+    description: "Automatically extract key insights from any uploaded file to focus on what really matters.",
+    icon: Key,
+    route: "/main?tab=chatbot"
+  },
+  {
+    title: "Quiz Generator",
+    description: "Generate intelligent quizzes from your files to test and reinforce your knowledge instantly.",
+    icon: HelpCircle,
+    route: "/main?tab=quizzes"
+  },
+  {
+    title: "Smart Notes",
+    description: "Take organized notes as you learn with AI-powered suggestions and automatic categorization.",
+    icon: FileText,
+    route: "/main?tab=notes"
+  },
+  {
+    title: "All Content in One Place",
+    description: "Access all your study material including PDFs and text files in a unified, searchable content hub.",
+    icon: BookOpen,
+    route: "/main?tab=chatbot"
+  }
+];
+
+const PRICING_PLANS = [
+  {
+    name: "Free",
+    price: "₹0",
+    period: "month",
+    plan: "free",
+    amount: 0,
+    description: "Perfect for getting started with FastGen",
+    features: [
+      "5 AI-powered conversations per month",
+      "Basic quiz generation",
+      "Standard content analysis",
+      "Community support",
+      "Unlimited notes creation"
+    ],
+    buttonText: "Get Started Free",
+    buttonStyle: "bg-gray-900 hover:bg-gray-800 text-white"
+  },
+  {
+    name: "Pro",
+    price: "₹99",
+    period: "month",
+    plan: "pro",
+    amount: 99,
+    description: "Best for students and professionals",
+    features: [
+      "Unlimited AI conversations",
+      "Advanced quiz generation",
+      "Priority content analysis",
+      "Email support",
+      "Custom learning paths",
+      "Export to Notion"
+    ],
+    buttonText: "Subscribe Now",
+    buttonStyle: "bg-gray-900 hover:bg-gray-800 text-white",
+    popular: true
+  },
+  {
+    name: "Enterprise",
+    price: "₹2,999",
+    period: "month",
+    plan: "enterprise",
+    amount: 2999,
+    description: "For teams and organizations",
+    features: [
+      "Everything in Pro",
+      "Team collaboration",
+      "Advanced analytics",
+      "API access",
+      "Priority support",
+      "Custom integrations",
+      "White-label options"
+    ],
+    buttonText: "Contact Sales",
+    buttonStyle: "bg-white hover:bg-gray-50 text-gray-900 border border-gray-300"
+  }
+];
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -193,44 +293,7 @@ const LandingPage = () => {
           </div>
           
           <div className="grid md:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-6">
-            {[
-              {
-                title: "Personalized Chatbot",
-                description: "FastGen's intelligent chatbot answers all your questions with context-aware responses and memory of past conversations.",
-                icon: Target,
-                route: "/main?tab=chatbot"
-              },
-              {
-                title: "Content Searcher",
-                description: "Discover the best YouTube videos and educational content tailored to your specific learning needs.",
-                icon: Play,
-                route: "/main?tab=content"
-              },
-              {
-                title: "Key Points Extraction",
-                description: "Automatically extract key insights from any uploaded file to focus on what really matters.",
-                icon: Key,
-                route: "/main?tab=chatbot"
-              },
-              {
-                title: "Quiz Generator",
-                description: "Generate intelligent quizzes from your files to test and reinforce your knowledge instantly.",
-                icon: HelpCircle,
-                route: "/main?tab=quizzes"
-              },
-              {
-                title: "Smart Notes",
-                description: "Take organized notes as you learn with AI-powered suggestions and automatic categorization.",
-                icon: FileText,
-                route: "/main?tab=notes"
-              },
-              {
-                title: "All Content in One Place",
-                description: "Access all your study material including PDFs and text files in a unified, searchable content hub.",
-                icon: BookOpen,
-                route: "/main?tab=chatbot"
-              }
-            ].map((feature, index) => {
+            {FEATURES_DATA.map((feature, index) => {
               const IconComponent = feature.icon;
               return (
               <div
@@ -263,63 +326,7 @@ const LandingPage = () => {
           </div>
           
           <div className="grid md:grid-cols-3 gap-6">
-            {[
-              {
-                name: "Free",
-                price: "₹0",
-                period: "month",
-                plan: "free",
-                amount: 0,
-                description: "Perfect for getting started with FastGen",
-                features: [
-                  "5 AI-powered conversations per month",
-                  "Basic quiz generation",
-                  "Standard content analysis",
-                  "Community support",
-                  "Unlimited notes creation"
-                ],
-                buttonText: "Get Started Free",
-                buttonStyle: "bg-gray-900 hover:bg-gray-800 text-white"
-              },
-              {
-                name: "Pro",
-                price: "₹99",
-                period: "month",
-                plan: "pro",
-                amount: 99,
-                description: "Best for students and professionals",
-                features: [
-                  "Unlimited AI conversations",
-                  "Advanced quiz generation",
-                  "Priority content analysis",
-                  "Email support",
-                  "Custom learning paths",
-                  "Export to Notion"
-                ],
-                buttonText: "Subscribe Now",
-                buttonStyle: "bg-gray-900 hover:bg-gray-800 text-white",
-                popular: true
-              },
-              {
-                name: "Enterprise",
-                price: "₹2,999",
-                period: "month",
-                plan: "enterprise",
-                amount: 2999,
-                description: "For teams and organizations",
-                features: [
-                  "Everything in Pro",
-                  "Team collaboration",
-                  "Advanced analytics",
-                  "API access",
-                  "Priority support",
-                  "Custom integrations",
-                  "White-label options"
-                ],
-                buttonText: "Contact Sales",
-                buttonStyle: "bg-white hover:bg-gray-50 text-gray-900 border border-gray-300"
-              }
-            ].map((plan, index) => (
+            {PRICING_PLANS.map((plan, index) => (
               <div 
                 key={index}
                 className={`relative bg-white border rounded-xl p-8 transition-all duration-200 ${
@@ -605,16 +612,20 @@ const LandingPage = () => {
         </div>
       </footer>
 
-      {/* Modern Payment Modal */}
-      <ModernPaymentModal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        amount={paymentData?.amount}
-        plan={paymentData?.plan}
-        orderId={paymentData?.order?.id}
-        onPaymentSuccess={onPaymentSuccess}
-        onPaymentError={onPaymentError}
-      />
+      {/* Modern Payment Modal - Lazy loaded */}
+      {isModalOpen && (
+        <Suspense fallback={null}>
+          <ModernPaymentModal
+            isOpen={isModalOpen}
+            onClose={closeModal}
+            amount={paymentData?.amount}
+            plan={paymentData?.plan}
+            orderId={paymentData?.order?.id}
+            onPaymentSuccess={onPaymentSuccess}
+            onPaymentError={onPaymentError}
+          />
+        </Suspense>
+      )}
     </div>
   );
 };

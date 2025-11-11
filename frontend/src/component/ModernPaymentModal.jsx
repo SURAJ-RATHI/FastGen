@@ -1,5 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, CreditCard, Smartphone, Wallet, CheckCircle } from 'lucide-react';
+
+// Load Razorpay script dynamically
+const loadRazorpayScript = () => {
+  return new Promise((resolve, reject) => {
+    if (window.Razorpay) {
+      resolve();
+      return;
+    }
+    
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('Failed to load Razorpay script'));
+    document.body.appendChild(script);
+  });
+};
 
 const ModernPaymentModal = ({ 
   isOpen, 
@@ -13,6 +30,22 @@ const ModernPaymentModal = ({
   const [selectedMethod, setSelectedMethod] = useState('card');
   const [isProcessing, setIsProcessing] = useState(false);
   const [step, setStep] = useState('method'); // method, details, processing, success
+  const [isRazorpayLoading, setIsRazorpayLoading] = useState(false);
+
+  // Load Razorpay script when modal opens
+  useEffect(() => {
+    if (isOpen && !window.Razorpay) {
+      setIsRazorpayLoading(true);
+      loadRazorpayScript()
+        .then(() => {
+          setIsRazorpayLoading(false);
+        })
+        .catch((error) => {
+          console.error('Failed to load Razorpay:', error);
+          setIsRazorpayLoading(false);
+        });
+    }
+  }, [isOpen]);
 
   const paymentMethods = [
     {
@@ -40,9 +73,11 @@ const ModernPaymentModal = ({
     setStep('processing');
     
     try {
-      // Check if Razorpay is available
+      // Ensure Razorpay is loaded
       if (!window.Razorpay) {
-        throw new Error('Razorpay not loaded. Please refresh the page.');
+        setIsRazorpayLoading(true);
+        await loadRazorpayScript();
+        setIsRazorpayLoading(false);
       }
 
       // Configure Razorpay options
@@ -193,9 +228,10 @@ const ModernPaymentModal = ({
               {/* Pay Button */}
               <button
                 onClick={handlePayment}
-                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-6 rounded-xl transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+                disabled={isRazorpayLoading}
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-6 rounded-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               >
-                Pay ₹{amount}
+                {isRazorpayLoading ? 'Loading...' : `Pay ₹${amount}`}
               </button>
             </>
           )}

@@ -26,12 +26,15 @@ export const AuthProvider = ({ children }) => {
     }
   }, [token]);
 
-  // Check if user is authenticated on app load
+  // Check if user is authenticated on app load - non-blocking for public pages
   useEffect(() => {
     if (token) {
+      // Don't block rendering - check auth in background
       checkAuthStatus();
     } else {
+      // No token, user is not signed in - set loading to false immediately
       setIsLoading(false);
+      setIsSignedIn(false);
     }
   }, [token]);
 

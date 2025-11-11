@@ -1,13 +1,23 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo, memo, lazy, Suspense } from 'react';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import axios from 'axios';
 import { LuSendHorizontal } from 'react-icons/lu';
 import { IoMdAttach } from 'react-icons/io';
 import { FiShare2, FiTrash2, FiMoreVertical, FiEdit3, FiSearch } from 'react-icons/fi';
-import ReactMarkdown from 'react-markdown';
-import ShareModal from './ShareModal.jsx';
-import TypingIndicator from './TypingIndicator.jsx';
-import UpgradeModal from './UpgradeModal.jsx';
+
+// Lazy load heavy components
+const ReactMarkdown = lazy(() => import('react-markdown'));
+const ShareModal = lazy(() => import('./ShareModal.jsx'));
+const UpgradeModal = lazy(() => import('./UpgradeModal.jsx'));
+
+// Lightweight markdown renderer fallback
+const MarkdownRenderer = ({ children }) => {
+  return (
+    <Suspense fallback={<div className="text-gray-100 whitespace-pre-wrap">{children}</div>}>
+      <ReactMarkdown>{children}</ReactMarkdown>
+    </Suspense>
+  );
+};
 
 
 // Memoized Message Component for better performance
@@ -25,7 +35,7 @@ const MessageItem = memo(({ msg, user, searchQuery, highlightSearchTerms }) => {
             <div className="prose prose-invert max-w-none prose-sm">
               {msg.isStreaming ? (
                 <div className="flex items-center space-x-2">
-                  <ReactMarkdown>{msg.content}</ReactMarkdown>
+                  <MarkdownRenderer>{msg.content}</MarkdownRenderer>
                   <div className="flex space-x-1">
                     <div className="w-1 h-1 bg-gray-400 rounded-full animate-pulse"></div>
                     <div className="w-1 h-1 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
@@ -35,7 +45,7 @@ const MessageItem = memo(({ msg, user, searchQuery, highlightSearchTerms }) => {
               ) : (
                 searchQuery ? 
                   highlightSearchTerms(msg.content, searchQuery) : 
-                  <ReactMarkdown>{msg.content}</ReactMarkdown>
+                  <MarkdownRenderer>{msg.content}</MarkdownRenderer>
               )}
             </div>
           ) : (
@@ -62,16 +72,7 @@ MessageItem.displayName = 'MessageItem';
 export default function ChatWindow() {
   const { user, isSignedIn } = useAuth();
   
-  // Debug: Log user data to see what's available
-  useEffect(() => {
-    console.log('ChatWindow - User data:', user);
-    console.log('ChatWindow - User fields:', {
-      displayName: user?.displayName,
-      name: user?.name,
-      email: user?.email,
-      id: user?.id
-    });
-  }, [user]);
+  // Removed debug logs for better performance
 
   // Hide scrollbars util
   useEffect(() => {
@@ -155,12 +156,9 @@ export default function ChatWindow() {
       const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
       
       if (!forceRefresh && chatHistoryCache && cacheAge < CACHE_DURATION) {
-        console.log('Using cached chat history');
         setChatHistory(chatHistoryCache);
         return chatHistoryCache;
       }
-      
-      console.log('Loading chat history...'); // Debug log
       const res = await axios.get(`${import.meta.env.VITE_APP_BE_BASEURL}/api/chats/getChat`, {
         withCredentials: true,
         params: { limit, sort: 'updatedAt' }
@@ -169,7 +167,6 @@ export default function ChatWindow() {
       const chats = Array.isArray(res.data) ? res.data : res.data?.chats || [];
       if (!Array.isArray(chats)) throw new Error('Invalid chats response: Expected an array');
       const sorted = chats.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
-      console.log('Chat history loaded:', sorted.length, 'chats'); // Debug log
       
       // Update cache
       setChatHistoryCache(sorted);
@@ -185,7 +182,6 @@ export default function ChatWindow() {
   // Load chat history immediately when user signs in
   useEffect(() => {
     if (isSignedIn) {
-      console.log('User signed in, loading chat history...'); // Debug log
       loadChatHistory();
     }
   }, [isSignedIn, loadChatHistory]);
@@ -285,10 +281,18 @@ export default function ChatWindow() {
     };
   }, [isSignedIn, chatId, loadChatHistory, loadMessages]);
 
-  // Auto-scroll when messages change
+  // Optimized auto-scroll - only scroll if user is near bottom
   useEffect(() => {
     const el = containerRef.current;
-    if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+    if (!el) return;
+    
+    const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 200;
+    if (isNearBottom) {
+      // Use requestAnimationFrame for smoother scrolling
+      requestAnimationFrame(() => {
+        el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+      });
+    }
   }, [messages]);
 
   // --- Handlers ---
@@ -308,7 +312,7 @@ export default function ChatWindow() {
       try {
         await handleStreamingResponse(originalPrompt);
       } catch (streamingError) {
-        console.log('Streaming failed, falling back to regular request:', streamingError);
+        // Streaming failed, falling back to regular request
         await handleRegularResponse(originalPrompt);
       }
       
@@ -335,7 +339,7 @@ export default function ChatWindow() {
       } else if (err.response?.status === 500) {
         // For 500 errors, check if it might be a usage limit issue
         // This is a fallback in case the middleware isn't working properly
-        console.log('500 error details:', err.response?.data);
+        // 500 error occurred
         
         // Show upgrade modal for any 500 error as a fallback
         setUpgradeModalData({
@@ -357,8 +361,7 @@ export default function ChatWindow() {
     // Get the auth token from localStorage
     const token = localStorage.getItem('authToken');
     
-    console.log('Starting streaming request to:', `${import.meta.env.VITE_APP_BE_BASEURL}/api/gemini/stream`);
-    console.log('Request payload:', { chatId, prompt: originalPrompt, parsedFileName: uploadedParsedFileName || '' });
+    // Starting streaming request
     
     // Use fetch for POST request with streaming and timeout
     const controller = new AbortController();
@@ -381,8 +384,7 @@ export default function ChatWindow() {
     
     clearTimeout(timeoutId);
 
-    console.log('Streaming response status:', response.status);
-    console.log('Streaming response headers:', response.headers);
+      // Streaming response received
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -411,7 +413,7 @@ export default function ChatWindow() {
               
               switch (data.type) {
                 case 'connected':
-                  console.log('Stream connected');
+                  // Stream connected
                   break;
                   
                 case 'typing':
@@ -621,7 +623,7 @@ export default function ChatWindow() {
   const confirmDeleteChat = async () => {
     if (!chatToDelete) return;
     try {
-      console.log('Deleting chat:', chatToDelete._id); // Debug log
+      // Deleting chat
       await axios.delete(`${import.meta.env.VITE_APP_BE_BASEURL}/api/chats/${chatToDelete._id}`, { withCredentials: true });
       const updated = chatHistory.filter(c => c._id !== chatToDelete._id);
       setChatHistory(updated);
@@ -763,35 +765,35 @@ export default function ChatWindow() {
 
   const renameChat = async (chatIdToRename, newTitle) => {
     try {
-      console.log('Renaming chat:', chatIdToRename, 'to:', newTitle); // Debug log
+      // Renaming chat
       const response = await axios.put(
         `${import.meta.env.VITE_APP_BE_BASEURL}/api/gemini/chat-title/${chatIdToRename}`,
         { title: newTitle },
         { withCredentials: true }
       );
-      console.log('Rename response:', response.data); // Debug log
+      // Rename response received
       if (response.data?.success) {
         setChatHistory(prev => prev.map(c => (c._id === chatIdToRename ? { ...c, title: newTitle } : c)));
         if (chatId === chatIdToRename) setCurrentChatTitle(newTitle);
         setEditingChatId(null);
         setEditingTitle('');
         setOpenMenuId(null);
-        console.log('Chat renamed successfully'); // Debug log
+        // Chat renamed successfully
       } else {
-        console.log('Rename failed - no success flag:', response.data); // Debug log
+        // Rename failed - no success flag
       }
     } catch (err) {
       console.error('Error renaming chat:', err);
-      console.error('Error details:', err.response?.data); // Debug log
+      // Error details logged
     }
   };
 
   const startEditingTitle = (id, currentTitle) => {
-    console.log('Starting to edit title for chat:', id, 'current title:', currentTitle); // Debug log
+    // Starting to edit title
     setEditingChatId(id);
     setEditingTitle(currentTitle || '');
     setOpenMenuId(null);
-    console.log('Edit state set - editingChatId:', id, 'editingTitle:', currentTitle || ''); // Debug log
+    // Edit state set
   };
 
   const toggleMenu = (id, event) => {
@@ -1123,16 +1125,24 @@ export default function ChatWindow() {
         </div>
       )}
 
-      {/* Share Modal */}
-      <ShareModal isOpen={showShareModal} onClose={() => { setShowShareModal(false); setShareData(null); }} shareData={shareData} />
+      {/* Share Modal - Lazy loaded */}
+      {showShareModal && (
+        <Suspense fallback={null}>
+          <ShareModal isOpen={showShareModal} onClose={() => { setShowShareModal(false); setShareData(null); }} shareData={shareData} />
+        </Suspense>
+      )}
 
-      {/* Upgrade Modal */}
-      <UpgradeModal 
-        isOpen={showUpgradeModal} 
-        onClose={() => setShowUpgradeModal(false)} 
-        usageData={upgradeModalData?.usage}
-        featureType={upgradeModalData?.featureType}
-      />
+      {/* Upgrade Modal - Lazy loaded */}
+      {showUpgradeModal && (
+        <Suspense fallback={null}>
+          <UpgradeModal 
+            isOpen={showUpgradeModal} 
+            onClose={() => setShowUpgradeModal(false)} 
+            usageData={upgradeModalData?.usage}
+            featureType={upgradeModalData?.featureType}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }
