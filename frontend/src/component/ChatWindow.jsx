@@ -193,11 +193,15 @@ export default function ChatWindow() {
     const initializeChat = async () => {
       if (!isSignedIn) {
         setError('Please sign in to use the chat');
+        setLoading(false);
         return;
       }
       
-      // Prevent multiple initializations
-      if (chatId) return;
+      // If chatId already exists, ensure loading is false
+      if (chatId) {
+        setLoading(false);
+        return;
+      }
       
       setLoading(true);
       setError(null);
