@@ -6,8 +6,8 @@ const userUsageSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-  month: {
-    type: String, // Format: "2024-01" for January 2024
+  date: {
+    type: String, // Format: "2024-01-15" for January 15, 2024
     required: true
   },
   chatbotChats: {
@@ -26,19 +26,19 @@ const userUsageSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Create compound index to ensure one usage record per user per month
-userUsageSchema.index({ userId: 1, month: 1 }, { unique: true });
+// Create compound index to ensure one usage record per user per day
+userUsageSchema.index({ userId: 1, date: 1 }, { unique: true });
 
-// Static method to get or create usage record for current month
+// Static method to get or create usage record for current day
 userUsageSchema.statics.getOrCreateUsage = async function(userId) {
-  const currentMonth = new Date().toISOString().slice(0, 7); // "2024-01"
+  const currentDate = new Date().toISOString().slice(0, 10); // "2024-01-15"
   
-  let usage = await this.findOne({ userId, month: currentMonth });
+  let usage = await this.findOne({ userId, date: currentDate });
   
   if (!usage) {
     usage = await this.create({
       userId,
-      month: currentMonth,
+      date: currentDate,
       chatbotChats: 0,
       videoRecommendations: 0,
       contentGenerations: 0
@@ -55,7 +55,7 @@ userUsageSchema.methods.canPerformAction = function(actionType, userPlan) {
   }
   
   const limits = {
-    chatbotChats: 5,
+    chatbotChats: 10,
     videoRecommendations: 2,
     contentGenerations: 2
   };

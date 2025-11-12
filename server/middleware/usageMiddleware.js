@@ -24,7 +24,7 @@ export const checkUsageLimit = (actionType) => {
         return next();
       }
 
-      // Get or create usage record for current month
+      // Get or create usage record for current day
       const usage = await UserUsage.getOrCreateUsage(userId);
       
       // Check if user can perform the action
@@ -32,8 +32,8 @@ export const checkUsageLimit = (actionType) => {
       
       if (!canPerform.allowed) {
         return res.status(429).json({
-          error: 'Monthly usage limit exceeded',
-          message: `You have reached your monthly limit of ${canPerform.limit} ${actionType.replace(/([A-Z])/g, ' $1').toLowerCase()}. Upgrade to Pro for unlimited access.`,
+          error: 'Daily usage limit exceeded',
+          message: `You have reached your daily limit of ${canPerform.limit} ${actionType.replace(/([A-Z])/g, ' $1').toLowerCase()}. Upgrade to Pro for unlimited access.`,
           usage: {
             used: canPerform.used,
             limit: canPerform.limit,

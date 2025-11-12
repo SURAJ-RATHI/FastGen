@@ -18,13 +18,13 @@ router.get('/status', requireAuth, async (req, res) => {
 
     const userPlan = user.subscription?.plan || 'free';
     
-    // Get or create usage record for current month
+    // Get or create usage record for current day
     const usage = await UserUsage.getOrCreateUsage(userId);
     
     // Define limits based on plan
     const limits = {
       free: {
-        chatbotChats: 5,
+        chatbotChats: 10,
         videoRecommendations: 2,
         contentGenerations: 2
       },
@@ -64,7 +64,7 @@ router.get('/status', requireAuth, async (req, res) => {
     res.json({
       success: true,
       plan: userPlan,
-      month: usage.month,
+      date: usage.date,
       usage: usageStatus
     });
 

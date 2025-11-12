@@ -59,7 +59,7 @@ const PRICING_PLANS = [
     amount: 0,
     description: "Perfect for getting started with FastGen",
     features: [
-      "5 AI-powered conversations per month",
+      "10 AI-powered conversations per day",
       "Basic quiz generation",
       "Standard content analysis",
       "Community support",

@@ -351,7 +351,7 @@ export default function ChatWindow() {
         
         // Show upgrade modal for any 500 error as a fallback
         setUpgradeModalData({
-          usage: { used: 5, limit: 5, remaining: 0 },
+          usage: { used: 10, limit: 10, remaining: 0 },
           featureType: 'chatbotChats'
         });
         setShowUpgradeModal(true);

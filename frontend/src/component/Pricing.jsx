@@ -51,8 +51,8 @@ const Pricing = () => {
       period: "month",
       description: "Perfect for getting started with FastGen",
       features: [
-        "5 AI-powered conversations per month",
-        "5 * free AI chats per month",
+        "10 AI-powered conversations per day",
+        "10 * free AI chats per day",
         "2 * Basic quiz generation per month ",
         "2 * Standard content analysis & summarization per month ",
         "2 * Video recommendation per month ",

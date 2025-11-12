@@ -139,7 +139,7 @@ const UpgradeModal = ({ isOpen, onClose, usageData, featureType }) => {
           </div>
           
           <p className="text-gray-600 text-sm">
-            You've reached your monthly limit
+            You've reached your daily limit
           </p>
         </div>
 
@@ -155,7 +155,7 @@ const UpgradeModal = ({ isOpen, onClose, usageData, featureType }) => {
             </div>
             {usageData && (
               <p className="text-red-600 text-sm">
-                You've used <strong>{usageData.used}/{usageData.limit}</strong> this month.
+                You've used <strong>{usageData.used}/{usageData.limit}</strong> today.
                 {usageData.remaining > 0 && (
                   <span className="ml-2 text-gray-500">
                     ({usageData.remaining} remaining)
