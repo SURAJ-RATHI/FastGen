@@ -335,7 +335,7 @@ export default function ChatWindow() {
     } catch (err) {
       console.error('Failed to send message:', err);
       
-      // Check if it's a usage limit error (429) or if it's a 500 error that might be usage-related
+      // Only show upgrade modal for explicit usage limit errors (429 with upgradeRequired flag)
       if (err.response?.status === 429 && err.response?.data?.upgradeRequired) {
         const usageData = err.response.data.usage;
         setUpgradeModalData({
@@ -343,20 +343,8 @@ export default function ChatWindow() {
           featureType: 'chatbotChats'
         });
         setShowUpgradeModal(true);
-        
-      } else if (err.response?.status === 500) {
-        // For 500 errors, check if it might be a usage limit issue
-        // This is a fallback in case the middleware isn't working properly
-        // 500 error occurred
-        
-        // Show upgrade modal for any 500 error as a fallback
-        setUpgradeModalData({
-          usage: { used: 10, limit: 10, remaining: 0 },
-          featureType: 'chatbotChats'
-        });
-        setShowUpgradeModal(true);
-        
       } else {
+        // For all other errors (including 500), show generic error message
         setMessages(prev => [...prev, { sender: 'ai', content: 'Sorry, I encountered an error. Please try again.' }]);
         setError(`Failed to send message: ${err.message}`);
       }

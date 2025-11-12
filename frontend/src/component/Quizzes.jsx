@@ -69,7 +69,7 @@ const handleSend = async () => {
   } catch (err) {
     console.error("Failed to generate quizzes:", err);
     
-    // Check if it's a usage limit error (429) or if it's a 500 error that might be usage-related
+    // Only show upgrade modal for explicit usage limit errors (429 with upgradeRequired flag)
     if (err.response?.status === 429 && err.response?.data?.upgradeRequired) {
       const usageData = err.response.data.usage;
       setUpgradeModalData({
@@ -77,18 +77,8 @@ const handleSend = async () => {
         featureType: 'contentGenerations'
       });
       setShowUpgradeModal(true);
-      
-    } else if (err.response?.status === 500) {
-      // For 500 errors, check if it might be a usage limit issue
-      console.log('500 error details:', err.response?.data);
-      
-      // Show upgrade modal for any 500 error as a fallback
-      setUpgradeModalData({
-        usage: { used: 2, limit: 2, remaining: 0 },
-        featureType: 'contentGenerations'
-      });
-      setShowUpgradeModal(true);
-      
+    } else {
+      setError(`Failed to generate quizzes: ${err.message || 'Unknown error'}`);
     }
   } finally {
     setIsGenerating(false);

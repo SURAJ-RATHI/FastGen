@@ -30,7 +30,11 @@ export const checkUsageLimit = (actionType) => {
       // Check if user can perform the action
       const canPerform = usage.canPerformAction(actionType, userPlan);
       
+      // Log usage check for debugging
+      console.log(`Usage check for user ${userId}, action: ${actionType}, plan: ${userPlan}, used: ${canPerform.used}, limit: ${canPerform.limit}, allowed: ${canPerform.allowed}`);
+      
       if (!canPerform.allowed) {
+        console.log(`Usage limit exceeded for user ${userId}, action: ${actionType}, used: ${canPerform.used}/${canPerform.limit}`);
         return res.status(429).json({
           error: 'Daily usage limit exceeded',
           message: `You have reached your daily limit of ${canPerform.limit} ${actionType.replace(/([A-Z])/g, ' $1').toLowerCase()}. Upgrade to Pro for unlimited access.`,
