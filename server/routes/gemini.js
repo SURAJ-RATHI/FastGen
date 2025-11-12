@@ -320,7 +320,7 @@ async function* generateStreamingResponse(prompt) {
       console.log(`Attempting streaming with key ${keyIndex + 1}/${apiKeys.length}`);
       
       const genAI = new GoogleGenerativeAI(currentKey.key);
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
       
       const result = await model.generateContentStream(prompt);
       
@@ -360,7 +360,7 @@ async function generateWithFallback(prompt) {
     try {
       const genAI = new GoogleGenerativeAI(apiKeyObj.key);
       const model = genAI.getGenerativeModel({ 
-        model: 'gemini-1.5-flash',
+        model: 'gemini-pro',
         generationConfig: {
           temperature: 0.7,
           topK: 40,

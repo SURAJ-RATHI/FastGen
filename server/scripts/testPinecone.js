@@ -90,7 +90,7 @@ const testPinecone = async () => {
     // Test embedding generation
     console.log('\n🧠 Testing Gemini embedding generation...');
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEYS.split(',')[0].trim());
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
     
     const prompt = `You are an embedding generator. Convert the following text into a 1536-dimensional vector representation.
 
