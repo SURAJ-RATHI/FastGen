@@ -297,11 +297,14 @@ ${relevantMessages.map(msg => `- ${msg.sender === 'user' ? 'User' : 'AI'}: ${msg
   }
 }
 
-const rawKeys = process.env.GEMINI_KEYS ? process.env.GEMINI_KEYS.split(',').map(k => k.trim()) : [];
+const rawKeys = process.env.GEMINI_KEYS ? process.env.GEMINI_KEYS.split(',').map(k => k.trim()).filter(k => k) : [];
 const apiKeys = rawKeys.map(key => ({ key, active: true }));
 
 if (apiKeys.length === 0) {
-  console.error('WARNING: No GEMINI_KEYS found in environment variables');
+  console.error('❌ ERROR: No GEMINI_KEYS found in environment variables');
+  console.error('   Please set GEMINI_KEYS in your .env file or Render environment variables');
+} else {
+  console.log(`✅ Gemini API: ${apiKeys.length} key(s) loaded and ready`);
 }
 
 // Streaming response generator
@@ -319,8 +322,15 @@ async function* generateStreamingResponse(prompt) {
     try {
       console.log(`Attempting streaming with key ${keyIndex + 1}/${apiKeys.length}`);
       
+      // Verify API key is present
+      if (!currentKey.key || currentKey.key.trim() === '') {
+        console.error(`Key ${keyIndex + 1} is empty or invalid`);
+        continue;
+      }
+      
       const genAI = new GoogleGenerativeAI(currentKey.key);
       // Use gemini-1.5-flash (works with v1 endpoint in latest SDK)
+      // The SDK automatically handles authentication and uses the correct v1 endpoint
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
       
       const result = await model.generateContentStream(prompt);
@@ -386,8 +396,15 @@ async function generateWithFallback(prompt) {
     if (!apiKeyObj.active) continue;
 
     try {
+      // Verify API key is present
+      if (!apiKeyObj.key || apiKeyObj.key.trim() === '') {
+        console.error('API key is empty or invalid');
+        continue;
+      }
+      
       const genAI = new GoogleGenerativeAI(apiKeyObj.key);
       // Use gemini-1.5-flash (works with v1 endpoint in latest SDK)
+      // The SDK automatically handles authentication and uses the correct v1 endpoint
       const model = genAI.getGenerativeModel({ 
         model: 'gemini-1.5-flash',
         generationConfig: {

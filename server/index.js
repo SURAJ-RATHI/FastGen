@@ -35,6 +35,17 @@ if (!process.env.SESSION_SECRET) {
   process.exit(1);
 }
 
+// Verify Gemini API keys
+if (process.env.GEMINI_KEYS) {
+  const keys = process.env.GEMINI_KEYS.split(',').map(k => k.trim()).filter(k => k);
+  console.log(`✅ Gemini API keys present: ${keys.length} key(s) configured`);
+  if (keys.length === 0) {
+    console.warn('⚠️  WARNING: GEMINI_KEYS is set but no valid keys found');
+  }
+} else {
+  console.warn('⚠️  WARNING: GEMINI_KEYS not found in environment variables');
+}
+
 // CORS configuration MUST BE FIRST - before any other middleware or routes
 app.use(cors({
     origin: [
