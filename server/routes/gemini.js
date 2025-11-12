@@ -445,7 +445,61 @@ router.post('/stream', checkUsageLimit('chatbotChats'), async (req, res) => {
       return res.status(400).json({ error: "chatId and prompt are required" });
     }
 
-    // Set up Server-Sent Events
+    // Check if API keys are available BEFORE setting streaming headers
+    if (apiKeys.length === 0 || apiKeys.every(key => !key.active)) {
+      console.error('No active API keys available');
+      return res.status(500).json({ 
+        error: 'Service unavailable',
+        message: 'AI service is temporarily unavailable. Please try again later.'
+      });
+    }
+
+    // Start processing in parallel for better performance BEFORE setting streaming headers
+    let userMessage, userPref, user;
+    try {
+      [userMessage, userPref, user] = await Promise.all([
+        Message.create({
+          chat: chatId,
+          sender: 'user',
+          content: prompt,
+        }),
+        UserPreference.findOne({ user: req.user.userId }),
+        User.findById(req.user.userId)
+      ]);
+    } catch (dbError) {
+      console.error('Database error in streaming route:', dbError);
+      console.error('Database error stack:', dbError.stack);
+      return res.status(500).json({ 
+        error: 'Database error',
+        message: 'Failed to process request. Please try again.'
+      });
+    }
+
+    // Build conversation context in parallel with file processing BEFORE setting headers
+    let conversationContext, parseText, parsedFilePath;
+    try {
+      [conversationContext, parseText, parsedFilePath] = await Promise.all([
+        buildConversationContext(req.user.userId, chatId, prompt),
+        parsedFileName ? (async () => {
+          const uploadDir = path.join(process.cwd(), 'uploads');
+          const filePath = path.join(uploadDir, parsedFileName);
+          if (fs.existsSync(filePath)) {
+            return fs.readFileSync(filePath, 'utf-8');
+          }
+          return "";
+        })() : Promise.resolve(""),
+        Promise.resolve(parsedFileName ? path.join(process.cwd(), 'uploads', parsedFileName) : "")
+      ]);
+    } catch (contextError) {
+      console.error('Error building context or processing file:', contextError);
+      console.error('Context error stack:', contextError.stack);
+      return res.status(500).json({ 
+        error: 'Processing error',
+        message: 'Failed to process request. Please try again.'
+      });
+    }
+
+    // Set up Server-Sent Events AFTER all validation, DB operations, and context building succeed
     res.writeHead(200, {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
@@ -457,35 +511,10 @@ router.post('/stream', checkUsageLimit('chatbotChats'), async (req, res) => {
     // Send initial connection event
     res.write('data: {"type":"connected","message":"Stream started"}\n\n');
 
-    // Start processing in parallel for better performance
-    const [userMessage, userPref, user] = await Promise.all([
-      Message.create({
-        chat: chatId,
-        sender: 'user',
-        content: prompt,
-      }),
-      UserPreference.findOne({ user: req.user.userId }),
-      User.findById(req.user.userId)
-    ]);
-
     // Add message to chat's messages array (non-blocking)
     Chat.findByIdAndUpdate(chatId, {
       $push: { messages: userMessage._id }
     }).catch(err => console.error('Error updating chat messages:', err));
-
-    // Build conversation context in parallel with file processing
-    const [conversationContext, parseText, parsedFilePath] = await Promise.all([
-      buildConversationContext(req.user.userId, chatId, prompt),
-      parsedFileName ? (async () => {
-        const uploadDir = path.join(process.cwd(), 'uploads');
-        const filePath = path.join(uploadDir, parsedFileName);
-        if (fs.existsSync(filePath)) {
-          return fs.readFileSync(filePath, 'utf-8');
-        }
-        return "";
-      })() : Promise.resolve(""),
-      Promise.resolve(parsedFileName ? path.join(process.cwd(), 'uploads', parsedFileName) : "")
-    ]);
 
     // Check if file was found and readable
     if (parsedFileName && !parseText) {
