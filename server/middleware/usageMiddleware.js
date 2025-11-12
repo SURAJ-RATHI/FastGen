@@ -54,7 +54,18 @@ export const checkUsageLimit = (actionType) => {
       next();
     } catch (error) {
       console.error('Usage middleware error:', error);
-      res.status(500).json({ error: 'Failed to check usage limits' });
+      console.error('Error stack:', error.stack);
+      console.error('Error details:', {
+        userId: req.user?.userId,
+        actionType,
+        errorMessage: error.message,
+        errorName: error.name
+      });
+      
+      // Don't block the request if usage check fails - allow it through with a warning
+      // This prevents legitimate requests from being blocked due to usage tracking issues
+      console.warn('Usage check failed, allowing request through:', error.message);
+      next();
     }
   };
 };

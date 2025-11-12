@@ -297,8 +297,12 @@ ${relevantMessages.map(msg => `- ${msg.sender === 'user' ? 'User' : 'AI'}: ${msg
   }
 }
 
-const rawKeys = process.env.GEMINI_KEYS.split(',').map(k => k.trim());
+const rawKeys = process.env.GEMINI_KEYS ? process.env.GEMINI_KEYS.split(',').map(k => k.trim()) : [];
 const apiKeys = rawKeys.map(key => ({ key, active: true }));
+
+if (apiKeys.length === 0) {
+  console.error('WARNING: No GEMINI_KEYS found in environment variables');
+}
 
 // Streaming response generator
 async function* generateStreamingResponse(prompt) {
@@ -721,10 +725,28 @@ IMPORTANT:
     console.error('=== END STREAMING ERROR ===');
     
     try {
-      res.write(`data: {"type":"error","message":"${err.message}"}\n\n`);
-      res.end();
+      // Check if headers have been sent (streaming started)
+      if (!res.headersSent) {
+        // Headers not sent yet, can send proper error response
+        return res.status(500).json({ 
+          error: 'Failed to process request',
+          message: err.message || 'Internal server error'
+        });
+      } else {
+        // Headers already sent (streaming started), write error to stream
+        res.write(`data: {"type":"error","message":"${err.message || 'Internal server error'}"}\n\n`);
+        res.end();
+      }
     } catch (writeError) {
       console.error('Error writing error response:', writeError);
+      // If we can't write to the response, just end it
+      if (!res.headersSent) {
+        try {
+          res.status(500).json({ error: 'Internal server error' });
+        } catch (finalError) {
+          console.error('Failed to send final error response:', finalError);
+        }
+      }
     }
   }
 });

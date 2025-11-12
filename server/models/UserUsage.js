@@ -31,21 +31,39 @@ userUsageSchema.index({ userId: 1, date: 1 }, { unique: true });
 
 // Static method to get or create usage record for current day
 userUsageSchema.statics.getOrCreateUsage = async function(userId) {
-  const currentDate = new Date().toISOString().slice(0, 10); // "2024-01-15"
-  
-  let usage = await this.findOne({ userId, date: currentDate });
-  
-  if (!usage) {
-    usage = await this.create({
-      userId,
-      date: currentDate,
-      chatbotChats: 0,
-      videoRecommendations: 0,
-      contentGenerations: 0
-    });
+  try {
+    const currentDate = new Date().toISOString().slice(0, 10); // "2024-01-15"
+    
+    let usage = await this.findOne({ userId, date: currentDate });
+    
+    if (!usage) {
+      try {
+        usage = await this.create({
+          userId,
+          date: currentDate,
+          chatbotChats: 0,
+          videoRecommendations: 0,
+          contentGenerations: 0
+        });
+      } catch (createError) {
+        // Handle race condition: if another request created the record between findOne and create
+        if (createError.code === 11000 || createError.name === 'MongoServerError') {
+          // Duplicate key error - try to find the record again
+          usage = await this.findOne({ userId, date: currentDate });
+          if (!usage) {
+            throw new Error('Failed to create or find usage record after duplicate key error');
+          }
+        } else {
+          throw createError;
+        }
+      }
+    }
+    
+    return usage;
+  } catch (error) {
+    console.error('Error in getOrCreateUsage:', error);
+    throw error;
   }
-  
-  return usage;
 };
 
 // Method to check if user can perform action
