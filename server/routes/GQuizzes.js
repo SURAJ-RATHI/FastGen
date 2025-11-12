@@ -136,7 +136,7 @@ async function generateWithFallback(prompt) {
     try {
       const genAI = new GoogleGenerativeAI(apiKeyObj.key);
       const model = genAI.getGenerativeModel({ 
-        model: 'gemini-pro',
+        model: 'gemini-1.5-flash',
         generationConfig: {
           temperature: 0.7,
           topK: 40,

@@ -320,13 +320,8 @@ async function* generateStreamingResponse(prompt) {
       console.log(`Attempting streaming with key ${keyIndex + 1}/${apiKeys.length}`);
       
       const genAI = new GoogleGenerativeAI(currentKey.key);
-      // Try gemini-1.5-pro first (supports streaming), fallback to gemini-pro
-      let model;
-      try {
-        model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
-      } catch (e) {
-        model = genAI.getGenerativeModel({ model: "gemini-pro" });
-      }
+      // Use gemini-1.5-flash (works with v1 endpoint in latest SDK)
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
       
       const result = await model.generateContentStream(prompt);
       
@@ -345,25 +340,29 @@ async function* generateStreamingResponse(prompt) {
       console.error(`Streaming failed with key ${keyIndex + 1}:`, error.message);
       console.error(`Streaming error details:`, error);
       
-      // If it's a model not found error, try gemini-pro as fallback
+      // If it's a model not found error, try alternative models
       if (error.message.includes('not found') || error.message.includes('404') || error.status === 404) {
-        try {
-          console.log(`Trying gemini-pro as fallback for key ${keyIndex + 1}`);
-          const genAI = new GoogleGenerativeAI(currentKey.key);
-          const fallbackModel = genAI.getGenerativeModel({ model: "gemini-pro" });
-          const result = await fallbackModel.generateContentStream(prompt);
-          
-          for await (const chunk of result.stream) {
-            const chunkText = chunk.text();
-            if (chunkText) {
-              yield { text: chunkText };
+        const fallbackModels = ["gemini-1.5-pro", "gemini-pro", "gemini-2.0-flash-exp"];
+        for (const fallbackModelName of fallbackModels) {
+          try {
+            console.log(`Trying ${fallbackModelName} as fallback for key ${keyIndex + 1}`);
+            const genAI = new GoogleGenerativeAI(currentKey.key);
+            const fallbackModel = genAI.getGenerativeModel({ model: fallbackModelName });
+            const result = await fallbackModel.generateContentStream(prompt);
+            
+            for await (const chunk of result.stream) {
+              const chunkText = chunk.text();
+              if (chunkText) {
+                yield { text: chunkText };
+              }
             }
+            
+            lastUsedKeyIndex = keyIndex;
+            return;
+          } catch (fallbackError) {
+            console.error(`Fallback to ${fallbackModelName} failed:`, fallbackError.message);
+            continue;
           }
-          
-          lastUsedKeyIndex = keyIndex;
-          return;
-        } catch (fallbackError) {
-          console.error(`Fallback to gemini-pro also failed:`, fallbackError.message);
         }
       }
       
@@ -388,65 +387,34 @@ async function generateWithFallback(prompt) {
 
     try {
       const genAI = new GoogleGenerativeAI(apiKeyObj.key);
-      // Try gemini-1.5-pro first, fallback to gemini-pro
-      let model;
-      try {
-        model = genAI.getGenerativeModel({ 
-          model: 'gemini-1.5-pro',
-          generationConfig: {
-            temperature: 0.7,
-            topK: 40,
-            topP: 0.95,
-            maxOutputTokens: 2048,
+      // Use gemini-1.5-flash (works with v1 endpoint in latest SDK)
+      const model = genAI.getGenerativeModel({ 
+        model: 'gemini-1.5-flash',
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 2048,
+        },
+        safetySettings: [
+          {
+            category: "HARM_CATEGORY_HARASSMENT",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
           },
-          safetySettings: [
-            {
-              category: "HARM_CATEGORY_HARASSMENT",
-              threshold: "BLOCK_MEDIUM_AND_ABOVE"
-            },
-            {
-              category: "HARM_CATEGORY_HATE_SPEECH",
-              threshold: "BLOCK_MEDIUM_AND_ABOVE"
-            },
-            {
-              category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-              threshold: "BLOCK_MEDIUM_AND_ABOVE"
-            },
-            {
-              category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-              threshold: "BLOCK_MEDIUM_AND_ABOVE"
-            }
-          ]
-        });
-      } catch (e) {
-        model = genAI.getGenerativeModel({ 
-          model: 'gemini-pro',
-          generationConfig: {
-            temperature: 0.7,
-            topK: 40,
-            topP: 0.95,
-            maxOutputTokens: 2048,
+          {
+            category: "HARM_CATEGORY_HATE_SPEECH",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
           },
-          safetySettings: [
-            {
-              category: "HARM_CATEGORY_HARASSMENT",
-              threshold: "BLOCK_MEDIUM_AND_ABOVE"
-            },
-            {
-              category: "HARM_CATEGORY_HATE_SPEECH",
-              threshold: "BLOCK_MEDIUM_AND_ABOVE"
-            },
-            {
-              category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-              threshold: "BLOCK_MEDIUM_AND_ABOVE"
-            },
-            {
-              category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-              threshold: "BLOCK_MEDIUM_AND_ABOVE"
-            }
-          ]
-        });
-      }
+          {
+            category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          }
+        ]
+      });
 
       // Enhanced prompt engineering for better responses
       const enhancedPrompt = `You are an intelligent, helpful, and friendly AI assistant. You provide accurate, detailed, and well-structured responses. 
