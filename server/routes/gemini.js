@@ -329,10 +329,9 @@ async function* generateStreamingResponse(prompt) {
       }
       
       const genAI = new GoogleGenerativeAI(currentKey.key);
-      // Use gemini-1.5-pro as primary model (stable model)
+      // Use gemini-1.5-flash as primary model (faster, more reliable)
       const model = genAI.getGenerativeModel({ 
-        model: "gemini-1.5-pro",
-        apiVersion: "v1"
+        model: "gemini-1.5-flash"
       });
       
       const result = await model.generateContentStream(prompt);
@@ -354,14 +353,13 @@ async function* generateStreamingResponse(prompt) {
       
       // If it's a model not found error, try alternative models
       if (error.message.includes('not found') || error.message.includes('404') || error.status === 404) {
-        const fallbackModels = ["gemini-2.0-flash-exp", "gemini-1.5-pro", "gemini-pro"];
+        const fallbackModels = ["gemini-1.5-pro", "gemini-1.5-flash-latest", "gemini-pro"];
         for (const fallbackModelName of fallbackModels) {
           try {
             console.log(`Trying ${fallbackModelName} as fallback for key ${keyIndex + 1}`);
             const genAI = new GoogleGenerativeAI(currentKey.key);
             const fallbackModel = genAI.getGenerativeModel({ 
-              model: fallbackModelName,
-              apiVersion: "v1"
+              model: fallbackModelName
             });
             const result = await fallbackModel.generateContentStream(prompt);
             
@@ -408,10 +406,9 @@ async function generateWithFallback(prompt) {
       }
       
       const genAI = new GoogleGenerativeAI(apiKeyObj.key);
-      // Use gemini-1.5-pro as primary model (stable model)
+      // Use gemini-1.5-flash as primary model (faster, more reliable)
       const model = genAI.getGenerativeModel({ 
-        model: 'gemini-1.5-pro',
-        apiVersion: "v1",
+        model: 'gemini-1.5-flash',
         generationConfig: {
           temperature: 0.7,
           topK: 40,
