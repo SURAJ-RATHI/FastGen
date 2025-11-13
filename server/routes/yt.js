@@ -73,15 +73,8 @@ router.get('/', requireAuth, checkUsageLimit('videoRecommendations'), async (req
 
     console.log(`Successfully fetched ${videos.length} videos for topic: ${topic}`);
     
-    // Increment usage for successful video recommendation
-    try {
-      if (req.usage) {
-        await req.usage.incrementUsage('videoRecommendations');
-        console.log(`Incremented video recommendation usage for user ${req.user.userId}`);
-      }
-    } catch (error) {
-      console.error('Error incrementing usage:', error);
-    }
+    // Usage already incremented in middleware (pre-increment)
+    // No need to increment again
     
     res.status(200).json({ videos });
   } catch (error) {

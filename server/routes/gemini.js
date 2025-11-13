@@ -781,15 +781,8 @@ IMPORTANT:
       console.error('Error updating chat title:', error);
     }
 
-    // Increment usage for successful chat
-    try {
-      if (req.usage) {
-        await req.usage.incrementUsage('chatbotChats');
-        console.log(`Incremented chatbot usage for user ${req.user.userId}`);
-      }
-    } catch (error) {
-      console.error('Error incrementing usage:', error);
-    }
+    // Usage already incremented in middleware (pre-increment)
+    // No need to increment again
 
     res.end();
 
@@ -1009,15 +1002,8 @@ IMPORTANT:
       fs.unlinkSync(parsedFilePath);
     }
 
-    // Increment usage for successful chat
-    try {
-      if (req.usage) {
-        await req.usage.incrementUsage('chatbotChats');
-        console.log(`Incremented chatbot usage for user ${req.user.userId}`);
-      }
-    } catch (error) {
-      console.error('Error incrementing usage:', error);
-    }
+    // Usage already incremented in middleware (pre-increment)
+    // No need to increment again
 
     res.json({ answer: ans });
 

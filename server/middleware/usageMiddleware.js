@@ -18,9 +18,19 @@ export const checkUsageLimit = (actionType) => {
       }
 
       const userPlan = user.subscription?.plan || 'free';
+      const subscriptionStatus = user.subscription?.status || 'free';
+      const endDate = user.subscription?.endDate;
       
-      // Pro and Enterprise users have unlimited access
-      if (userPlan === 'pro' || userPlan === 'enterprise') {
+      // Check if subscription is expired
+      if (userPlan !== 'free' && endDate && new Date() > new Date(endDate)) {
+        // Update subscription status to expired
+        await User.findByIdAndUpdate(userId, { 
+          'subscription.status': 'expired',
+          'subscription.plan': 'free'
+        });
+        // Continue with free plan limits
+      } else if ((userPlan === 'pro' || userPlan === 'enterprise') && subscriptionStatus === 'active') {
+        // Pro and Enterprise users with active subscriptions have unlimited access
         return next();
       }
 
@@ -28,10 +38,10 @@ export const checkUsageLimit = (actionType) => {
       const usage = await UserUsage.getOrCreateUsage(userId);
       
       // Check if user can perform the action
-      const canPerform = usage.canPerformAction(actionType, userPlan);
+      const canPerform = usage.canPerformAction(actionType, 'free'); // Always use free limits for expired/free users
       
       // Log usage check for debugging
-      console.log(`Usage check for user ${userId}, action: ${actionType}, plan: ${userPlan}, used: ${canPerform.used}, limit: ${canPerform.limit}, allowed: ${canPerform.allowed}`);
+      console.log(`Usage check for user ${userId}, action: ${actionType}, plan: free, used: ${canPerform.used}, limit: ${canPerform.limit}, allowed: ${canPerform.allowed}`);
       
       if (!canPerform.allowed) {
         console.log(`Usage limit exceeded for user ${userId}, action: ${actionType}, used: ${canPerform.used}/${canPerform.limit}`);
@@ -47,9 +57,23 @@ export const checkUsageLimit = (actionType) => {
         });
       }
 
-      // Add usage info to request for potential increment
-      req.usage = usage;
-      req.canPerform = canPerform;
+      // Pre-increment usage atomically to reserve the slot
+      try {
+        await usage.incrementUsage(actionType);
+        console.log(`Pre-incremented ${actionType} usage for user ${userId}`);
+        
+        // Add flag to indicate usage was already incremented
+        req.usageIncremented = true;
+        req.usage = usage;
+        req.canPerform = canPerform;
+      } catch (incrementError) {
+        console.error('Failed to increment usage:', incrementError);
+        // If increment fails, block the request
+        return res.status(500).json({ 
+          error: 'Failed to process request',
+          message: 'Unable to track usage. Please try again.'
+        });
+      }
       
       next();
     } catch (error) {
@@ -62,10 +86,11 @@ export const checkUsageLimit = (actionType) => {
         errorName: error.name
       });
       
-      // Don't block the request if usage check fails - allow it through with a warning
-      // This prevents legitimate requests from being blocked due to usage tracking issues
-      console.warn('Usage check failed, allowing request through:', error.message);
-      next();
+      // Block requests when usage check fails to prevent bypassing limits
+      return res.status(503).json({ 
+        error: 'Service temporarily unavailable',
+        message: 'Unable to process request. Please try again later.'
+      });
     }
   };
 };

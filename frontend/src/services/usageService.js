@@ -31,19 +31,19 @@ class UsageService {
         used: usage.chatbotChats.used,
         limit: usage.chatbotChats.limit,
         remaining: usage.chatbotChats.remaining,
-        isUnlimited: usage.chatbotChats.limit === 'unlimited'
+        isUnlimited: usage.chatbotChats.limit >= 999999 // Check for large number instead of string
       },
       videoRecommendations: {
         used: usage.videoRecommendations.used,
         limit: usage.videoRecommendations.limit,
         remaining: usage.videoRecommendations.remaining,
-        isUnlimited: usage.videoRecommendations.limit === 'unlimited'
+        isUnlimited: usage.videoRecommendations.limit >= 999999 // Check for large number instead of string
       },
       contentGenerations: {
         used: usage.contentGenerations.used,
         limit: usage.contentGenerations.limit,
         remaining: usage.contentGenerations.remaining,
-        isUnlimited: usage.contentGenerations.limit === 'unlimited'
+        isUnlimited: usage.contentGenerations.limit >= 999999 // Check for large number instead of string
       }
     };
   }

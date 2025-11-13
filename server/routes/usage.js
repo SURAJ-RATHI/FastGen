@@ -46,18 +46,18 @@ router.get('/status', requireAuth, async (req, res) => {
     const usageStatus = {
       chatbotChats: {
         used: usage.chatbotChats || 0,
-        limit: planLimits.chatbotChats,
-        remaining: planLimits.chatbotChats === 'unlimited' ? 'unlimited' : Math.max(0, planLimits.chatbotChats - (usage.chatbotChats || 0))
+        limit: planLimits.chatbotChats === 'unlimited' ? 999999 : planLimits.chatbotChats,
+        remaining: planLimits.chatbotChats === 'unlimited' ? 999999 : Math.max(0, planLimits.chatbotChats - (usage.chatbotChats || 0))
       },
       videoRecommendations: {
         used: usage.videoRecommendations || 0,
-        limit: planLimits.videoRecommendations,
-        remaining: planLimits.videoRecommendations === 'unlimited' ? 'unlimited' : Math.max(0, planLimits.videoRecommendations - (usage.videoRecommendations || 0))
+        limit: planLimits.videoRecommendations === 'unlimited' ? 999999 : planLimits.videoRecommendations,
+        remaining: planLimits.videoRecommendations === 'unlimited' ? 999999 : Math.max(0, planLimits.videoRecommendations - (usage.videoRecommendations || 0))
       },
       contentGenerations: {
         used: usage.contentGenerations || 0,
-        limit: planLimits.contentGenerations,
-        remaining: planLimits.contentGenerations === 'unlimited' ? 'unlimited' : Math.max(0, planLimits.contentGenerations - (usage.contentGenerations || 0))
+        limit: planLimits.contentGenerations === 'unlimited' ? 999999 : planLimits.contentGenerations,
+        remaining: planLimits.contentGenerations === 'unlimited' ? 999999 : Math.max(0, planLimits.contentGenerations - (usage.contentGenerations || 0))
       }
     };
 

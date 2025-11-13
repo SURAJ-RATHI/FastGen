@@ -103,15 +103,8 @@ Text:${parseText}
       console.log('Could not parse response to count questions:', parseErr.message);
     }
 
-    // Increment usage for successful content generation
-    try {
-      if (req.usage) {
-        await req.usage.incrementUsage('contentGenerations');
-        console.log(`Incremented content generation usage for user ${req.user.userId}`);
-      }
-    } catch (error) {
-      console.error('Error incrementing usage:', error);
-    }
+    // Usage already incremented in middleware (pre-increment)
+    // No need to increment again
 
     res.json({ answer: extractedJSON });
 

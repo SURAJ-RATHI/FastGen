@@ -30,9 +30,15 @@ const userUsageSchema = new mongoose.Schema({
 userUsageSchema.index({ userId: 1, date: 1 }, { unique: true });
 
 // Static method to get or create usage record for current day
-userUsageSchema.statics.getOrCreateUsage = async function(userId) {
+userUsageSchema.statics.getOrCreateUsage = async function(userId, timezone = 'UTC') {
   try {
-    const currentDate = new Date().toISOString().slice(0, 10); // "2024-01-15"
+    // Use UTC by default to maintain consistency
+    // Future improvement: Store user timezone and use it here
+    const now = new Date();
+    
+    // For now, use UTC midnight for all users
+    // This ensures consistency across the system
+    const currentDate = now.toISOString().slice(0, 10); // "2024-01-15"
     
     let usage = await this.findOne({ userId, date: currentDate });
     
@@ -69,7 +75,12 @@ userUsageSchema.statics.getOrCreateUsage = async function(userId) {
 // Method to check if user can perform action
 userUsageSchema.methods.canPerformAction = function(actionType, userPlan) {
   if (userPlan === 'pro' || userPlan === 'enterprise') {
-    return { allowed: true, remaining: 'unlimited' };
+    return { 
+      allowed: true, 
+      remaining: 999999, // Use large number instead of string for consistency
+      limit: 999999,     // Use large number instead of string
+      used: 0 
+    };
   }
   
   const limits = {
@@ -92,10 +103,21 @@ userUsageSchema.methods.canPerformAction = function(actionType, userPlan) {
   };
 };
 
-// Method to increment usage
-userUsageSchema.methods.incrementUsage = function(actionType) {
-  this[actionType] = (this[actionType] || 0) + 1;
-  return this.save();
+// Method to increment usage atomically
+userUsageSchema.methods.incrementUsage = async function(actionType) {
+  // Use atomic findOneAndUpdate to prevent race conditions
+  const updated = await this.constructor.findOneAndUpdate(
+    { _id: this._id },
+    { $inc: { [actionType]: 1 } },
+    { new: true }
+  );
+  
+  // Update local instance with new values
+  if (updated) {
+    this[actionType] = updated[actionType];
+  }
+  
+  return updated;
 };
 
 const UserUsage = mongoose.model('UserUsage', userUsageSchema);
