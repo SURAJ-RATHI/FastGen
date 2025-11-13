@@ -101,8 +101,11 @@ class PineconeService {
   async generateEmbedding(text) {
     try {
       // Use Gemini to generate a semantic representation
-      // Use gemini-1.5-flash (works with v1 endpoint in latest SDK)
-      const model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      // Use gemini-1.5-flash with v1 API (stable model)
+      const model = this.genAI.getGenerativeModel({ 
+        model: "gemini-1.5-flash",
+        apiVersion: "v1"
+      });
       
       const prompt = `You are an embedding generator. Convert the following text into a 1536-dimensional vector representation.
 

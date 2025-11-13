@@ -329,9 +329,11 @@ async function* generateStreamingResponse(prompt) {
       }
       
       const genAI = new GoogleGenerativeAI(currentKey.key);
-      // Use gemini-1.5-flash (works with v1 endpoint in latest SDK)
-      // The SDK automatically handles authentication and uses the correct v1 endpoint
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      // Use gemini-1.5-flash with v1 API (stable model)
+      const model = genAI.getGenerativeModel({ 
+        model: "gemini-1.5-flash",
+        apiVersion: "v1"
+      });
       
       const result = await model.generateContentStream(prompt);
       
@@ -403,10 +405,10 @@ async function generateWithFallback(prompt) {
       }
       
       const genAI = new GoogleGenerativeAI(apiKeyObj.key);
-      // Use gemini-1.5-flash (works with v1 endpoint in latest SDK)
-      // The SDK automatically handles authentication and uses the correct v1 endpoint
+      // Use gemini-1.5-flash with v1 API (stable model)
       const model = genAI.getGenerativeModel({ 
         model: 'gemini-1.5-flash',
+        apiVersion: "v1",
         generationConfig: {
           temperature: 0.7,
           topK: 40,
