@@ -101,9 +101,9 @@ class PineconeService {
   async generateEmbedding(text) {
     try {
       // Use Gemini to generate a semantic representation
-      // Use gemini-1.5-flash with v1 API (stable model)
+      // Use gemini-1.5-pro with v1 API (stable model)
       const model = this.genAI.getGenerativeModel({ 
-        model: "gemini-1.5-flash",
+        model: "gemini-1.5-pro",
         apiVersion: "v1"
       });
       
