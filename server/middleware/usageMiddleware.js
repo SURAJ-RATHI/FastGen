@@ -59,15 +59,28 @@ export const checkUsageLimit = (actionType) => {
 
       // Pre-increment usage atomically to reserve the slot
       try {
-        await usage.incrementUsage(actionType);
-        console.log(`Pre-incremented ${actionType} usage for user ${userId}`);
+        // Ensure the actionType field exists before incrementing
+        if (usage[actionType] === undefined) {
+          usage[actionType] = 0;
+        }
+        
+        console.log(`Attempting to increment ${actionType} for user ${userId}, current usage: ${usage[actionType]}`);
+        const updatedUsage = await usage.incrementUsage(actionType);
+        console.log(`Pre-incremented ${actionType} usage for user ${userId}, new usage: ${updatedUsage[actionType]}`);
         
         // Add flag to indicate usage was already incremented
         req.usageIncremented = true;
-        req.usage = usage;
+        req.usage = updatedUsage;
         req.canPerform = canPerform;
       } catch (incrementError) {
         console.error('Failed to increment usage:', incrementError);
+        console.error('Increment error stack:', incrementError.stack);
+        console.error('Usage object details:', {
+          _id: usage._id,
+          userId: usage.userId,
+          date: usage.date,
+          [actionType]: usage[actionType]
+        });
         // If increment fails, block the request
         return res.status(500).json({ 
           error: 'Failed to process request',

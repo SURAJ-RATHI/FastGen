@@ -105,19 +105,42 @@ userUsageSchema.methods.canPerformAction = function(actionType, userPlan) {
 
 // Method to increment usage atomically
 userUsageSchema.methods.incrementUsage = async function(actionType) {
-  // Use atomic findOneAndUpdate to prevent race conditions
-  const updated = await this.constructor.findOneAndUpdate(
-    { _id: this._id },
-    { $inc: { [actionType]: 1 } },
-    { new: true }
-  );
-  
-  // Update local instance with new values
-  if (updated) {
+  try {
+    // Ensure _id exists
+    if (!this._id) {
+      throw new Error('Cannot increment usage: Usage record has no _id');
+    }
+    
+    // Ensure actionType field exists
+    if (this[actionType] === undefined) {
+      this[actionType] = 0;
+    }
+    
+    // Use atomic findOneAndUpdate to prevent race conditions
+    const UserUsageModel = this.constructor;
+    const updated = await UserUsageModel.findOneAndUpdate(
+      { _id: this._id },
+      { $inc: { [actionType]: 1 } },
+      { new: true }
+    );
+    
+    if (!updated) {
+      // Fallback to regular save if atomic update fails
+      console.warn(`Atomic increment failed for ${actionType}, attempting regular save`);
+      this[actionType] = (this[actionType] || 0) + 1;
+      await this.save();
+      return this;
+    }
+    
+    // Update local instance with new values
     this[actionType] = updated[actionType];
+    
+    return updated;
+  } catch (error) {
+    console.error(`Error incrementing ${actionType} usage:`, error);
+    console.error(`Error details: _id=${this._id}, actionType=${actionType}, currentValue=${this[actionType]}`);
+    throw error;
   }
-  
-  return updated;
 };
 
 const UserUsage = mongoose.model('UserUsage', userUsageSchema);

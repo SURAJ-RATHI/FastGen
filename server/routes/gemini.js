@@ -1067,8 +1067,19 @@ IMPORTANT:
     }
 
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to process Gemini request' });
+    console.error('=== NON-STREAMING ROUTE ERROR ===');
+    console.error('Error:', err);
+    console.error('Error message:', err.message);
+    console.error('Error stack:', err.stack);
+    console.error('=== END ERROR ===');
+    
+    // Provide more detailed error message
+    const errorMessage = err.message || 'Internal server error';
+    res.status(500).json({ 
+      error: 'Failed to process Gemini request',
+      message: errorMessage,
+      details: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
   }
 });
 
