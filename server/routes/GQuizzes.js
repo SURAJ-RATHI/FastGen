@@ -10,7 +10,9 @@ const router = express.Router()
 
 // Handle preflight requests for GQuizzes
 router.options('/', (req, res) => {
-  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  // Use the request origin if it's in the allowed list, otherwise use the main app origin
+  const allowedOrigin = req.headers.origin || 'https://fastgen-ai.vercel.app';
+  res.header('Access-Control-Allow-Origin', allowedOrigin);
   res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie, X-Requested-With, Cache-Control');
   res.header('Access-Control-Allow-Credentials', 'true');
