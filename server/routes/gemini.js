@@ -328,10 +328,10 @@ async function* generateStreamingResponse(prompt) {
         continue;
       }
       
-      const genAI = new GoogleGenerativeAI(currentKey.key);
-      // Use gemini-1.5-flash-002 as primary model (latest version, faster, more reliable)
+      const genAI = new GoogleGenerativeAI(currentKey.key, { apiVersion: 'v1' });
+      // Use a v1-supported model for streaming
       const model = genAI.getGenerativeModel({
-        model: "gemini-1.5-flash-002"
+        model: "gemini-1.5-flash"
       });
       
       const result = await model.generateContentStream(prompt);
@@ -351,33 +351,7 @@ async function* generateStreamingResponse(prompt) {
       console.error(`Streaming failed with key ${keyIndex + 1}:`, error.message);
       console.error(`Streaming error details:`, error);
       
-      // If it's a model not found error, try alternative models
-      if (error.message.includes('not found') || error.message.includes('404') || error.status === 404) {
-        const fallbackModels = ["gemini-1.5-pro-002", "gemini-1.5-flash-8b", "gemini-1.5-flash"];
-        for (const fallbackModelName of fallbackModels) {
-          try {
-            console.log(`Trying ${fallbackModelName} as fallback for key ${keyIndex + 1}`);
-            const genAI = new GoogleGenerativeAI(currentKey.key);
-            const fallbackModel = genAI.getGenerativeModel({ 
-              model: fallbackModelName
-            });
-            const result = await fallbackModel.generateContentStream(prompt);
-            
-            for await (const chunk of result.stream) {
-              const chunkText = chunk.text();
-              if (chunkText) {
-                yield { text: chunkText };
-              }
-            }
-            
-            lastUsedKeyIndex = keyIndex;
-            return;
-          } catch (fallbackError) {
-            console.error(`Fallback to ${fallbackModelName} failed:`, fallbackError.message);
-            continue;
-          }
-        }
-      }
+      // No model fallbacks; keep it simple and consistent with gemini-1.5-flash
       
       // If it's a quota or rate limit error, deactivate this key
       if (error.message.includes('quota') || error.message.includes('rate limit') || error.message.includes('429')) {
@@ -405,10 +379,10 @@ async function generateWithFallback(prompt) {
         continue;
       }
       
-      const genAI = new GoogleGenerativeAI(apiKeyObj.key);
-      // Use gemini-1.5-flash-002 as primary model (latest version, faster, more reliable)
+      const genAI = new GoogleGenerativeAI(apiKeyObj.key, { apiVersion: 'v1' });
+      // Use a v1-supported model for non-stream responses
       const model = genAI.getGenerativeModel({
-        model: 'gemini-1.5-flash-002',
+        model: 'gemini-1.5-flash',
         generationConfig: {
           temperature: 0.7,
           topK: 40,

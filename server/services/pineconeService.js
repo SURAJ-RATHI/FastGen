@@ -9,7 +9,7 @@ class PineconeService {
     this.pinecone = new Pinecone({
       apiKey: process.env.PINECONE_API_KEY,
     });
-    this.genAI = new GoogleGenerativeAI(process.env.GEMINI_KEYS.split(',')[0].trim());
+    this.genAI = new GoogleGenerativeAI(process.env.GEMINI_KEYS.split(',')[0].trim(), { apiVersion: 'v1' });
     this.indexName = process.env.PINECONE_INDEX_NAME || 'fastgen-chats';
     this.index = null;
   }
