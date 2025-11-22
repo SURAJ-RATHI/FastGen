@@ -140,7 +140,7 @@ async function generateWithFallback(prompt) {
         }
       });
 
-      const result = await model.generateContent([{ text: prompt }]);
+      const result = await model.generateContent(prompt); 
       const ans = result.response.text();
 
       return ans; // return if success

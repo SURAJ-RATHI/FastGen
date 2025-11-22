@@ -635,7 +635,7 @@ IMPORTANT:
     }
 
     // Send completion event
-    res.write('data: {"type":"complete","message":"Response complete"}\n\n');
+   res.write(`data: ${JSON.stringify({ type: "chunk", content: chunk.text })}\n\n`);
 
     // Clean up uploaded file
     if (parsedFilePath && fs.existsSync(parsedFilePath)) {
