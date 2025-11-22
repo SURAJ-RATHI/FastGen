@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from "react";
 
 import QuizCard from "./QuizCard";
 import axios from "axios";
-import UpgradeModal from "./UpgradeModal";
 
 
 const Quizzes = () => {
@@ -13,9 +12,6 @@ const [isGenerating, setIsGenerating] = useState(false);
 const [quizzes, setQuizzes] = useState([]);
   const [questionCount, setQuestionCount] = useState(5);
 const fileInputRef = useRef(null);
-const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-const [upgradeModalData, setUpgradeModalData] = useState(null);
-const [error, setError] = useState('');
 
 
 useEffect(() => {
@@ -59,7 +55,6 @@ const handleSend = async () => {
       questionCount: validQuestionCount,
     }, {
       withCredentials: true,
-      timeout: 15000
     });
 
     console.log('Gemini response:', res.data);
@@ -70,18 +65,6 @@ const handleSend = async () => {
     localStorage.setItem('quizzes', JSON.stringify(parsed));
   } catch (err) {
     console.error("Failed to generate quizzes:", err);
-    
-    // Only show upgrade modal for explicit usage limit errors (429 with upgradeRequired flag)
-    if (err.response?.status === 429 && err.response?.data?.upgradeRequired) {
-      const usageData = err.response.data.usage;
-      setUpgradeModalData({
-        usage: usageData,
-        featureType: 'contentGenerations'
-      });
-      setShowUpgradeModal(true);
-    } else {
-      setError(`Failed to generate quizzes: ${err.message || 'Unknown error'}`);
-    }
   } finally {
     setIsGenerating(false);
   }
@@ -104,7 +87,6 @@ const handleFileChange = async (e) => {
         "Content-Type": "multipart/form-data",
       },
       withCredentials: true,
-      timeout: 15000,
       onUploadProgress: (progressEvent) => {
         const percentCompleted = Math.round(
           (progressEvent.loaded * 100) / progressEvent.total
@@ -121,7 +103,6 @@ const handleFileChange = async (e) => {
   } catch (err) {
     console.error("Upload failed:", err);
     setIsUploading(false);
-    setError(`Upload failed: ${err.message || 'Unknown error'}`);
   }
 };
 
@@ -134,28 +115,28 @@ const handleAttachClick = () => {
 
 
 return (
-  <div className="h-[91vh] bg-white overflow-hidden">
+  <div className="h-[91vh] bg-black overflow-hidden">
     <div className="h-full overflow-y-auto scrollbar-hide p-4">
     
     {/* HEADER SECTION - File name, question count controls, and reset button */}
     {uploadedParsedFileName && (
-      <div className="mb-6 p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+      <div className="mb-6 p-4 bg-gray-800 rounded-lg border border-gray-600">
         {/* File info and reset button row */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-              <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
             <div>
-              <p className="text-gray-900 font-medium">File Uploaded</p>
-              <p className="text-gray-600 text-sm">{uploadedParsedFileName}</p>
+              <p className="text-white font-medium">File Uploaded</p>
+              <p className="text-gray-300 text-sm">{uploadedParsedFileName}</p>
             </div>
           </div>
           <button
             onClick={handleReset}
-            className="px-4 py-2 bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 rounded-md transition-colors flex items-center gap-2 font-medium"
+            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors flex items-center gap-2"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -166,7 +147,7 @@ return (
         
         {/* Question count controls row */}
         <div className="flex items-center gap-4">
-          <label className="text-gray-900 text-sm font-medium">Number of Questions:</label>
+          <label className="text-white text-sm font-medium">Number of Questions:</label>
           
           <input
             type="number"
@@ -195,10 +176,10 @@ return (
             min="1"
             max="50"
             step="1"
-            className="px-3 py-2 bg-white text-gray-900 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900 w-32"
+            className="px-3 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 w-32"
           />
           
-          <span className="text-gray-600 text-sm">
+          <span className="text-gray-300 text-sm">
             Selected: {questionCount} questions
           </span>
         </div>
@@ -221,23 +202,23 @@ return (
           <div className="space-y-3">
             <div
               onClick={handleAttachClick}
-              className="w-100% h-20 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center cursor-pointer hover:border-gray-400 transition-colors bg-white"
+              className="w-100% h-20 border-2 border-dashed border-gray-600 rounded-md flex items-center justify-center cursor-pointer hover:border-gray-500 transition-colors bg-gray-800"
             >
-              <span className="text-sm text-gray-600">📄 Upload PDF or TXT File</span>
+              <span className="text-sm text-gray-300">📄 Upload PDF or TXT File</span>
             </div>
             <p className="text-xs text-gray-500 text-center">PDF and TXT files are supported for text extraction</p>
           </div>
         ) : isUploading ? (
           // SHOW progress bar DURING upload
-          <div className="w-40 h-4 bg-gray-200 rounded">
+          <div className="w-40 h-4 bg-gray-700 rounded">
             <div
-              className="h-full bg-gray-900 rounded"
+              className="h-full bg-blue-500 rounded"
               style={{ width: `${uploadProgress}%` }}
             ></div>
           </div>
         ) : (
           // AFTER file uploaded
-          <p className="text-green-600 font-medium">✅ File uploaded!</p>
+          <p className="text-green-400 font-medium">✅ File uploaded!</p>
         )}
 
         {/* GENERATE button appears ONLY if file is uploaded */}
@@ -245,7 +226,7 @@ return (
           <button
             onClick={handleSend}
             disabled={isUploading}
-            className="mt-4 px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 transition font-medium"
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
           >
             Generate Quizzes
           </button>
@@ -254,14 +235,7 @@ return (
     )}
 
     {/* LOADING INDICATOR */}
-    {isGenerating && <p className="text-gray-900">Loading quizzes...</p>}
-
-    {/* ERROR MESSAGE */}
-    {error && (
-      <div className="mt-3 p-3 bg-red-50 border border-red-200 text-red-700 rounded">
-        {error}
-      </div>
-    )}
+    {isGenerating && <p className="text-white">Loading quizzes...</p>}
 
     {/* QUIZZES */}
     {quizzes.length > 0 && (
@@ -272,14 +246,6 @@ return (
 
       </div>
     )}
-
-    {/* Upgrade Modal */}
-    <UpgradeModal 
-      isOpen={showUpgradeModal} 
-      onClose={() => setShowUpgradeModal(false)} 
-      usageData={upgradeModalData?.usage}
-      featureType={upgradeModalData?.featureType}
-    />
     </div>
   </div>
 );
