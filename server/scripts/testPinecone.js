@@ -91,7 +91,7 @@ const testPinecone = async () => {
     console.log('\n🧠 Testing Gemini embedding generation...');
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEYS.split(',')[0].trim());
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-1.5-pro",
+      model: "gemini-2.0-pro",
       apiVersion: "v1"
     });
     
