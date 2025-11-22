@@ -24,9 +24,9 @@ router.get('/status', requireAuth, async (req, res) => {
     // Define limits based on plan
     const limits = {
       free: {
-        chatbotChats: 10,
-        videoRecommendations: 2,
-        contentGenerations: 2
+        chatbotChats: 'unlimited',
+        videoRecommendations: 'unlimited',
+        contentGenerations: 'unlimited'
       },
       pro: {
         chatbotChats: 'unlimited',

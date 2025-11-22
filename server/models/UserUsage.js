@@ -74,32 +74,11 @@ userUsageSchema.statics.getOrCreateUsage = async function(userId, timezone = 'UT
 
 // Method to check if user can perform action
 userUsageSchema.methods.canPerformAction = function(actionType, userPlan) {
-  if (userPlan === 'pro' || userPlan === 'enterprise') {
-    return { 
-      allowed: true, 
-      remaining: 999999, // Use large number instead of string for consistency
-      limit: 999999,     // Use large number instead of string
-      used: 0 
-    };
-  }
-  
-  const limits = {
-    chatbotChats: 10,
-    videoRecommendations: 2,
-    contentGenerations: 2
-  };
-  
-  const currentUsage = this[actionType] || 0;
-  const limit = limits[actionType];
-  
-  // Allow if current usage is less than limit (e.g., limit=10 allows uses 0-9, which is 10 total uses)
-  const allowed = currentUsage < limit;
-  
   return {
-    allowed: allowed,
-    remaining: Math.max(0, limit - currentUsage),
-    limit: limit,
-    used: currentUsage
+    allowed: true,
+    remaining: 999999,
+    limit: 999999,
+    used: this[actionType] || 0
   };
 };
 

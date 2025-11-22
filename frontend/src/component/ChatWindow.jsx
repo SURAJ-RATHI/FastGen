@@ -165,7 +165,8 @@ export default function ChatWindow() {
       }
       const res = await axios.get(`${import.meta.env.VITE_APP_BE_BASEURL}/api/chats/getChat`, {
         withCredentials: true,
-        params: { limit, sort: 'updatedAt' }
+        params: { limit, sort: 'updatedAt' },
+        timeout: 10000
       });
       
       const chats = Array.isArray(res.data) ? res.data : res.data?.chats || [];
@@ -256,7 +257,7 @@ export default function ChatWindow() {
       const newChatRes = await axios.post(
         `${import.meta.env.VITE_APP_BE_BASEURL}/api/chats`,
         {},
-        { headers: { 'Content-Type': 'application/json' }, withCredentials: true }
+        { headers: { 'Content-Type': 'application/json' }, withCredentials: true, timeout: 10000 }
       );
       if (!isMounted) return;
       
@@ -548,7 +549,7 @@ export default function ChatWindow() {
       const newChatRes = await axios.post(
         `${import.meta.env.VITE_APP_BE_BASEURL}/api/chats`,
         {},
-        { headers: { 'Content-Type': 'application/json' }, withCredentials: true }
+        { headers: { 'Content-Type': 'application/json' }, withCredentials: true, timeout: 10000 }
       );
       
       if (!newChatRes.data?._id) throw new Error('Failed to create new chat: No ID returned');

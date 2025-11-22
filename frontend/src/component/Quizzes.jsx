@@ -15,6 +15,7 @@ const [quizzes, setQuizzes] = useState([]);
 const fileInputRef = useRef(null);
 const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 const [upgradeModalData, setUpgradeModalData] = useState(null);
+const [error, setError] = useState('');
 
 
 useEffect(() => {
@@ -58,6 +59,7 @@ const handleSend = async () => {
       questionCount: validQuestionCount,
     }, {
       withCredentials: true,
+      timeout: 15000
     });
 
     console.log('Gemini response:', res.data);
@@ -102,6 +104,7 @@ const handleFileChange = async (e) => {
         "Content-Type": "multipart/form-data",
       },
       withCredentials: true,
+      timeout: 15000,
       onUploadProgress: (progressEvent) => {
         const percentCompleted = Math.round(
           (progressEvent.loaded * 100) / progressEvent.total
@@ -118,6 +121,7 @@ const handleFileChange = async (e) => {
   } catch (err) {
     console.error("Upload failed:", err);
     setIsUploading(false);
+    setError(`Upload failed: ${err.message || 'Unknown error'}`);
   }
 };
 
@@ -251,6 +255,13 @@ return (
 
     {/* LOADING INDICATOR */}
     {isGenerating && <p className="text-gray-900">Loading quizzes...</p>}
+
+    {/* ERROR MESSAGE */}
+    {error && (
+      <div className="mt-3 p-3 bg-red-50 border border-red-200 text-red-700 rounded">
+        {error}
+      </div>
+    )}
 
     {/* QUIZZES */}
     {quizzes.length > 0 && (
