@@ -5,7 +5,6 @@ import UserPreference from "../models/UserPreference.js"
 import Message from "../models/Message.js"
 import Chat from "../models/Chat.js"
 import pineconeService from "../services/pineconeService.js"
-import { checkUsageLimit, incrementUsage } from "../middleware/usageMiddleware.js"
 import dotenv from "dotenv" 
 import fs from 'fs'
 import path from "path"
@@ -297,15 +296,8 @@ ${relevantMessages.map(msg => `- ${msg.sender === 'user' ? 'User' : 'AI'}: ${msg
   }
 }
 
-const rawKeys = process.env.GEMINI_KEYS ? process.env.GEMINI_KEYS.split(',').map(k => k.trim()).filter(k => k) : [];
+const rawKeys = process.env.GEMINI_KEYS.split(',').map(k => k.trim());
 const apiKeys = rawKeys.map(key => ({ key, active: true }));
-
-if (apiKeys.length === 0) {
-  console.error('❌ ERROR: No GEMINI_KEYS found in environment variables');
-  console.error('   Please set GEMINI_KEYS in your .env file or Render environment variables');
-} else {
-  console.log(`✅ Gemini API: ${apiKeys.length} key(s) loaded and ready`);
-}
 
 // Streaming response generator
 async function* generateStreamingResponse(prompt) {
@@ -322,17 +314,8 @@ async function* generateStreamingResponse(prompt) {
     try {
       console.log(`Attempting streaming with key ${keyIndex + 1}/${apiKeys.length}`);
       
-      // Verify API key is present
-      if (!currentKey.key || currentKey.key.trim() === '') {
-        console.error(`Key ${keyIndex + 1} is empty or invalid`);
-        continue;
-      }
-      
-      const genAI = new GoogleGenerativeAI(currentKey.key, { apiVersion: 'v1' });
-      // Use a v1-supported model for streaming
-      const model = genAI.getGenerativeModel({
-        model: "gemini-1.5-flash"
-      });
+      const genAI = new GoogleGenerativeAI(currentKey.key);
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
       
       const result = await model.generateContentStream(prompt);
       
@@ -349,9 +332,6 @@ async function* generateStreamingResponse(prompt) {
       
     } catch (error) {
       console.error(`Streaming failed with key ${keyIndex + 1}:`, error.message);
-      console.error(`Streaming error details:`, error);
-      
-      // No model fallbacks; keep it simple and consistent with gemini-1.5-flash
       
       // If it's a quota or rate limit error, deactivate this key
       if (error.message.includes('quota') || error.message.includes('rate limit') || error.message.includes('429')) {
@@ -373,15 +353,8 @@ async function generateWithFallback(prompt) {
     if (!apiKeyObj.active) continue;
 
     try {
-      // Verify API key is present
-      if (!apiKeyObj.key || apiKeyObj.key.trim() === '') {
-        console.error('API key is empty or invalid');
-        continue;
-      }
-      
-      const genAI = new GoogleGenerativeAI(apiKeyObj.key, { apiVersion: 'v1' });
-      // Use a v1-supported model for non-stream responses
-      const model = genAI.getGenerativeModel({
+      const genAI = new GoogleGenerativeAI(apiKeyObj.key);
+      const model = genAI.getGenerativeModel({ 
         model: 'gemini-1.5-flash',
         generationConfig: {
           temperature: 0.7,
@@ -449,7 +422,7 @@ Please provide a helpful, accurate, and well-structured response.`;
 }
 
 // gemini streaming request
-router.post('/stream', checkUsageLimit('chatbotChats'), async (req, res) => {
+router.post('/stream', async (req, res) => {
   try {
     console.log('=== STREAMING REQUEST START ===');
     console.log('Request body:', req.body);
@@ -467,79 +440,47 @@ router.post('/stream', checkUsageLimit('chatbotChats'), async (req, res) => {
       return res.status(400).json({ error: "chatId and prompt are required" });
     }
 
-    // Check if API keys are available BEFORE setting streaming headers
-    if (apiKeys.length === 0 || apiKeys.every(key => !key.active)) {
-      console.error('No active API keys available');
-      return res.status(500).json({ 
-        error: 'Service unavailable',
-        message: 'AI service is temporarily unavailable. Please try again later.'
-      });
-    }
-
-    // Start processing in parallel for better performance BEFORE setting streaming headers
-    let userMessage, userPref, user;
-    try {
-      [userMessage, userPref, user] = await Promise.all([
-        Message.create({
-          chat: chatId,
-          sender: 'user',
-          content: prompt,
-        }),
-        UserPreference.findOne({ user: req.user.userId }),
-        User.findById(req.user.userId)
-      ]);
-    } catch (dbError) {
-      console.error('Database error in streaming route:', dbError);
-      console.error('Database error stack:', dbError.stack);
-      return res.status(500).json({ 
-        error: 'Database error',
-        message: 'Failed to process request. Please try again.'
-      });
-    }
-
-    // Build conversation context in parallel with file processing BEFORE setting headers
-    let conversationContext, parseText, parsedFilePath;
-    try {
-      [conversationContext, parseText, parsedFilePath] = await Promise.all([
-        buildConversationContext(req.user.userId, chatId, prompt),
-        parsedFileName ? (async () => {
-          const uploadDir = path.join(process.cwd(), 'uploads');
-          const filePath = path.join(uploadDir, parsedFileName);
-          if (fs.existsSync(filePath)) {
-            return fs.readFileSync(filePath, 'utf-8');
-          }
-          return "";
-        })() : Promise.resolve(""),
-        Promise.resolve(parsedFileName ? path.join(process.cwd(), 'uploads', parsedFileName) : "")
-      ]);
-    } catch (contextError) {
-      console.error('Error building context or processing file:', contextError);
-      console.error('Context error stack:', contextError.stack);
-      return res.status(500).json({ 
-        error: 'Processing error',
-        message: 'Failed to process request. Please try again.'
-      });
-    }
-
-    // Set up Server-Sent Events AFTER all validation, DB operations, and context building succeed
-    // Get the origin from the request
-    const allowedOrigin = req.headers.origin || 'https://fastgen-ai.vercel.app';
+    // Set up Server-Sent Events
     res.writeHead(200, {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
       'Connection': 'keep-alive',
-      'Access-Control-Allow-Origin': allowedOrigin,
-      'Access-Control-Allow-Credentials': 'true',
+      'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Headers': 'Cache-Control'
     });
 
     // Send initial connection event
     res.write('data: {"type":"connected","message":"Stream started"}\n\n');
 
+    // Start processing in parallel for better performance
+    const [userMessage, userPref, user] = await Promise.all([
+      Message.create({
+        chat: chatId,
+        sender: 'user',
+        content: prompt,
+      }),
+      UserPreference.findOne({ user: req.user.userId }),
+      User.findById(req.user.userId)
+    ]);
+
     // Add message to chat's messages array (non-blocking)
     Chat.findByIdAndUpdate(chatId, {
       $push: { messages: userMessage._id }
     }).catch(err => console.error('Error updating chat messages:', err));
+
+    // Build conversation context in parallel with file processing
+    const [conversationContext, parseText, parsedFilePath] = await Promise.all([
+      buildConversationContext(req.user.userId, chatId, prompt),
+      parsedFileName ? (async () => {
+        const uploadDir = path.join(process.cwd(), 'uploads');
+        const filePath = path.join(uploadDir, parsedFileName);
+        if (fs.existsSync(filePath)) {
+          return fs.readFileSync(filePath, 'utf-8');
+        }
+        return "";
+      })() : Promise.resolve(""),
+      Promise.resolve(parsedFileName ? path.join(process.cwd(), 'uploads', parsedFileName) : "")
+    ]);
 
     // Check if file was found and readable
     if (parsedFileName && !parseText) {
@@ -760,9 +701,6 @@ IMPORTANT:
       console.error('Error updating chat title:', error);
     }
 
-    // Usage already incremented in middleware (pre-increment)
-    // No need to increment again
-
     res.end();
 
   } catch (err) {
@@ -772,34 +710,16 @@ IMPORTANT:
     console.error('=== END STREAMING ERROR ===');
     
     try {
-      // Check if headers have been sent (streaming started)
-      if (!res.headersSent) {
-        // Headers not sent yet, can send proper error response
-        return res.status(500).json({ 
-          error: 'Failed to process request',
-          message: err.message || 'Internal server error'
-        });
-      } else {
-        // Headers already sent (streaming started), write error to stream
-        res.write(`data: {"type":"error","message":"${err.message || 'Internal server error'}"}\n\n`);
-        res.end();
-      }
+      res.write(`data: {"type":"error","message":"${err.message}"}\n\n`);
+      res.end();
     } catch (writeError) {
       console.error('Error writing error response:', writeError);
-      // If we can't write to the response, just end it
-      if (!res.headersSent) {
-        try {
-          res.status(500).json({ error: 'Internal server error' });
-        } catch (finalError) {
-          console.error('Failed to send final error response:', finalError);
-        }
-      }
     }
   }
 });
 
 // gemini res request (non-streaming fallback)
-router.post('/', checkUsageLimit('chatbotChats'), async (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const { chatId, prompt, parsedFileName } = req.body;
 
@@ -981,9 +901,6 @@ IMPORTANT:
       fs.unlinkSync(parsedFilePath);
     }
 
-    // Usage already incremented in middleware (pre-increment)
-    // No need to increment again
-
     res.json({ answer: ans });
 
     // Store both user message and AI response in long-term memory
@@ -1046,19 +963,8 @@ IMPORTANT:
     }
 
   } catch (err) {
-    console.error('=== NON-STREAMING ROUTE ERROR ===');
-    console.error('Error:', err);
-    console.error('Error message:', err.message);
-    console.error('Error stack:', err.stack);
-    console.error('=== END ERROR ===');
-    
-    // Provide more detailed error message
-    const errorMessage = err.message || 'Internal server error';
-    res.status(500).json({ 
-      error: 'Failed to process Gemini request',
-      message: errorMessage,
-      details: process.env.NODE_ENV === 'development' ? err.stack : undefined
-    });
+    console.error(err);
+    res.status(500).json({ error: 'Failed to process Gemini request' });
   }
 });
 

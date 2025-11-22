@@ -9,7 +9,7 @@ class PineconeService {
     this.pinecone = new Pinecone({
       apiKey: process.env.PINECONE_API_KEY,
     });
-    this.genAI = new GoogleGenerativeAI(process.env.GEMINI_KEYS.split(',')[0].trim(), { apiVersion: 'v1' });
+    this.genAI = new GoogleGenerativeAI(process.env.GEMINI_KEYS.split(',')[0].trim());
     this.indexName = process.env.PINECONE_INDEX_NAME || 'fastgen-chats';
     this.index = null;
   }
@@ -101,9 +101,9 @@ class PineconeService {
   async generateEmbedding(text) {
     try {
       // Use Gemini to generate a semantic representation
-      // Use gemini-1.5-flash (faster, more reliable)
+      // Use simplest text model
       const model = this.genAI.getGenerativeModel({ 
-        model: "gemini-1.5-flash"
+        model: "gemini-pro"
       });
       
       const prompt = `You are an embedding generator. Convert the following text into a 1536-dimensional vector representation.
